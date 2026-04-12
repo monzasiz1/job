@@ -23,6 +23,8 @@ export interface Job {
   description: string
   field: string
   is_active: boolean
+  lat?: number | null
+  lng?: number | null
   created_at: string
   profiles?: Profile
 }
