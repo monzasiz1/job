@@ -4,9 +4,9 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 
-const LogoMark = () => (
-  <div className="s-logo-mark">
-    <svg viewBox="0 0 20 20" fill="none" style={{width:18,height:18}}>
+const Mark = () => (
+  <div style={{width:32,height:32,background:'linear-gradient(135deg,#d4a843,#f0c060)',borderRadius:9,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+    <svg viewBox="0 0 20 20" fill="none" style={{width:16,height:16}}>
       <path d="M10 2L16 5.8V12.8L10 16.5L4 12.8V5.8L10 2Z" stroke="#1a1a00" strokeWidth="1.8" fill="none"/>
       <circle cx="10" cy="9.5" r="2.8" fill="#1a1a00"/>
     </svg>
@@ -30,62 +30,94 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }, [])
 
   const logout = async () => { await supabase.auth.signOut(); window.location.href = '/' }
-  const active = (h: string) => pathname === h || (h.length > 1 && pathname.startsWith(h)) ? 'on' : ''
-  const initials = profile?.full_name?.split(' ').map((n:string)=>n[0]).join('').slice(0,2).toUpperCase() || '?'
+  const active = (h: string) => pathname === h || (h.length > 1 && pathname.startsWith(h))
+  const initials = profile?.full_name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() || '?'
 
   const links = profile?.role === 'employer'
-    ? [{h:'/dashboard',i:'⊞',l:'Dashboard'},{h:'/jobs',i:'◈',l:'Jobs'},{h:'/post-job',i:'＋',l:'Stelle inserieren'},{h:'/ki-tools',i:'✦',l:'KI-Tools'}]
-    : [{h:'/dashboard',i:'⊞',l:'Dashboard'},{h:'/jobs',i:'◈',l:'Jobs finden'},{h:'/ki-tools',i:'✦',l:'KI-Assistent'},{h:`/bewerber/${uid}`,i:'◉',l:'Mein Profil'}]
+    ? [
+        { h: '/dashboard', i: '⊞', l: 'Dashboard' },
+        { h: '/jobs', i: '◈', l: 'Jobs' },
+        { h: '/post-job', i: '＋', l: 'Stelle inserieren' },
+        { h: '/ki-tools', i: '✦', l: 'KI-Tools' },
+      ]
+    : [
+        { h: '/dashboard', i: '⊞', l: 'Dashboard' },
+        { h: '/jobs', i: '◈', l: 'Jobs finden' },
+        { h: '/favoriten', i: '⭐', l: 'Favoriten' },
+        { h: '/ki-tools', i: '✦', l: 'KI-Assistent' },
+        { h: `/bewerber/${uid}`, i: '◉', l: 'Mein Profil' },
+      ]
 
-  const SidebarContent = () => (
-    <>
-      <Link href="/" className="s-logo" onClick={()=>setOpen(false)}>
-        <LogoMark /><span className="s-logo-text">WorkMatch</span>
+  const SidebarInner = () => (
+    <aside style={{width:240,background:'var(--surface)',borderRight:'1px solid var(--border)',display:'flex',flexDirection:'column',height:'100%',overflowY:'auto'}}>
+      <Link href="/" onClick={() => setOpen(false)} style={{display:'flex',alignItems:'center',gap:10,padding:'1.25rem 1.1rem',borderBottom:'1px solid var(--border)',textDecoration:'none',flexShrink:0}}>
+        <Mark/>
+        <span style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:'1.05rem',color:'#fff'}}>WorkMatch</span>
       </Link>
+
       {profile && (
-        <div className="s-user">
-          <div style={{display:'flex',alignItems:'center',gap:'0.75rem'}}>
-            <div className="s-avatar">{profile.avatar_url?<img src={profile.avatar_url} alt=""/>:initials}</div>
-            <div>
-              <div className="s-name">Hi, {profile.full_name?.split(' ')[0]}!</div>
-              <div className="s-role">{profile.role==='employer'?`🏢 ${profile.company_name||'Arbeitgeber'}`:'Auf Jobsuche'}</div>
-            </div>
+        <div style={{padding:'1rem 1.1rem',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',gap:'0.7rem',flexShrink:0}}>
+          <div style={{width:40,height:40,borderRadius:12,background:'linear-gradient(135deg,var(--accent),#a080ff)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:'0.88rem',color:'#fff',flexShrink:0}}>{initials}</div>
+          <div style={{minWidth:0}}>
+            <div style={{fontWeight:700,fontSize:'0.84rem',color:'#fff',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>Hi, {profile.full_name?.split(' ')[0]}!</div>
+            <div style={{fontSize:'0.7rem',color:'var(--text3)',marginTop:1}}>{profile.role==='employer'?profile.company_name:'Auf Jobsuche'}</div>
           </div>
         </div>
       )}
-      <nav className="s-nav">
-        <div className="s-section">Menü</div>
+
+      <nav style={{padding:'0.75rem',flex:1,display:'flex',flexDirection:'column',gap:2}}>
+        <div style={{fontSize:'0.62rem',fontWeight:700,letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--text3)',padding:'0.5rem 0.5rem 0.2rem'}}>Menü</div>
         {links.map(({h,i,l}) => (
-          <Link key={h} href={h} className={`s-link ${active(h)}`} onClick={()=>setOpen(false)}>
-            <span className="s-icon">{i}</span>{l}
+          <Link key={h} href={h} onClick={() => setOpen(false)}
+            style={{display:'flex',alignItems:'center',gap:10,padding:'9px 11px',borderRadius:12,color:active(h)?'var(--accent)':'var(--text2)',background:active(h)?'var(--accent-soft)':'transparent',fontWeight:600,fontSize:'0.83rem',textDecoration:'none',transition:'all 0.15s'}}>
+            <span style={{width:16,textAlign:'center',fontSize:'0.9rem',flexShrink:0}}>{i}</span>{l}
           </Link>
         ))}
       </nav>
-      <div className="s-bottom">
-        <button onClick={logout} className="s-link" style={{color:'var(--text3)',width:'100%'}}>
-          <span className="s-icon">⇥</span>Abmelden
+
+      <div style={{padding:'0.75rem',borderTop:'1px solid var(--border)',flexShrink:0}}>
+        <button onClick={logout} style={{display:'flex',alignItems:'center',gap:10,padding:'9px 11px',borderRadius:12,color:'var(--text3)',background:'none',border:'none',fontWeight:600,fontSize:'0.83rem',cursor:'pointer',width:'100%',fontFamily:"'DM Sans',sans-serif"}}>
+          <span style={{width:16,textAlign:'center',flexShrink:0}}>⇥</span>Abmelden
         </button>
       </div>
-    </>
+    </aside>
   )
 
   return (
-    <div className="shell">
+    <div style={{display:'flex',minHeight:'100vh',background:'var(--bg)'}}>
       {/* Mobile overlay */}
-      <div className={`mob-overlay${open?' show':''}`} onClick={()=>setOpen(false)} />
+      {open && <div onClick={() => setOpen(false)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.6)',zIndex:280,backdropFilter:'blur(4px)'}}/>}
 
       {/* Sidebar desktop */}
-      <aside className={`sidebar${open?' open':''}`}><SidebarContent /></aside>
+      <div style={{width:240,flexShrink:0,position:'sticky',top:0,height:'100vh'}} className="sidebar-wrap">
+        <div style={{position:'fixed',top:0,left:0,bottom:0,width:240,zIndex:200}}>
+          <SidebarInner />
+        </div>
+      </div>
 
-      <div className="main">
+      {/* Sidebar mobile */}
+      <div style={{position:'fixed',top:0,left:0,bottom:0,width:240,zIndex:300,transform:open?'translateX(0)':'translateX(-100%)',transition:'transform 0.28s ease',display:'none'}} className="sidebar-mobile">
+        <SidebarInner />
+      </div>
+
+      {/* Main */}
+      <div style={{flex:1,minHeight:'100vh',minWidth:0}}>
         {/* Mobile topbar */}
-        <div className="mob-bar">
-          <button className="mob-btn" onClick={()=>setOpen(true)}>☰</button>
-          <span style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:'1rem',color:'#fff'}}>WorkMatch</span>
+        <div style={{position:'sticky',top:0,zIndex:200,background:'rgba(23,23,42,0.97)',borderBottom:'1px solid var(--border)',padding:'0 1rem',height:52,alignItems:'center',justifyContent:'space-between',display:'none'}} className="mob-bar">
+          <button onClick={() => setOpen(true)} style={{background:'none',border:'none',color:'var(--text)',fontSize:'1.2rem',cursor:'pointer',padding:8}}>☰</button>
+          <span style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:'0.95rem',color:'#fff'}}>WorkMatch</span>
           <div style={{width:36}}/>
         </div>
         {children}
       </div>
+
+      <style>{`
+        @media(max-width:860px){
+          .sidebar-wrap{display:none !important}
+          .sidebar-mobile{display:block !important}
+          .mob-bar{display:flex !important}
+        }
+      `}</style>
     </div>
   )
 }
