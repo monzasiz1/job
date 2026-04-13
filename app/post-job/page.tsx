@@ -61,6 +61,8 @@ export default function PostJobPage() {
     setUploading(true)
     try {
       const url = await uploadImage(file, 'job-images')
+      // Speichere Logo im Profil (für alle Inserate)
+      await supabase.from('profiles').update({ avatar_url: url }).eq('id', profile.id)
       setForm(f => ({ ...f, company_logo_url: url }))
     } catch { setError('Logo-Upload fehlgeschlagen') }
     setUploading(false)
