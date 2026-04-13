@@ -25,6 +25,7 @@ export interface Job {
   is_active: boolean
   lat?: number | null
   lng?: number | null
+  cover_image_url?: string
   created_at: string
   profiles?: Profile
 }
