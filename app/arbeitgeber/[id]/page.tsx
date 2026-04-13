@@ -1,15 +1,90 @@
-import { createClient } from '@/lib/supabase-server'
+'use client'
+import { createClient } from '@/lib/supabase-browser'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import Navbar from '@/components/Navbar'
 
-export default async function ArbeitgeberProfilePage({ params }: { params: { id: string } }) {
-  const supabase = createClient()
-  const { data: profile } = await supabase.from('profiles').select('*').eq('id', params.id).eq('role', 'employer').single()
-  if (!profile) notFound()
+interface Profile {
+  id: string
+  company_name: string
+  avatar_url?: string
+  location?: string
+  website?: string
+  bio?: string
+  email: string
+  created_at: string
+}
 
-  const { data: jobs } = await supabase.from('jobs').select('*').eq('employer_id', params.id).eq('is_active', true).order('created_at', { ascending: false })
-  const activeJobs = jobs || []
+interface Job {
+  id: string
+  title: string
+  company: string
+  location: string
+  contract: string
+  salary_min: number
+  salary_max: number
+  type: string
+  cover_image_url?: string
+}
+
+export default function ArbeitgeberProfilePage({ params }: { params: { id: string } }) {
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [activeJobs, setActiveJobs] = useState<Job[]>([])
+  const [loading, setLoading] = useState(true)
+  const [notFound, setNotFound] = useState(false)
+
+  useEffect(() => {
+    const loadData = async () => {
+      const supabase = createClient()
+
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', params.id)
+        .eq('role', 'employer')
+        .single()
+
+      if (!profileData) {
+        setNotFound(true)
+        return
+      }
+
+      const { data: jobsData } = await supabase
+        .from('jobs')
+        .select('*')
+        .eq('employer_id', params.id)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+
+      setProfile(profileData)
+      setActiveJobs(jobsData || [])
+      setLoading(false)
+    }
+
+    loadData()
+  }, [params.id])
+
+  if (notFound) {
+    return (
+      <>
+        <Navbar />
+        <div className="page" style={{ textAlign: 'center', padding: '4rem' }}>
+          <h2 style={{ color: 'var(--ink)' }}>Profil nicht gefunden</h2>
+        </div>
+      </>
+    )
+  }
+
+  if (loading || !profile) {
+    return (
+      <>
+        <Navbar />
+        <div className="page" style={{ textAlign: 'center', padding: '4rem' }}>
+          <div style={{ color: 'var(--ink2)' }}>Wird geladen...</div>
+        </div>
+      </>
+    )
+  }
 
   const logoClasses = ['logo-a', 'logo-b', 'logo-c', 'logo-d']
 
@@ -59,11 +134,11 @@ export default async function ArbeitgeberProfilePage({ params }: { params: { id:
               <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--ink2)' }}>Aktuell keine offenen Stellen</div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {activeJobs.map((job: any, i: number) => (
+                {activeJobs.map((job, i) => (
                   <Link key={job.id} href={`/jobs/${job.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', padding: '1rem 1.25rem', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', transition: 'all 0.2s', background: 'white' }}
-                      onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--border-gold)', e.currentTarget.style.background = 'rgba(200,169,81,0.02)')}
-                      onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)', e.currentTarget.style.background = 'white')}>
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', padding: '1rem 1.25rem', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', transition: 'all 0.2s', background: 'white', cursor: 'pointer' }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--border-gold)'; e.currentTarget.style.background = 'rgba(200,169,81,0.02)' }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'white' }}>
                       {job.cover_image_url ? (
                         <img src={job.cover_image_url} alt={job.title} style={{ width: 60, height: 60, borderRadius: 12, objectFit: 'cover', flexShrink: 0 }} />
                       ) : (
