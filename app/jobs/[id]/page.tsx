@@ -2,97 +2,108 @@ import { createClient } from '@/lib/supabase-server'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import Navbar from '@/components/Navbar'
+import FavoriteButton from '@/components/FavoriteButton'
 
 export default async function JobDetailPage({ params }: { params: { id: string } }) {
   const supabase = createClient()
-  const { data: job } = await supabase.from('jobs').select('*, profiles(id, full_name, company_name, email, avatar_url, bio, location, website)').eq('id', params.id).single()
+  const { data: job } = await supabase
+    .from('jobs')
+    .select('*, profiles(id, full_name, company_name, email, avatar_url, bio, website)')
+    .eq('id', params.id)
+    .single()
   if (!job) notFound()
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  const logoClasses = ['logo-a', 'logo-b', 'logo-c', 'logo-d']
-  const logoClass = logoClasses[job.company.length % 4]
-
-  const typeBadge = job.type === 'Remote' ? 'badge-green' : job.type === 'Hybrid' ? 'badge-blue' : 'badge-amber'
+  const lc = ['ja','jb','jc','jd']
+  const logoClass = lc[job.company.length % 4]
+  const typeBadge = job.type === 'Remote' ? 'b-remote' : job.type === 'Hybrid' ? 'b-hybrid' : 'b-office'
 
   return (
     <>
       <Navbar />
 
-      {/* COVER IMAGE OR NAVY HEADER */}
-      <div style={{ position: 'relative', background: 'var(--navy)', minHeight: job.cover_image_url ? 340 : 220, display: 'flex', alignItems: 'flex-end' }}>
+      {/* HERO */}
+      <div style={{
+        position: 'relative',
+        background: job.cover_image_url ? 'var(--surface)' : 'linear-gradient(135deg, #1a1a35 0%, #12122a 100%)',
+        minHeight: 280,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'flex-end',
+        overflow: 'hidden',
+      }}>
         {job.cover_image_url && (
           <>
-            <img src={job.cover_image_url} alt={job.title} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }} />
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(13,27,42,0.95) 0%, rgba(13,27,42,0.4) 60%, transparent 100%)' }} />
+            <img src={job.cover_image_url} alt={job.title}
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,10,25,0.97) 0%, rgba(10,10,25,0.6) 50%, rgba(10,10,25,0.2) 100%)' }} />
           </>
         )}
-        <div style={{ maxWidth: 1240, margin: '0 auto', padding: '2rem 2.5rem', width: '100%', position: 'relative', zIndex: 1 }}>
-          <Link href="/jobs" style={{ color: 'rgba(255,255,255,0.55)', textDecoration: 'none', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: '1.5rem' }}>← Alle Jobs</Link>
-          <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'flex-end' }}>
-            {job.company_logo_url ? (
-              <img src={job.company_logo_url} alt={job.company} style={{ width: 72, height: 72, borderRadius: 18, objectFit: 'cover', border: '2px solid rgba(200,169,81,0.3)', flexShrink: 0 }} />
-            ) : (
-              <div className={`company-logo ${logoClass}`} style={{ width: 72, height: 72, fontSize: '1.3rem', border: '2px solid rgba(200,169,81,0.2)', flexShrink: 0 }}>{job.company.substring(0, 2).toUpperCase()}</div>
-            )}
-            <div>
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: 1200, margin: '0 auto', width: '100%', padding: '1.5rem 2rem 2rem' }}>
+          <Link href="/jobs" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'rgba(255,255,255,0.5)', textDecoration: 'none', fontSize: '0.82rem', fontWeight: 600, marginBottom: '1.5rem', padding: '6px 12px', background: 'rgba(255,255,255,0.08)', borderRadius: 999, border: '1px solid rgba(255,255,255,0.1)' }}>
+            ← Alle Jobs
+          </Link>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+            {job.company_logo_url
+              ? <img src={job.company_logo_url} alt={job.company} style={{ width: 72, height: 72, borderRadius: 18, objectFit: 'cover', border: '3px solid rgba(255,255,255,0.15)', flexShrink: 0, boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }} />
+              : <div className={`jlogo ${logoClass}`} style={{ width: 72, height: 72, fontSize: '1.3rem', borderRadius: 18, border: '3px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>{job.company.slice(0,2).toUpperCase()}</div>}
+            <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: '0.6rem' }}>
                 <span className={`badge ${typeBadge}`}>{job.type}</span>
-                <span className="badge badge-gray">{job.contract}</span>
-                <span className="badge badge-gray">{job.level}</span>
-                {job.field && <span className="badge badge-gold">{job.field}</span>}
+                <span className="badge b-office">{job.contract}</span>
+                <span className="badge b-office">{job.level}</span>
+                {job.field && <span className="badge b-accent">{job.field}</span>}
               </div>
-              <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 'clamp(1.8rem, 3.5vw, 2.8rem)', fontWeight: 700, color: 'white', lineHeight: 1.15, marginBottom: '0.4rem' }}>{job.title}</h1>
-              <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: '1rem', fontWeight: 500 }}>{job.company} · {job.location}</div>
+              <h1 style={{ fontFamily: "'Syne', sans-serif", fontSize: 'clamp(1.6rem, 4vw, 2.4rem)', fontWeight: 800, color: '#fff', lineHeight: 1.15, marginBottom: '0.4rem' }}>{job.title}</h1>
+              <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.95rem', fontWeight: 500 }}>{job.company} · {job.location}</div>
+            </div>
+            <div style={{ flexShrink: 0 }}>
+              <FavoriteButton jobId={job.id} />
             </div>
           </div>
         </div>
       </div>
 
-      {/* CONTENT */}
-      <div className="page" style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '2.5rem', alignItems: 'start' }}>
+      {/* BODY */}
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '2rem', display: 'grid', gridTemplateColumns: '1fr 340px', gap: '1.5rem', alignItems: 'start' }} className="detail-grid">
 
         {/* LEFT */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
 
-          {/* BESCHREIBUNG */}
-          <div className="card">
-            <h2 style={{ fontFamily: "'Fraunces', serif", fontWeight: 700, fontSize: '1.3rem', marginBottom: '1.25rem' }}>Über die Stelle</h2>
-            <div style={{ fontSize: '0.95rem', color: 'var(--ink2)', lineHeight: 1.85, whiteSpace: 'pre-wrap' }}>{job.description}</div>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: '1.75rem' }}>
+            <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '1.1rem', color: '#fff', marginBottom: '1rem' }}>Über die Stelle</h2>
+            <div style={{ fontSize: '0.9rem', color: 'var(--text2)', lineHeight: 1.85, whiteSpace: 'pre-wrap' }}>{job.description}</div>
           </div>
 
-          {/* BENEFITS */}
           {job.benefits?.length > 0 && (
-            <div className="card">
-              <h2 style={{ fontFamily: "'Fraunces', serif", fontWeight: 700, fontSize: '1.3rem', marginBottom: '1.25rem' }}>🎁 Benefits</h2>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: '1.75rem' }}>
+              <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '1.1rem', color: '#fff', marginBottom: '1rem' }}>🎁 Benefits</h2>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
                 {job.benefits.map((b: string) => (
-                  <div key={b} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: 'var(--bg)', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border)' }}>
-                    <span style={{ color: 'var(--gold)', fontWeight: 700, flexShrink: 0 }}>✓</span>
-                    <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>{b}</span>
+                  <div key={b} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: 'var(--green-soft)', borderRadius: 12, border: '1px solid rgba(61,186,126,0.15)' }}>
+                    <span style={{ color: 'var(--green)', fontWeight: 700, flexShrink: 0 }}>✓</span>
+                    <span style={{ fontSize: '0.87rem', fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>{b}</span>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* UNTERNEHMEN */}
-          {(job.company_description || job.company_website) && (
-            <div className="card card-gold">
-              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1.25rem' }}>
-                {job.company_logo_url ? (
-                  <img src={job.company_logo_url} alt={job.company} style={{ width: 56, height: 56, borderRadius: 14, objectFit: 'cover' }} />
-                ) : (
-                  <div className={`company-logo ${logoClass}`} style={{ width: 56, height: 56 }}>{job.company.substring(0, 2).toUpperCase()}</div>
-                )}
+          {(job.company_description || job.profiles?.website) && (
+            <div style={{ background: 'var(--surface)', border: '1px solid rgba(212,168,67,0.2)', borderRadius: 20, padding: '1.75rem' }}>
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1.1rem' }}>
+                {job.company_logo_url
+                  ? <img src={job.company_logo_url} alt={job.company} style={{ width: 48, height: 48, borderRadius: 12, objectFit: 'cover', flexShrink: 0 }} />
+                  : <div className={`jlogo ${logoClass}`} style={{ width: 48, height: 48, flexShrink: 0 }}>{job.company.slice(0,2).toUpperCase()}</div>}
                 <div>
-                  <h3 style={{ fontFamily: "'Fraunces', serif", fontWeight: 700, fontSize: '1.1rem' }}>{job.company}</h3>
-                  {job.company_website && <a href={job.company_website} target="_blank" rel="noopener" style={{ fontSize: '0.85rem', color: 'var(--gold)', textDecoration: 'none', fontWeight: 500 }}>{job.company_website}</a>}
+                  <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, color: '#fff', fontSize: '1rem' }}>{job.company}</div>
+                  {job.company_website && <a href={job.company_website} target="_blank" rel="noopener" style={{ fontSize: '0.8rem', color: 'var(--gold)', textDecoration: 'none', fontWeight: 600 }}>{job.company_website}</a>}
                 </div>
               </div>
-              {job.company_description && <p style={{ fontSize: '0.92rem', color: 'var(--ink2)', lineHeight: 1.8 }}>{job.company_description}</p>}
-              <Link href={`/arbeitgeber/${job.employer_id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: '1rem', color: 'var(--navy)', fontWeight: 600, fontSize: '0.88rem', textDecoration: 'none' }}>
-                Vollständiges Unternehmensprofil ansehen →
+              {job.company_description && <p style={{ fontSize: '0.88rem', color: 'var(--text2)', lineHeight: 1.8 }}>{job.company_description}</p>}
+              <Link href={`/arbeitgeber/${job.employer_id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: '1rem', color: 'var(--gold)', fontWeight: 600, fontSize: '0.84rem', textDecoration: 'none' }}>
+                Vollständiges Firmenprofil →
               </Link>
             </div>
           )}
@@ -100,51 +111,67 @@ export default async function JobDetailPage({ params }: { params: { id: string }
 
         {/* SIDEBAR */}
         <div style={{ position: 'sticky', top: 80, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div className="card card-gold">
+          <div style={{ background: 'var(--surface)', border: '1px solid rgba(212,168,67,0.25)', borderRadius: 20, padding: '1.5rem' }}>
             {job.salary_min > 0 ? (
               <div style={{ marginBottom: '1.25rem' }}>
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--ink2)', marginBottom: 6 }}>Jahresgehalt</div>
-                <div style={{ fontFamily: "'Fraunces', serif", fontSize: '1.8rem', fontWeight: 700, color: 'var(--green)' }}>
+                <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text3)', marginBottom: 6 }}>Jahresgehalt</div>
+                <div style={{ fontFamily: "'Syne', sans-serif", fontSize: '1.7rem', fontWeight: 800, color: 'var(--green)' }}>
                   {job.salary_min.toLocaleString('de-DE')} – {job.salary_max.toLocaleString('de-DE')} €
                 </div>
               </div>
             ) : (
-              <div style={{ marginBottom: '1.25rem', fontWeight: 600, color: 'var(--ink2)' }}>Gehalt nach Vereinbarung</div>
+              <div style={{ marginBottom: '1.25rem', fontWeight: 600, color: 'var(--text2)', fontSize: '0.9rem' }}>Gehalt nach Vereinbarung</div>
             )}
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: '1.5rem', fontSize: '0.88rem' }}>
-              {[['📍', 'Ort', job.location], ['🏠', 'Modell', job.type], ['⏰', 'Anstellung', job.contract], ['🎯', 'Level', job.level], ['💼', 'Bereich', job.field]].map(([i, l, v]) => (
-                <div key={l} style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 10, borderBottom: '1px solid var(--border)' }}>
-                  <span style={{ color: 'var(--ink2)' }}>{i} {l}</span>
-                  <span style={{ fontWeight: 600 }}>{v}</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 0, marginBottom: '1.25rem' }}>
+              {[['📍','Ort',job.location],['🏠','Modell',job.type],['⏰','Anstellung',job.contract],['🎯','Level',job.level],['💼','Bereich',job.field]].map(([ic,l,v]) => (
+                <div key={l} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '9px 0', borderBottom: '1px solid var(--border)' }}>
+                  <span style={{ fontSize: '0.83rem', color: 'var(--text3)' }}>{ic} {l}</span>
+                  <span style={{ fontSize: '0.83rem', fontWeight: 700, color: 'var(--text)' }}>{v}</span>
                 </div>
               ))}
             </div>
-
             {user ? (
               <a href={`mailto:${job.profiles?.email}?subject=Bewerbung: ${job.title} bei ${job.company}`}
-                className="btn btn-gold btn-full btn-lg" style={{ borderRadius: 'var(--radius-sm)' }}>
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '13px', background: 'var(--accent)', color: '#fff', borderRadius: 14, fontWeight: 700, fontSize: '0.92rem', textDecoration: 'none', width: '100%' }}>
                 Jetzt bewerben →
               </a>
             ) : (
-              <Link href="/register" className="btn btn-gold btn-full btn-lg" style={{ borderRadius: 'var(--radius-sm)' }}>
-                Anmelden zum Bewerben →
+              <Link href="/register"
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '13px', background: 'var(--accent)', color: '#fff', borderRadius: 14, fontWeight: 700, fontSize: '0.92rem', textDecoration: 'none', width: '100%' }}>
+                Anmelden & bewerben →
               </Link>
             )}
-            <div style={{ textAlign: 'center', marginTop: '0.75rem', fontSize: '0.78rem', color: 'var(--ink3)' }}>
+            <div style={{ textAlign: 'center', marginTop: '0.75rem', fontSize: '0.75rem', color: 'var(--text3)' }}>
               Inseriert am {new Date(job.created_at).toLocaleDateString('de-DE')}
             </div>
           </div>
 
-          {/* KI TOOLS CTA */}
-          <div className="ai-card" style={{ padding: '1.5rem' }}>
-            <div className="ai-badge">✦ KI-Tool</div>
-            <div style={{ fontFamily: "'Fraunces', serif", fontWeight: 700, color: 'white', marginBottom: '0.5rem' }}>Eignung prüfen</div>
-            <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', marginBottom: '1rem' }}>Lass die KI prüfen ob du zu dieser Stelle passt.</div>
-            <Link href="/ki-tools" className="btn btn-gold btn-full" style={{ borderRadius: 'var(--radius-xs)' }}>KI-Matching starten →</Link>
+          <div style={{ background: 'rgba(124,104,250,0.08)', border: '1px solid rgba(124,104,250,0.2)', borderRadius: 20, padding: '1.25rem' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'var(--accent-soft)', border: '1px solid rgba(124,104,250,0.2)', color: '#a080ff', borderRadius: 999, padding: '3px 10px', fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '0.75rem' }}>✦ KI-Tool</div>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, color: '#fff', marginBottom: '0.4rem', fontSize: '0.95rem' }}>Eignung prüfen</div>
+            <div style={{ fontSize: '0.82rem', color: 'var(--text2)', marginBottom: '1rem', lineHeight: 1.6 }}>Lass die KI prüfen ob du zu dieser Stelle passt.</div>
+            <Link href="/ki-tools" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '11px', background: 'var(--accent)', color: '#fff', borderRadius: 12, fontWeight: 700, fontSize: '0.85rem', textDecoration: 'none', width: '100%' }}>
+              KI-Matching starten →
+            </Link>
           </div>
         </div>
       </div>
+
+      {/* MOBILE CTA */}
+      <div style={{ display: 'none', position: 'fixed', bottom: 0, left: 0, right: 0, padding: '1rem 1.25rem', background: 'rgba(15,15,23,0.97)', borderTop: '1px solid var(--border)', backdropFilter: 'blur(20px)', zIndex: 100, gap: 10 }} className="mob-cta">
+        {user
+          ? <a href={`mailto:?subject=Bewerbung: ${job.title}`} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '13px', background: 'var(--accent)', color: '#fff', borderRadius: 14, fontWeight: 700, fontSize: '0.9rem', textDecoration: 'none' }}>Jetzt bewerben →</a>
+          : <Link href="/register" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '13px', background: 'var(--accent)', color: '#fff', borderRadius: 14, fontWeight: 700, fontSize: '0.9rem', textDecoration: 'none' }}>Anmelden & bewerben →</Link>}
+        <Link href="/ki-tools" style={{ padding: '13px 16px', background: 'var(--surface2)', border: '1px solid var(--border2)', color: 'var(--text2)', borderRadius: 14, fontWeight: 700, fontSize: '0.85rem', textDecoration: 'none', flexShrink: 0 }}>✦ KI</Link>
+      </div>
+
+      <style>{`
+        @media(max-width:860px){
+          .detail-grid { grid-template-columns: 1fr !important; }
+          .mob-cta { display: flex !important; }
+          body { padding-bottom: 80px; }
+        }
+      `}</style>
     </>
   )
 }
