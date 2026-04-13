@@ -74,7 +74,7 @@ function findCityCoords(locationStr: string): [number, number] | null {
 
 export default async function JobsPage({ searchParams }: { searchParams: Record<string, string> }) {
   const supabase = createClient()
-  let query = supabase.from('jobs').select('*').eq('is_active', true).order('created_at', { ascending: false })
+  let query = supabase.from('jobs').select('*, profiles(avatar_url, company_name)').eq('is_active', true).order('created_at', { ascending: false })
 
   if (searchParams.q) query = query.ilike('title', `%${searchParams.q}%`)
   if (searchParams.type) query = query.eq('type', searchParams.type)
