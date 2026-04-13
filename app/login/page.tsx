@@ -21,6 +21,9 @@ function LoginForm() {
     setLoading(true); setError('')
     const { error: err } = await supabase.auth.signInWithPassword({ email: form.email, password: form.password })
     if (err) { setError('Ungültige E-Mail oder Passwort.'); setLoading(false); return }
+
+    // Warte kurz, damit die Session gespeichert wird
+    await new Promise(resolve => setTimeout(resolve, 500))
     router.push(redirect)
   }
 
