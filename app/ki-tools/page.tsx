@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import Sidebar from '@/components/Sidebar'
 import { createClient } from '@/lib/supabase-browser'
 
 type Tab = 'analyse' | 'matching' | 'anschreiben' | 'history'
@@ -12,6 +11,7 @@ export default function KIToolsPage() {
   const supabase = createClient()
   const [tab, setTab] = useState<Tab>('analyse')
   const [user, setUser] = useState<any>(null)
+  const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [resumeText, setResumeText] = useState('')
   const [jobDesc, setJobDesc] = useState('')
@@ -22,11 +22,14 @@ export default function KIToolsPage() {
   const [history, setHistory] = useState<any[]>([])
   const [copied, setCopied] = useState(false)
   const [city, setCity] = useState('')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) { router.push('/login'); return }
       setUser(data.user)
+      const { data: p } = await supabase.from('profiles').select('*').eq('id', data.user.id).single()
+      setProfile(p)
       loadHistory(data.user.id)
     })
   }, [])
@@ -36,7 +39,7 @@ export default function KIToolsPage() {
       supabase.from('job_matches').select('*').eq('user_id', uid).order('created_at', { ascending: false }).limit(5),
       supabase.from('applications').select('*').eq('user_id', uid).order('created_at', { ascending: false }).limit(5),
     ])
-    setHistory([...(matches||[]).map((m:any)=>({...m,type:'match'})),...(apps||[]).map((a:any)=>({...a,type:'application'}))].sort((a,b)=>new Date(b.created_at).getTime()-new Date(a.created_at).getTime()))
+    setHistory([...(matches || []).map((m: any) => ({ ...m, type: 'match' })), ...(apps || []).map((a: any) => ({ ...a, type: 'application' }))].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()))
   }
 
   const findNearbyJobs = async (score: number) => {
@@ -53,7 +56,7 @@ export default function KIToolsPage() {
     if (!resumeText.trim()) return
     setLoading(true); setAnalysis(null)
     try {
-      const res = await fetch('/api/analyze-resume', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ resumeText }) })
+      const res = await fetch('/api/analyze-resume', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ resumeText }) })
       const data = await res.json()
       setAnalysis(data)
       if (user) await supabase.from('resumes').upsert({ user_id: user.id, extracted_text: resumeText, file_url: '' })
@@ -65,12 +68,12 @@ export default function KIToolsPage() {
     if (!resumeText.trim() || !jobDesc.trim()) return
     setLoading(true); setMatchResult(null); setNearbyJobs([])
     try {
-      const res = await fetch('/api/job-match', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ resumeText, jobDescription: jobDesc }) })
+      const res = await fetch('/api/job-match', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ resumeText, jobDescription: jobDesc }) })
       const data = await res.json()
       setMatchResult(data)
       if (user) { await supabase.from('job_matches').insert({ user_id: user.id, job_description: jobDesc, match_score: data.score, analysis: JSON.stringify(data) }); loadHistory(user.id) }
       await findNearbyJobs(data.score)
-    } catch { setMatchResult({ error: 'Fehler beim Matching' }) }
+    } catch { setMatchResult({ error: 'Fehler' }) }
     setLoading(false)
   }
 
@@ -78,144 +81,221 @@ export default function KIToolsPage() {
     if (!resumeText.trim() || !jobDesc.trim()) return
     setLoading(true); setCoverLetter('')
     try {
-      const res = await fetch('/api/generate-application', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ resumeText, jobDescription: jobDesc }) })
+      const res = await fetch('/api/generate-application', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ resumeText, jobDescription: jobDesc }) })
       const data = await res.json()
-      setCoverLetter(data.coverLetter||'')
+      setCoverLetter(data.coverLetter || '')
       if (user) { await supabase.from('applications').insert({ user_id: user.id, job_description: jobDesc, cover_letter: data.coverLetter }); loadHistory(user.id) }
     } catch { setCoverLetter('Fehler.') }
     setLoading(false)
   }
 
-  const scoreClass = (s: number) => s>=70?'score-high':s>=40?'score-mid':'score-low'
-  const scoreLabel = (s: number) => s>=70?'🟢 Sehr gut':s>=50?'🟡 Gut geeignet':s>=30?'🟠 Teilweise':'🔴 Wenig geeignet'
-  const tabs = [{ id:'analyse',label:'Lebenslauf',icon:'🧠'},{ id:'matching',label:'Job-Matching',icon:'🎯'},{ id:'anschreiben',label:'Anschreiben',icon:'✍️'},{ id:'history',label:'Verlauf',icon:'📋'}]
-  const logoClasses = ['logo-a','logo-b','logo-c','logo-d']
+  const logout = async () => { await supabase.auth.signOut(); window.location.href = '/' }
+  const sc = (s: number) => s >= 70 ? 'mr-hi' : s >= 40 ? 'mr-md' : 'mr-lo'
+  const sl = (s: number) => s >= 70 ? '🟢 Sehr gut' : s >= 50 ? '🟡 Gut' : s >= 30 ? '🟠 Teilweise' : '🔴 Wenig geeignet'
+  const initials = profile?.full_name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() || '?'
+  const lc = ['ja', 'jb', 'jc', 'jd']
+
+  const navLinks = profile?.role === 'employer'
+    ? [{ h: '/dashboard', i: '⊞', l: 'Dashboard' }, { h: '/jobs', i: '◈', l: 'Jobs' }, { h: '/post-job', i: '＋', l: 'Stelle inserieren' }, { h: '/ki-tools', i: '✦', l: 'KI-Tools' }]
+    : [{ h: '/dashboard', i: '⊞', l: 'Dashboard' }, { h: '/jobs', i: '◈', l: 'Jobs finden' }, { h: '/ki-tools', i: '✦', l: 'KI-Assistent' }, { h: `/bewerber/${user?.id || ''}`, i: '◉', l: 'Mein Profil' }]
 
   return (
-    <div className="app-shell">
-      <Sidebar />
-      <div className="main-content">
-        {/* TOPBAR */}
-        <div className="topbar">
-          <div>
-            <span className="ai-badge" style={{ marginRight: 10 }}>✦ KI-Tools</span>
-            <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '1.1rem' }}>Karriere-Assistent</span>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)', fontFamily: "'DM Sans', sans-serif" }}>
+
+      {/* MOBILE OVERLAY */}
+      {sidebarOpen && <div onClick={() => setSidebarOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 280, backdropFilter: 'blur(4px)' }} />}
+
+      {/* SIDEBAR */}
+      <aside style={{
+        width: 240, background: 'var(--surface)', borderRight: '1px solid var(--border)',
+        display: 'flex', flexDirection: 'column', position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 300,
+        transform: sidebarOpen ? 'translateX(0)' : undefined,
+        transition: 'transform 0.28s ease',
+      }} className="sidebar">
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '1.25rem', borderBottom: '1px solid var(--border)', textDecoration: 'none' }}>
+          <div style={{ width: 32, height: 32, background: 'linear-gradient(135deg,#d4a843,#f0c060)', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg viewBox="0 0 20 20" fill="none" style={{ width: 16, height: 16 }}><path d="M10 2L16 5.8V12.8L10 16.5L4 12.8V5.8L10 2Z" stroke="#1a1a00" strokeWidth="1.8" fill="none" /><circle cx="10" cy="9.5" r="2.8" fill="#1a1a00" /></svg>
           </div>
-          <Link href="/jobs" className="btn btn-light btn-sm">← Zu den Jobs</Link>
+          <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '1.05rem', color: '#fff' }}>WorkMatch</span>
+        </Link>
+
+        {profile && (
+          <div style={{ padding: '1rem 1.1rem', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '0.7rem' }}>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: 'linear-gradient(135deg,var(--accent),#a080ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: '0.88rem', color: '#fff', flexShrink: 0 }}>{initials}</div>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: '0.84rem', color: '#fff' }}>Hi, {profile.full_name?.split(' ')[0]}!</div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text3)', marginTop: 1 }}>{profile.role === 'employer' ? profile.company_name : 'Auf Jobsuche'}</div>
+            </div>
+          </div>
+        )}
+
+        <nav style={{ padding: '0.75rem', flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text3)', padding: '0.5rem 0.5rem 0.2rem' }}>Menü</div>
+          {navLinks.map(({ h, i, l }) => (
+            <Link key={h} href={h} onClick={() => setSidebarOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 11px', borderRadius: 12, color: h === '/ki-tools' ? 'var(--accent)' : 'var(--text2)', background: h === '/ki-tools' ? 'var(--accent-soft)' : 'transparent', fontWeight: 600, fontSize: '0.83rem', textDecoration: 'none', transition: 'all 0.15s' }}>
+              <span style={{ width: 16, textAlign: 'center', fontSize: '0.9rem' }}>{i}</span>{l}
+            </Link>
+          ))}
+        </nav>
+
+        <div style={{ padding: '0.75rem', borderTop: '1px solid var(--border)' }}>
+          <button onClick={logout} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 11px', borderRadius: 12, color: 'var(--text3)', background: 'none', border: 'none', fontWeight: 600, fontSize: '0.83rem', cursor: 'pointer', width: '100%', fontFamily: "'DM Sans',sans-serif" }}>
+            <span style={{ width: 16, textAlign: 'center' }}>⇥</span>Abmelden
+          </button>
+        </div>
+      </aside>
+
+      {/* MAIN */}
+      <div style={{ flex: 1, marginLeft: 240, minHeight: '100vh', display: 'flex', flexDirection: 'column' }} className="main">
+        {/* MOBILE BAR */}
+        <div style={{ display: 'none', position: 'sticky', top: 0, zIndex: 200, background: 'rgba(23,23,42,0.97)', borderBottom: '1px solid var(--border)', padding: '0 1rem', height: 52, alignItems: 'center', justifyContent: 'space-between' }} className="mob-bar">
+          <button onClick={() => setSidebarOpen(true)} style={{ background: 'none', border: 'none', color: 'var(--text)', fontSize: '1.2rem', cursor: 'pointer', padding: 8 }}>☰</button>
+          <span style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: '0.95rem', color: '#fff' }}>KI-Tools</span>
+          <div style={{ width: 36 }} />
         </div>
 
-        {/* TAB BAR */}
-        <div style={{ padding: '1.5rem 2rem 0' }}>
-          <div className="tab-bar" style={{ maxWidth: 500 }}>
-            {tabs.map(t => (
-              <button key={t.id} onClick={() => setTab(t.id as Tab)} className={`tab-btn${tab===t.id?' active':''}`}>
-                {t.icon} {t.label}
-              </button>
+        {/* TOPBAR */}
+        <div style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(15,15,23,0.9)', backdropFilter: 'blur(20px)', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0 1.5rem', height: 60 }}>
+          <span className="ai-pill">✦ KI-Tools</span>
+          <span style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: '0.95rem', color: '#fff', flex: 1 }}>Karriere-Assistent</span>
+          <Link href="/jobs" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 999, background: 'var(--surface2)', border: '1px solid var(--border2)', color: 'var(--text2)', fontSize: '0.8rem', fontWeight: 600, textDecoration: 'none' }}>← Zu den Jobs</Link>
+        </div>
+
+        {/* CONTENT */}
+        <div style={{ flex: 1, padding: '1.5rem', maxWidth: 900, width: '100%', margin: '0 auto' }}>
+
+          {/* TABS */}
+          <div style={{ display: 'flex', gap: 2, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: 4, marginBottom: '1.25rem', overflowX: 'auto' }}>
+            {[{ id: 'analyse', l: '🧠 Lebenslauf' }, { id: 'matching', l: '🎯 Matching' }, { id: 'anschreiben', l: '✍️ Anschreiben' }, { id: 'history', l: '📋 Verlauf' }].map(t => (
+              <button key={t.id} onClick={() => setTab(t.id as Tab)} style={{ flex: '1 1 auto', textAlign: 'center', padding: '9px 14px', borderRadius: 12, border: 'none', cursor: 'pointer', fontFamily: "'DM Sans',sans-serif", fontWeight: 700, fontSize: '0.8rem', transition: 'all 0.15s', background: tab === t.id ? 'var(--surface3)' : 'transparent', color: tab === t.id ? '#fff' : 'var(--text3)', whiteSpace: 'nowrap' }}>{t.l}</button>
             ))}
           </div>
-        </div>
 
-        <div className="page" style={{ paddingTop: '1rem' }}>
-
-          {/* LEBENSLAUF INPUT */}
+          {/* LEBENSLAUF */}
           {tab !== 'history' && (
-            <div className="card" style={{ marginBottom: '1.25rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                <label className="form-label" style={{ margin: 0 }}>Dein Lebenslauf</label>
-                <span style={{ fontSize: '0.78rem', color: 'var(--ink3)' }}>Text einfügen oder tippen</span>
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: '1.25rem', marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+                <label style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text2)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Dein Lebenslauf</label>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>Text einfügen oder tippen</span>
               </div>
-              <textarea className="form-input" value={resumeText} onChange={e => setResumeText(e.target.value)}
-                placeholder="Füge hier deinen Lebenslauf-Text ein..." rows={4} style={{ resize: 'vertical' }} />
+              <textarea value={resumeText} onChange={e => setResumeText(e.target.value)}
+                placeholder="Füge hier deinen Lebenslauf-Text ein..." rows={5}
+                style={{ width: '100%', border: '1px solid var(--border2)', outline: 'none', borderRadius: 12, padding: '11px 14px', fontFamily: "'DM Sans',sans-serif", fontSize: '0.88rem', background: 'var(--surface2)', color: 'var(--text)', resize: 'vertical', lineHeight: 1.6 }} />
             </div>
           )}
 
           {/* ANALYSE */}
           {tab === 'analyse' && (
             <div>
-              <button onClick={analyzeResume} disabled={loading||!resumeText.trim()} className="form-submit" style={{ maxWidth: 260, borderRadius: 12 }}>
+              <button onClick={analyzeResume} disabled={loading || !resumeText.trim()}
+                style={{ padding: '12px 22px', background: loading ? 'var(--surface3)' : 'var(--accent)', color: '#fff', border: 'none', borderRadius: 999, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, fontSize: '0.88rem', cursor: loading ? 'not-allowed' : 'pointer', opacity: !resumeText.trim() ? 0.4 : 1, marginBottom: '1.25rem' }}>
                 {loading ? '🧠 Analysiere...' : '🧠 Lebenslauf analysieren'}
               </button>
               {analysis && !analysis.error && (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginTop: '1.25rem' }}>
-                  <div className="card" style={{ borderTop: '3px solid var(--green)' }}>
-                    <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, color: 'var(--green)', marginBottom: '1rem' }}>✅ Stärken</div>
-                    <ul style={{ listStyle:'none', display:'flex', flexDirection:'column', gap:8 }}>
-                      {(analysis.strengths||[]).map((s:string,i:number)=><li key={i} style={{ fontSize:'0.88rem', display:'flex', gap:8 }}><span style={{ color:'var(--green)', flexShrink:0 }}>✓</span>{s}</li>)}
-                    </ul>
-                  </div>
-                  <div className="card" style={{ borderTop: '3px solid var(--pink)' }}>
-                    <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, color: 'var(--pink)', marginBottom: '1rem' }}>⚠️ Schwächen</div>
-                    <ul style={{ listStyle:'none', display:'flex', flexDirection:'column', gap:8 }}>
-                      {(analysis.weaknesses||[]).map((w:string,i:number)=><li key={i} style={{ fontSize:'0.88rem', display:'flex', gap:8 }}><span style={{ color:'var(--pink)', flexShrink:0 }}>✗</span>{w}</li>)}
-                    </ul>
-                  </div>
-                  <div className="card" style={{ gridColumn:'1/-1', borderTop: '3px solid var(--gold)' }}>
-                    <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, color: 'var(--gold)', marginBottom: '1rem' }}>💡 Verbesserungen</div>
-                    <ul style={{ listStyle:'none', display:'flex', flexDirection:'column', gap:8 }}>
-                      {(analysis.improvements||[]).map((imp:string,i:number)=><li key={i} style={{ fontSize:'0.88rem', display:'flex', gap:8 }}><span style={{ color:'var(--gold)', flexShrink:0 }}>→</span>{imp}</li>)}
-                    </ul>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
+                  {[
+                    { title: '✅ Stärken', items: analysis.strengths, color: 'var(--green)', bg: 'var(--green-soft)' },
+                    { title: '⚠️ Schwächen', items: analysis.weaknesses, color: 'var(--pink)', bg: 'var(--pink-soft)' },
+                  ].map(s => (
+                    <div key={s.title} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderTop: `3px solid ${s.color}`, borderRadius: 18, padding: '1.1rem' }}>
+                      <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, color: s.color, marginBottom: '0.75rem', fontSize: '0.88rem' }}>{s.title}</div>
+                      {(s.items || []).map((item: string, i: number) => (
+                        <div key={i} style={{ display: 'flex', gap: 8, fontSize: '0.84rem', color: 'var(--text2)', marginBottom: 6 }}>
+                          <span style={{ color: s.color, flexShrink: 0, marginTop: 1 }}>•</span>{item}
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                  <div style={{ background: 'var(--surface)', border: '1px solid rgba(212,168,67,0.25)', borderTop: '3px solid var(--gold)', borderRadius: 18, padding: '1.1rem', gridColumn: '1 / -1' }}>
+                    <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, color: 'var(--gold)', marginBottom: '0.75rem', fontSize: '0.88rem' }}>💡 Verbesserungsvorschläge</div>
+                    {(analysis.improvements || []).map((item: string, i: number) => (
+                      <div key={i} style={{ display: 'flex', gap: 8, fontSize: '0.84rem', color: 'var(--text2)', marginBottom: 6 }}>
+                        <span style={{ color: 'var(--gold)', flexShrink: 0 }}>→</span>{item}
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
-              {analysis?.error && <div className="alert alert-error" style={{ marginTop:'1rem' }}>{analysis.error}</div>}
+              {analysis?.error && <div style={{ padding: '11px 14px', borderRadius: 12, fontSize: '0.85rem', fontWeight: 600, background: 'var(--pink-soft)', color: 'var(--pink)', border: '1px solid rgba(240,96,144,0.2)' }}>{analysis.error}</div>}
             </div>
           )}
 
           {/* MATCHING */}
           {tab === 'matching' && (
             <div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: '1rem' }}>
-                <div className="card">
-                  <label className="form-label">Stellenanzeige</label>
-                  <textarea className="form-input" value={jobDesc} onChange={e => setJobDesc(e.target.value)} placeholder="Stellenanzeige einfügen..." rows={5} style={{ resize:'vertical' }} />
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12, marginBottom: '1rem' }}>
+                <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 18, padding: '1.1rem' }}>
+                  <label style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text2)', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Stellenanzeige</label>
+                  <textarea value={jobDesc} onChange={e => setJobDesc(e.target.value)} placeholder="Stellenanzeige einfügen..." rows={5}
+                    style={{ width: '100%', border: '1px solid var(--border2)', outline: 'none', borderRadius: 10, padding: '10px 13px', fontFamily: "'DM Sans',sans-serif", fontSize: '0.87rem', background: 'var(--surface2)', color: 'var(--text)', resize: 'vertical' }} />
                 </div>
-                <div className="card">
-                  <label className="form-label">Deine Stadt</label>
-                  <input className="form-input" value={city} onChange={e => setCity(e.target.value)} placeholder="z.B. Krefeld, Düsseldorf..." />
-                  <div style={{ fontSize:'0.78rem', color:'var(--ink3)', marginTop:8 }}>Für Job-Vorschläge in deiner Nähe</div>
+                <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 18, padding: '1.1rem' }}>
+                  <label style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text2)', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Deine Stadt</label>
+                  <input value={city} onChange={e => setCity(e.target.value)} placeholder="z.B. Krefeld, Düsseldorf..."
+                    style={{ width: '100%', border: '1px solid var(--border2)', outline: 'none', borderRadius: 10, padding: '10px 13px', fontFamily: "'DM Sans',sans-serif", fontSize: '0.87rem', background: 'var(--surface2)', color: 'var(--text)' }} />
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text3)', marginTop: 8 }}>Für Job-Vorschläge in deiner Nähe</div>
                 </div>
               </div>
-              <button onClick={matchJob} disabled={loading||!resumeText.trim()||!jobDesc.trim()} className="form-submit" style={{ maxWidth: 240, borderRadius: 12 }}>
+              <button onClick={matchJob} disabled={loading || !resumeText.trim() || !jobDesc.trim()}
+                style={{ padding: '12px 22px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 999, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, fontSize: '0.88rem', cursor: 'pointer', opacity: (!resumeText.trim() || !jobDesc.trim()) ? 0.4 : 1, marginBottom: '1.25rem' }}>
                 {loading ? '🎯 Analysiere...' : '🎯 Eignung prüfen'}
               </button>
 
               {matchResult && !matchResult.error && (
-                <div style={{ marginTop: '1.25rem', display:'flex', flexDirection:'column', gap:14 }}>
-                  <div style={{ display:'grid', gridTemplateColumns:'160px 1fr', gap:14 }}>
-                    <div className="card" style={{ textAlign:'center', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:10 }}>
-                      <div style={{ fontSize:'0.72rem', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--ink3)' }}>Match</div>
-                      <div className={`match-score ${scoreClass(matchResult.score)}`}>{matchResult.score}%</div>
-                      <div style={{ fontSize:'0.78rem', color:'var(--ink2)', fontWeight:600 }}>{scoreLabel(matchResult.score)}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 12, alignItems: 'start' }}>
+                    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 18, padding: '1.25rem', textAlign: 'center', minWidth: 140 }}>
+                      <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text3)', marginBottom: '0.75rem' }}>Match</div>
+                      <div className={`mring ${sc(matchResult.score)}`} style={{ margin: '0 auto 0.75rem' }}>{matchResult.score}%</div>
+                      <div style={{ fontSize: '0.76rem', color: 'var(--text2)', fontWeight: 600 }}>{sl(matchResult.score)}</div>
                     </div>
-                    <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-                      <div className="card"><div style={{ fontFamily:"'Syne',sans-serif", fontWeight:700, marginBottom:'0.5rem', fontSize:'0.9rem' }}>Erklärung</div><p style={{ fontSize:'0.88rem', color:'var(--ink2)', lineHeight:1.7 }}>{matchResult.explanation}</p></div>
-                      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
-                        {matchResult.matchingSkills?.length>0 && <div className="card" style={{ borderLeft:'3px solid var(--green)' }}><div style={{ fontWeight:700, color:'var(--green)', fontSize:'0.82rem', marginBottom:'0.5rem' }}>✅ Passende Skills</div><div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>{matchResult.matchingSkills.map((s:string)=><span key={s} className="badge badge-remote">{s}</span>)}</div></div>}
-                        {matchResult.missingSkills?.length>0 && <div className="card" style={{ borderLeft:'3px solid var(--pink)' }}><div style={{ fontWeight:700, color:'var(--pink)', fontSize:'0.82rem', marginBottom:'0.5rem' }}>❌ Fehlende Skills</div><div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>{matchResult.missingSkills.map((s:string)=><span key={s} className="badge badge-new">{s}</span>)}</div></div>}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: '1rem' }}>
+                        <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.5rem', color: '#fff' }}>Erklärung</div>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--text2)', lineHeight: 1.75 }}>{matchResult.explanation}</p>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                        {matchResult.matchingSkills?.length > 0 && (
+                          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderLeft: '3px solid var(--green)', borderRadius: 14, padding: '0.9rem' }}>
+                            <div style={{ fontWeight: 700, color: 'var(--green)', fontSize: '0.8rem', marginBottom: '0.5rem' }}>✅ Passende Skills</div>
+                            <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                              {matchResult.matchingSkills.map((s: string) => <span key={s} style={{ padding: '3px 9px', background: 'var(--green-soft)', borderRadius: 999, fontSize: '0.72rem', fontWeight: 700, color: 'var(--green)' }}>{s}</span>)}
+                            </div>
+                          </div>
+                        )}
+                        {matchResult.missingSkills?.length > 0 && (
+                          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderLeft: '3px solid var(--pink)', borderRadius: 14, padding: '0.9rem' }}>
+                            <div style={{ fontWeight: 700, color: 'var(--pink)', fontSize: '0.8rem', marginBottom: '0.5rem' }}>❌ Fehlende Skills</div>
+                            <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                              {matchResult.missingSkills.map((s: string) => <span key={s} style={{ padding: '3px 9px', background: 'var(--pink-soft)', borderRadius: 999, fontSize: '0.72rem', fontWeight: 700, color: 'var(--pink)' }}>{s}</span>)}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
-
                   {matchResult.score >= 50 && (
-                    <div className="card" style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:'1rem', borderLeft:'4px solid var(--accent)' }}>
-                      <div><div style={{ fontFamily:"'Syne',sans-serif", fontWeight:700, marginBottom:4 }}>✍️ Anschreiben generieren?</div><div style={{ fontSize:'0.85rem', color:'var(--ink2)' }}>Dein Match ist gut — jetzt Anschreiben erstellen.</div></div>
-                      <button onClick={() => setTab('anschreiben')} className="btn btn-dark btn-sm" style={{ borderRadius:10 }}>Jetzt generieren →</button>
+                    <div style={{ background: 'var(--surface)', border: '1px solid rgba(124,104,250,0.3)', borderRadius: 18, padding: '1.1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                      <div>
+                        <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, color: '#fff', marginBottom: 4, fontSize: '0.9rem' }}>✍️ Gleich bewerben?</div>
+                        <div style={{ fontSize: '0.82rem', color: 'var(--text2)' }}>Dein Match ist gut — jetzt Anschreiben generieren.</div>
+                      </div>
+                      <button onClick={() => setTab('anschreiben')} style={{ padding: '9px 18px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 999, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>Anschreiben →</button>
                     </div>
                   )}
-
                   {nearbyJobs.length > 0 && (
                     <div>
-                      <div style={{ fontFamily:"'Syne',sans-serif", fontWeight:700, marginBottom:'0.75rem' }}>📍 Ähnliche Jobs {city?`in ${city}`:''}</div>
-                      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(240px,1fr))', gap:10 }}>
-                        {nearbyJobs.map((job:any,i:number)=>(
-                          <Link key={job.id} href={`/jobs/${job.id}`} style={{ textDecoration:'none' }}>
-                            <div className="job-card-row" style={{ flexDirection:'column', alignItems:'flex-start', gap:'0.5rem' }}>
-                              <div style={{ display:'flex', gap:10, alignItems:'center', width:'100%' }}>
-                                <div className={`job-logo ${logoClasses[i%4]}`} style={{ width:38, height:38, fontSize:'0.78rem' }}>{job.company.substring(0,2).toUpperCase()}</div>
-                                <div style={{ flex:1, minWidth:0 }}><div className="job-card-title">{job.title}</div><div className="job-card-company">{job.company}</div></div>
-                                <div className="job-card-arrow" style={{ width:28, height:28, borderRadius:8, fontSize:'0.8rem' }}>→</div>
+                      <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, color: '#fff', fontSize: '0.95rem', marginBottom: '0.75rem' }}>📍 Ähnliche Jobs {city ? `in ${city}` : ''}</div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 10 }}>
+                        {nearbyJobs.map((job: any, i: number) => (
+                          <Link key={job.id} href={`/jobs/${job.id}`} style={{ textDecoration: 'none' }}>
+                            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '0.9rem', display: 'flex', gap: '0.75rem', alignItems: 'center', cursor: 'pointer', transition: 'all 0.18s' }}>
+                              <div className={`jlogo ${lc[i % 4]}`} style={{ width: 38, height: 38, borderRadius: 10, fontSize: '0.78rem', flexShrink: 0 }}>{job.company.slice(0, 2).toUpperCase()}</div>
+                              <div style={{ minWidth: 0 }}>
+                                <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: '0.84rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.title}</div>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>{job.location}</div>
+                                <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--green)', marginTop: 2 }}>{job.salary_min > 0 ? `${job.salary_min.toLocaleString('de-DE')} €` : 'n. V.'}</div>
                               </div>
-                              <div style={{ fontSize:'0.8rem', fontWeight:700, color:'var(--green)' }}>{job.salary_min>0?`${job.salary_min.toLocaleString('de-DE')} €`:'n. V.'}</div>
                             </div>
                           </Link>
                         ))}
@@ -224,29 +304,33 @@ export default function KIToolsPage() {
                   )}
                 </div>
               )}
-              {matchResult?.error && <div className="alert alert-error" style={{ marginTop:'1rem' }}>{matchResult.error}</div>}
+              {matchResult?.error && <div style={{ padding: '11px 14px', borderRadius: 12, fontSize: '0.85rem', fontWeight: 600, background: 'var(--pink-soft)', color: 'var(--pink)', border: '1px solid rgba(240,96,144,0.2)' }}>{matchResult.error}</div>}
             </div>
           )}
 
           {/* ANSCHREIBEN */}
           {tab === 'anschreiben' && (
             <div>
-              <div className="card" style={{ marginBottom:'1rem' }}>
-                <label className="form-label">Stellenanzeige</label>
-                <textarea className="form-input" value={jobDesc} onChange={e => setJobDesc(e.target.value)} placeholder="Stellenanzeige einfügen..." rows={4} style={{ resize:'vertical' }} />
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 18, padding: '1.1rem', marginBottom: '1rem' }}>
+                <label style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text2)', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Stellenanzeige</label>
+                <textarea value={jobDesc} onChange={e => setJobDesc(e.target.value)} placeholder="Stellenanzeige einfügen..." rows={4}
+                  style={{ width: '100%', border: '1px solid var(--border2)', outline: 'none', borderRadius: 10, padding: '10px 13px', fontFamily: "'DM Sans',sans-serif", fontSize: '0.87rem', background: 'var(--surface2)', color: 'var(--text)', resize: 'vertical' }} />
               </div>
-              <button onClick={generateCoverLetter} disabled={loading||!resumeText.trim()||!jobDesc.trim()} className="form-submit" style={{ maxWidth:280, borderRadius:12 }}>
+              <button onClick={generateCoverLetter} disabled={loading || !resumeText.trim() || !jobDesc.trim()}
+                style={{ padding: '12px 22px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 999, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, fontSize: '0.88rem', cursor: 'pointer', opacity: (!resumeText.trim() || !jobDesc.trim()) ? 0.4 : 1, marginBottom: '1.25rem' }}>
                 {loading ? '✍️ Generiere...' : '✍️ Anschreiben generieren'}
               </button>
               {coverLetter && (
-                <div className="card" style={{ marginTop:'1.25rem' }}>
-                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1rem' }}>
-                    <div style={{ fontFamily:"'Syne',sans-serif", fontWeight:700 }}>📄 Ihr Anschreiben</div>
-                    <button onClick={()=>{navigator.clipboard.writeText(coverLetter);setCopied(true);setTimeout(()=>setCopied(false),2000)}} className="btn btn-dark btn-sm" style={{ borderRadius:10 }}>
-                      {copied?'✓ Kopiert':'📋 Kopieren'}
+                <div style={{ background: 'var(--surface)', border: '1px solid rgba(212,168,67,0.25)', borderRadius: 18, padding: '1.25rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, color: '#fff', fontSize: '0.9rem' }}>📄 Dein Anschreiben</div>
+                    <button onClick={() => { navigator.clipboard.writeText(coverLetter); setCopied(true); setTimeout(() => setCopied(false), 2000) }}
+                      style={{ padding: '7px 14px', background: copied ? 'var(--green-soft)' : 'var(--surface2)', color: copied ? 'var(--green)' : 'var(--text2)', border: '1px solid var(--border2)', borderRadius: 999, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer' }}>
+                      {copied ? '✓ Kopiert!' : '📋 Kopieren'}
                     </button>
                   </div>
-                  <textarea className="form-input" value={coverLetter} onChange={e=>setCoverLetter(e.target.value)} rows={16} style={{ resize:'vertical', lineHeight:1.8, fontSize:'0.9rem' }} />
+                  <textarea value={coverLetter} onChange={e => setCoverLetter(e.target.value)} rows={16}
+                    style={{ width: '100%', border: '1px solid var(--border2)', outline: 'none', borderRadius: 12, padding: '12px 15px', fontFamily: "'DM Sans',sans-serif", fontSize: '0.87rem', background: 'var(--surface2)', color: 'var(--text)', resize: 'vertical', lineHeight: 1.8 }} />
                 </div>
               )}
             </div>
@@ -255,25 +339,28 @@ export default function KIToolsPage() {
           {/* HISTORY */}
           {tab === 'history' && (
             <div>
-              <div style={{ fontFamily:"'Syne',sans-serif", fontWeight:800, fontSize:'1.1rem', marginBottom:'1rem' }}>Verlauf</div>
+              <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: '1rem', color: '#fff', marginBottom: '1rem' }}>Verlauf</div>
               {history.length === 0 ? (
-                <div className="card" style={{ textAlign:'center', padding:'3rem' }}>
-                  <div style={{ fontSize:'2.5rem', marginBottom:'1rem' }}>📋</div>
-                  <div style={{ fontFamily:"'Syne',sans-serif", fontWeight:700 }}>Noch keine Aktivitäten</div>
+                <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: '3rem', textAlign: 'center' }}>
+                  <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>📋</div>
+                  <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, color: '#fff', marginBottom: '0.4rem' }}>Noch keine Aktivitäten</div>
+                  <div style={{ color: 'var(--text2)', fontSize: '0.85rem' }}>Nutze die KI-Tools und dein Verlauf erscheint hier.</div>
                 </div>
               ) : (
-                <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                  {history.map((item:any)=>(
-                    <div key={item.id} className="card" style={{ display:'flex', gap:'1rem', alignItems:'flex-start', padding:'1rem 1.25rem' }}>
-                      <div style={{ width:40, height:40, borderRadius:12, background:item.type==='match'?'#e8f0fc':'rgba(124,106,247,0.1)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.1rem', flexShrink:0 }}>
-                        {item.type==='match'?'🎯':'✍️'}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {history.map((item: any) => (
+                    <div key={item.id} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: '1rem 1.1rem', display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                      <div style={{ width: 38, height: 38, borderRadius: 11, background: item.type === 'match' ? 'rgba(124,104,250,0.15)' : 'rgba(212,168,67,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', flexShrink: 0 }}>
+                        {item.type === 'match' ? '🎯' : '✍️'}
                       </div>
-                      <div style={{ flex:1, minWidth:0 }}>
-                        <div style={{ fontWeight:700, fontSize:'0.88rem', marginBottom:4 }}>{item.type==='match'?'Job-Matching':'Anschreiben'}</div>
-                        <div style={{ fontSize:'0.8rem', color:'var(--ink3)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.job_description?.substring(0,80)}...</div>
-                        <div style={{ fontSize:'0.72rem', color:'var(--ink3)', marginTop:4 }}>{new Date(item.created_at).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#fff', marginBottom: 4 }}>{item.type === 'match' ? 'Job-Matching' : 'Anschreiben'}</div>
+                        <div style={{ fontSize: '0.78rem', color: 'var(--text3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.job_description?.substring(0, 80)}...</div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text3)', marginTop: 4 }}>{new Date(item.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
                       </div>
-                      {item.match_score && <div className={`match-score ${item.match_score>=70?'score-high':item.match_score>=40?'score-mid':'score-low'}`} style={{ width:44, height:44, fontSize:'0.82rem' }}>{item.match_score}%</div>}
+                      {item.match_score && (
+                        <div className={`mring ${item.match_score >= 70 ? 'mr-hi' : item.match_score >= 40 ? 'mr-md' : 'mr-lo'}`} style={{ width: 44, height: 44, fontSize: '0.82rem', flexShrink: 0 }}>{item.match_score}%</div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -282,6 +369,15 @@ export default function KIToolsPage() {
           )}
         </div>
       </div>
+
+      <style>{`
+        @media(max-width:860px){
+          .sidebar{transform:translateX(-100%) !important}
+          .sidebar.open-sidebar{transform:translateX(0) !important}
+          .main{margin-left:0 !important}
+          .mob-bar{display:flex !important}
+        }
+      `}</style>
     </div>
   )
 }
