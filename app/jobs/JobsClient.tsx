@@ -172,7 +172,11 @@ export default function JobsClient({ initialJobs, searchParams, hasFilters }: Pr
           <div className="job-grid">
             {jobs.map((job, i) => (
               <Link key={job.id} href={`/jobs/${job.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                <div className="job-card">
+                <div className="job-card" style={{
+                  backgroundImage: job.cover_image_url ? `linear-gradient(rgba(255,255,255,0.92), rgba(255,255,255,0.92)), url('${job.cover_image_url}')` : 'none',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
                     <div className={`company-logo ${logoClass(i)}`}>{logoLetter(job.company)}</div>
                     <span className={`badge ${typeBadge(job.type)}`}>{job.type}</span>
