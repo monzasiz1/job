@@ -8,7 +8,7 @@ export async function POST(request: Request) {
   if (!apiKey) return NextResponse.json({ error: 'GEMINI_API_KEY fehlt in Vercel Environment Variables' }, { status: 500 })
 
   try {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
