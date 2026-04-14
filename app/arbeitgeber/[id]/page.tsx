@@ -156,25 +156,25 @@ export default async function ArbeitgeberProfile({ params }: { params: { id: str
               ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
                   {interestedApplicants.map((interest: any) => (
-                    <div key={interest.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '1rem', background: 'rgba(240,96,144,0.04)', border: '1px solid rgba(240,96,144,0.12)', borderRadius: 14, transition: 'all 0.18s' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        {interest.applicant?.avatar_url
-                          ? <img src={interest.applicant.avatar_url} alt="" style={{ width: 44, height: 44, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
-                          : <div style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 10, background: 'rgba(240,96,144,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Syne', sans-serif", fontWeight: 700, color: '#f06090', fontSize: '0.85rem' }}>
-                              {(interest.applicant?.full_name || '?').slice(0,2).toUpperCase()}
-                            </div>}
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, color: '#fff', fontSize: '0.85rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{interest.applicant?.full_name}</div>
-                          <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>👀 {interest.job?.title}</div>
+                    <Link key={interest.id} href={`/chat?employer=${profile.id}&applicant=${interest.applicant_id}&job=${interest.job_id}`} style={{ textDecoration: 'none' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '1rem', background: 'rgba(240,96,144,0.04)', border: '1px solid rgba(240,96,144,0.12)', borderRadius: 14, transition: 'all 0.18s', cursor: 'pointer', height: '100%', display: 'flex' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                          {interest.applicant?.avatar_url
+                            ? <img src={interest.applicant.avatar_url} alt="" style={{ width: 44, height: 44, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
+                            : <div style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 10, background: 'rgba(240,96,144,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Syne', sans-serif", fontWeight: 700, color: '#f06090', fontSize: '0.85rem' }}>
+                                {(interest.applicant?.full_name || '?').slice(0,2).toUpperCase()}
+                              </div>}
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, color: '#fff', fontSize: '0.85rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{interest.applicant?.full_name}</div>
+                            <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>👀 {interest.job?.title}</div>
+                          </div>
                         </div>
+                        {interest.applicant?.bio && (
+                          <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.25)', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>"{interest.applicant.bio}"</div>
+                        )}
+                        <div style={{ marginTop: 'auto', color: '#f06090', fontSize: '0.75rem', fontWeight: 700 }}>💬 Chat öffnen →</div>
                       </div>
-                      {interest.applicant?.bio && (
-                        <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.25)', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>"{interest.applicant.bio}"</div>
-                      )}
-                      <Link href={`/chat?employer=${profile.id}&applicant=${interest.applicant_id}&job=${interest.job_id}`} style={{ padding: '6px 10px', background: 'linear-gradient(135deg, rgba(240,96,144,0.15), rgba(240,96,144,0.08))', border: '1px solid rgba(240,96,144,0.3)', color: '#f06090', borderRadius: 8, fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '0.75rem', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.2s', textDecoration: 'none', display: 'inline-block', textAlign: 'center' }}>
-                        💬 Chat
-                      </Link>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               )}
