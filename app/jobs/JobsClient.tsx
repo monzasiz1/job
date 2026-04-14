@@ -250,103 +250,125 @@ export default function JobsClient({ jobs, searchParams, user }: any) {
           )}
         </div>
       ) : (
-      <div style={{display:'grid',gridTemplateColumns:'360px 1fr',gap:'1rem',padding:'1rem 1.25rem',minHeight:'calc(100vh - 130px)'}} className="split">
+      <div style={{display:'grid',gridTemplateColumns:'420px 1fr',gap:'1.5rem',padding:'1.5rem',minHeight:'calc(100vh - 130px)',background:'linear-gradient(135deg,rgba(124,104,250,0.02),rgba(212,168,67,0.01))'}} className="split">
 
         {/* JOB LIST */}
-        <div style={{display:'flex',flexDirection:'column',gap:8,overflowY:'auto'}}>
+        <div style={{display:'flex',flexDirection:'column',gap:12,overflowY:'auto',paddingRight:'0.5rem'}}>
           {filteredJobs.length === 0 ? (
-            <div style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:20,padding:'3rem',textAlign:'center'}}>
+            <div style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:24,padding:'3rem 2rem',textAlign:'center'}}>
               <div style={{fontSize:'2.5rem',marginBottom:'0.75rem'}}>🔍</div>
               <div style={{fontFamily:"'Syne',sans-serif",fontWeight:700,color:'#fff',marginBottom:'0.4rem'}}>Keine Jobs gefunden</div>
               <div style={{color:'var(--text2)',fontSize:'0.84rem',marginBottom:'1rem'}}>Größeren Umkreis versuchen.</div>
-              <Link href="/jobs" style={{padding:'8px 18px',background:'var(--surface2)',border:'1px solid var(--border2)',color:'var(--text2)',borderRadius:999,fontSize:'0.8rem',fontWeight:700,textDecoration:'none'}}>Alle Jobs</Link>
+              <Link href="/jobs" style={{display:'inline-block',padding:'10px 20px',background:'var(--accent)',color:'#fff',border:'none',borderRadius:12,fontSize:'0.85rem',fontWeight:700,textDecoration:'none'}}>Alle Jobs</Link>
             </div>
           ) : filteredJobs.map((j: any, i: number) => (
-            <div key={j.id} onClick={() => { if(window.innerWidth < 860) router.push(`/jobs/${j.id}`); else { setSelectedNewJob(true); setTimeout(() => setSelectedNewJob(false), 400); setSel(j) } }}
-              style={{border:`1px solid ${sel?.id===j.id?'var(--accent)':'var(--border)'}`,borderRadius:16,padding:'0.9rem 1rem',display:'flex',alignItems:'center',gap:'0.85rem',cursor:'pointer',transition:'all 0.18s',position:'relative',overflow:'hidden',background:sel?.id===j.id?'rgba(124,104,250,0.07)':'var(--surface)'}} className={sel?.id===j.id ? 'anime-select' : ''}>
-              {sel?.id===j.id && <div style={{position:'absolute',left:0,top:0,bottom:0,width:3,background:'var(--accent)'}}/>}
-              {j.company_logo_url
-                ? <div style={{width:42,height:42,borderRadius:12,overflow:'hidden',flexShrink:0}}><img src={j.company_logo_url} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/></div>
-                : <div className={`jlogo ${lc(i)}`} style={{width:42,height:42,flexShrink:0}}>{ll(j.company)}</div>}
-              <div style={{flex:1,minWidth:0}}>
-                <div style={{fontFamily:"'Syne',sans-serif",fontWeight:700,fontSize:'0.86rem',color:'#fff',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',marginBottom:2}}>{j.title}</div>
-                <div style={{fontSize:'0.73rem',color:'var(--text3)',marginBottom:4}}>{j.company} · {j.location}</div>
-                <div style={{fontSize:'0.79rem',fontWeight:600,color:'var(--text2)',marginBottom:5}}>{j.salary_min>0?`${j.salary_min.toLocaleString('de-DE')} – ${j.salary_max.toLocaleString('de-DE')} €`:'Gehalt n. V.'}</div>
-                <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
+            <div key={j.id} onClick={() => { if(window.innerWidth < 1000) router.push(`/jobs/${j.id}`); else { setSelectedNewJob(true); setTimeout(() => setSelectedNewJob(false), 400); setSel(j) } }}
+              style={{position:'relative',overflow:'hidden',cursor:'pointer',transition:'all 0.25s',borderRadius:20,background:'var(--surface)',border:`2px solid ${sel?.id===j.id?'var(--accent)':'var(--border)'}`,boxShadow:sel?.id===j.id?'0 10px 40px rgba(124,104,250,0.2)':'0 4px 15px rgba(0,0,0,0.1)'}}>
+              {/* COVER */}
+              <div style={{height:140,background:'linear-gradient(135deg,var(--surface2),var(--surface3))',position:'relative',overflow:'hidden'}}>
+                {j.cover_image_url && <img src={j.cover_image_url} alt="" style={{width:'100%',height:'100%',objectFit:'cover',opacity:0.6}}/>}
+                <div style={{position:'absolute',inset:0,background:'linear-gradient(to bottom,rgba(23,23,42,0.3),rgba(23,23,42,0.8))'}}/>
+                <FavoriteButton jobId={j.id} />
+              </div>
+              {/* CONTENT */}
+              <div style={{padding:'1.2rem'}}>
+                <div style={{display:'flex',gap:'0.75rem',alignItems:'flex-start',marginBottom:'0.9rem',marginTop:'-2.8rem',position:'relative',zIndex:2}}>
+                  {j.company_logo_url
+                    ? <img src={j.company_logo_url} alt="" style={{width:56,height:56,borderRadius:14,border:'3px solid var(--surface)',flexShrink:0,objectFit:'cover',boxShadow:'0 8px 24px rgba(0,0,0,0.3)'}}/>
+                    : <div className={`jlogo ${lc(i)}`} style={{width:56,height:56,borderRadius:14,border:'3px solid var(--surface)',flexShrink:0,fontSize:'1.4rem',boxShadow:'0 8px 24px rgba(0,0,0,0.3)'}}>{ll(j.company)}</div>}
+                </div>
+                <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:'0.95rem',color:'#fff',marginBottom:'0.35rem',lineHeight:1.3}}>{j.title}</div>
+                <div style={{fontSize:'0.78rem',color:'var(--text3)',marginBottom:'0.6rem',fontWeight:500}}>{j.company}</div>
+                {j.salary_min>0 && <div style={{fontSize:'0.88rem',fontWeight:700,color:'var(--gold)',marginBottom:'0.6rem'}}>{j.salary_min.toLocaleString('de-DE')} – {j.salary_max.toLocaleString('de-DE')} €</div>}
+                <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:'0.8rem'}}>
                   <span className={`badge ${tb(j.type)}`}>{j.type}</span>
                   <span className="badge b-office">{j.contract}</span>
+                  {j.level && <span className="badge b-office">{j.level}</span>}
                 </div>
+                <div style={{fontSize:'0.78rem',color:'var(--text2)',display:'flex',alignItems:'center',gap:4}}>📍 {j.location}</div>
               </div>
-              <div style={{display:'flex',flexDirection:'column',gap:6,flexShrink:0}}>
-                <FavoriteButton jobId={j.id} size="sm" />
-                <div style={{width:30,height:30,background:'var(--surface3)',border:'1px solid var(--border)',borderRadius:9,display:'flex',alignItems:'center',justifyContent:'center',color:'var(--text2)',fontSize:'0.8rem',transition:'all 0.18s'}}>→</div>
-              </div>
+              {sel?.id===j.id && <div style={{position:'absolute',left:0,right:0,bottom:0,height:3,background:'linear-gradient(90deg,var(--green),var(--accent))'}}/>}
             </div>
           ))}
         </div>
 
         {/* DETAIL */}
         {sel ? (
-          <div style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:20,overflow:'hidden',display:'flex',flexDirection:'column',position:'sticky',top:70,maxHeight:'calc(100vh - 86px)'}}>
-            <div style={{height:150,background:'linear-gradient(135deg,var(--surface2),var(--surface3))',position:'relative',overflow:'hidden',flexShrink:0}}>
-              {sel.cover_image_url && <img src={sel.cover_image_url} alt="" style={{width:'100%',height:'100%',objectFit:'cover',opacity:0.55}}/>}
-              <div style={{position:'absolute',inset:0,background:'linear-gradient(to top,rgba(23,23,42,0.9),transparent)'}}/>
-              <div style={{position:'absolute',top:10,right:10,display:'flex',gap:6}}>
+          <div style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:24,overflow:'hidden',display:'flex',flexDirection:'column',position:'sticky',top:80,maxHeight:'calc(100vh - 96px)',boxShadow:'0 20px 60px rgba(0,0,0,0.3)'}}>
+            {/* HERO COVER */}
+            <div style={{height:220,background:'linear-gradient(135deg,var(--surface2),var(--surface3))',position:'relative',overflow:'hidden',flexShrink:0}}>
+              {sel.cover_image_url && <img src={sel.cover_image_url} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>}
+              <div style={{position:'absolute',inset:0,background:'linear-gradient(135deg,rgba(23,23,42,0.5),rgba(23,23,42,0.85))'}}/>
+              <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',justifyContent:'flex-end',padding:'2rem 1.5rem'}}>
+                <div style={{fontFamily:"'Syne',sans-serif",fontWeight:900,fontSize:'1.5rem',color:'#fff',lineHeight:1.2,marginBottom:'0.5rem'}}>{sel.title}</div>
+                <div style={{color:'rgba(255,255,255,0.7)',fontSize:'0.95rem',fontWeight:500}}>{sel.company} · {sel.location}</div>
+              </div>
+              <div style={{position:'absolute',top:16,right:16,display:'flex',gap:8}}>
                 <FavoriteButton jobId={sel.id} />
-                <Link href={`/jobs/${sel.id}`} style={{width:36,height:36,background:'rgba(255,255,255,0.1)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontSize:'0.85rem',textDecoration:'none',backdropFilter:'blur(8px)'}}>↗</Link>
+                <Link href={`/jobs/${sel.id}`} style={{width:40,height:40,background:'rgba(255,255,255,0.15)',border:'1px solid rgba(255,255,255,0.25)',borderRadius:12,display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontSize:'1rem',textDecoration:'none',backdropFilter:'blur(10px)',transition:'all 0.2s'}}>↗</Link>
               </div>
             </div>
 
-            <div style={{overflowY:'auto',flex:1}}>
-              <div style={{padding:'1.1rem 1.25rem'}}>
-                <div style={{display:'flex',gap:'0.75rem',alignItems:'flex-start',marginBottom:'0.9rem',marginTop:'-1.25rem',position:'relative',zIndex:1}}>
+            {/* SCROLLABLE CONTENT */}
+            <div style={{overflowY:'auto',flex:1,display:'flex',flexDirection:'column'}}>
+              <div style={{padding:'1.75rem 1.75rem'}}>
+                {/* LOGO + SALARY */}
+                <div style={{display:'flex',gap:'1rem',alignItems:'flex-start',marginBottom:'1.5rem',marginTop:'-2.5rem',position:'relative',zIndex:2}}>
                   {sel.company_logo_url
-                    ?<img src={sel.company_logo_url} style={{width:54,height:54,borderRadius:14,border:'3px solid var(--surface)',boxShadow:'var(--shadow)',flexShrink:0,objectFit:'cover'}} alt=""/>
-                    :<div className={`jlogo ${lc(0)}`} style={{width:54,height:54,borderRadius:14,border:'3px solid var(--surface)',boxShadow:'var(--shadow)',flexShrink:0,fontSize:'1rem'}}>{ll(sel.company)}</div>}
-                </div>
-
-                <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:'1.1rem',color:'#fff',marginBottom:4}}>{sel.title}</div>
-                <div style={{fontSize:'0.88rem',color:'var(--text2)',fontWeight:500,marginBottom:'0.85rem'}}>{sel.salary_min>0?`${sel.salary_min.toLocaleString('de-DE')} – ${sel.salary_max.toLocaleString('de-DE')} €`:'Gehalt nach Vereinbarung'}</div>
-                <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:'1rem'}}>
-                  <span className={`badge ${tb(sel.type)}`}>{sel.type}</span>
-                  <span className="badge b-office">{sel.contract}</span>
-                  <span className="badge b-office">{sel.level}</span>
-                  {sel.field&&<span className="badge b-accent">{sel.field}</span>}
-                  <span className="badge b-office">📍 {sel.location}</span>
-                </div>
-
-                {sel.benefits?.length>0&&(
-                  <div style={{marginBottom:'1rem'}}>
-                    <div style={{fontSize:'0.7rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'0.07em',color:'var(--text3)',marginBottom:'0.5rem'}}>Benefits</div>
+                    ?<img src={sel.company_logo_url} style={{width:64,height:64,borderRadius:16,border:'3px solid var(--surface)',boxShadow:'0 10px 30px rgba(0,0,0,0.4)',flexShrink:0,objectFit:'cover'}} alt=""/>
+                    :<div className={`jlogo ${lc(0)}`} style={{width:64,height:64,borderRadius:16,border:'3px solid var(--surface)',boxShadow:'0 10px 30px rgba(0,0,0,0.4)',flexShrink:0,fontSize:'1.5rem'}}>{ll(sel.company)}</div>}
+                  <div style={{flex:1}}>
+                    {sel.salary_min>0 && <div style={{fontSize:'1.25rem',fontWeight:800,color:'var(--gold)',marginBottom:'0.4rem'}}>{sel.salary_min.toLocaleString('de-DE')}–{sel.salary_max.toLocaleString('de-DE')} €</div>}
                     <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
-                      {sel.benefits.map((b:string)=><span key={b} style={{padding:'3px 10px',background:'var(--green-soft)',borderRadius:999,fontSize:'0.74rem',fontWeight:700,color:'var(--green)'}}>✓ {b}</span>)}
+                      <span className={`badge ${tb(sel.type)}`}>{sel.type}</span>
+                      <span className="badge b-office">{sel.contract}</span>
+                      {sel.level&&<span className="badge b-office">{sel.level}</span>}
+                      {sel.field&&<span className="badge b-accent">{sel.field}</span>}
+                    </div>
+                  </div>
+                </div>
+
+                {/* BENEFITS */}
+                {sel.benefits?.length>0&&(
+                  <div style={{marginBottom:'1.75rem',paddingBottom:'1.75rem',borderBottom:'1px solid var(--border)'}}>
+                    <div style={{fontSize:'0.75rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'0.1em',color:'var(--text3)',marginBottom:'0.75rem'}}>🎁 Benefits</div>
+                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+                      {sel.benefits.slice(0,6).map((b:string)=><div key={b} style={{padding:'8px 12px',background:'linear-gradient(135deg,rgba(61,186,126,0.15),rgba(61,186,126,0.05))',borderRadius:12,border:'1px solid rgba(61,186,126,0.2)',display:'flex',alignItems:'center',gap:8,fontSize:'0.8rem',fontWeight:600,color:'var(--green)'}}>✓ {b}</div>)}
                     </div>
                   </div>
                 )}
 
-                <div style={{fontSize:'0.7rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'0.07em',color:'var(--text3)',marginBottom:'0.5rem'}}>Beschreibung</div>
-                <div style={{fontSize:'0.86rem',color:'var(--text2)',lineHeight:1.8,whiteSpace:'pre-wrap',marginBottom:'1rem'}}>{sel.description}</div>
+                {/* BESCHREIBUNG */}
+                <div style={{marginBottom:'1.75rem',paddingBottom:'1.75rem',borderBottom:'1px solid var(--border)'}}>
+                  <div style={{fontSize:'0.75rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'0.1em',color:'var(--text3)',marginBottom:'0.75rem'}}>📝 Aufgaben</div>
+                  <div style={{fontSize:'0.9rem',color:'var(--text2)',lineHeight:1.8,whiteSpace:'pre-wrap'}}>{sel.description}</div>
+                </div>
 
+                {/* COMPANY */}
                 {sel.company_description&&(
-                  <>
-                    <div style={{fontSize:'0.7rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'0.07em',color:'var(--text3)',marginBottom:'0.5rem'}}>Über {sel.company}</div>
-                    <div style={{fontSize:'0.86rem',color:'var(--text2)',lineHeight:1.8,marginBottom:'1rem'}}>{sel.company_description}</div>
-                  </>
+                  <div>
+                    <div style={{fontSize:'0.75rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'0.1em',color:'var(--text3)',marginBottom:'0.75rem'}}>🏢 Über {sel.company}</div>
+                    <div style={{fontSize:'0.9rem',color:'var(--text2)',lineHeight:1.8}}>{sel.company_description}</div>
+                  </div>
                 )}
               </div>
             </div>
 
-            <div style={{padding:'1rem 1.25rem',borderTop:'1px solid var(--border)',display:'flex',gap:8,flexShrink:0,background:'var(--surface)'}}>
+            {/* ACTION FOOTER */}
+            <div style={{padding:'1.25rem 1.75rem',borderTop:'1px solid var(--border)',display:'flex',gap:10,flexShrink:0,background:'var(--surface)',justifyContent:'stretch'}}>
               {user
-                ?<a href={`mailto:?subject=Bewerbung: ${sel.title}`} style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',padding:'11px',background:'var(--accent)',color:'#fff',borderRadius:14,fontWeight:700,fontSize:'0.86rem',textDecoration:'none'}}>Jetzt bewerben →</a>
-                :<Link href="/register" style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',padding:'11px',background:'var(--accent)',color:'#fff',borderRadius:14,fontWeight:700,fontSize:'0.86rem',textDecoration:'none'}}>Anmelden & bewerben →</Link>}
-              <Link href="/ki-tools" style={{padding:'11px 16px',background:'var(--surface2)',border:'1px solid var(--border2)',color:'var(--text2)',borderRadius:14,fontWeight:700,fontSize:'0.82rem',textDecoration:'none',flexShrink:0}}>KI-Match ✦</Link>
+                ?<a href={`mailto:?subject=Bewerbung: ${sel.title}`} style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',padding:'13px 16px',background:'linear-gradient(135deg,var(--accent),rgba(124,104,250,0.8))',color:'#fff',borderRadius:14,fontFamily:"'Syne',sans-serif",fontWeight:700,fontSize:'0.9rem',textDecoration:'none',transition:'all 0.2s'}}>💌 Bewerben →</a>
+                :<Link href="/register" style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',padding:'13px 16px',background:'linear-gradient(135deg,var(--accent),rgba(124,104,250,0.8))',color:'#fff',borderRadius:14,fontFamily:"'Syne',sans-serif",fontWeight:700,fontSize:'0.9rem',textDecoration:'none',transition:'all 0.2s'}}>Anmelden →</Link>}
+              <Link href="/ki-tools" style={{padding:'13px 16px',background:'var(--surface2)',border:'1px solid var(--border2)',color:'var(--text2)',borderRadius:14,fontFamily:"'Syne',sans-serif",fontWeight:700,fontSize:'0.9rem',textDecoration:'none',flexShrink:0,transition:'all 0.2s'}}>KI-Match ✦</Link>
             </div>
           </div>
         ):(
-          <div style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:20,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:'0.75rem',minHeight:400,textAlign:'center'}}>
-            <div style={{fontSize:'2.5rem',opacity:0.2}}>◈</div>
-            <div style={{fontFamily:"'Syne',sans-serif",fontWeight:700,color:'var(--text3)',fontSize:'0.88rem'}}>Stelle auswählen</div>
+          <div style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:24,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:'1rem',minHeight:400,textAlign:'center',boxShadow:'0 10px 40px rgba(124,104,250,0.1)'}}>
+            <div style={{fontSize:'4rem',opacity:0.15}}>◈</div>
+            <div>
+              <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,color:'var(--text3)',fontSize:'1rem',marginBottom:'0.4rem'}}>Stelle auswählen</div>
+              <div style={{color:'var(--text3)',fontSize:'0.85rem'}}>Klick auf einen Job links</div>
+            </div>
           </div>
         )}
       </div>
