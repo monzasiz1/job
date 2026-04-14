@@ -11,9 +11,21 @@ export default async function Dashboard() {
   if (!profile) redirect('/register')
   const isEmp = profile.role === 'employer'
   let jobs: any[] = []
+  let interests: any[] = []
   if (isEmp) {
     const { data } = await supabase.from('jobs').select('*').eq('employer_id', user.id).order('created_at', { ascending: false })
     jobs = data || []
+    
+    const jobIds = jobs.map((j: any) => j.id) || []
+    if (jobIds.length > 0) {
+      const { data: intData } = await supabase
+        .from('job_interests')
+        .select('*, applicant:applicant_id(full_name, avatar_url, bio), job:job_id(id, title)')
+        .eq('action', 'like')
+        .in('job_id', jobIds)
+        .order('created_at', { ascending: false })
+      interests = intData || []
+    }
   }
   const lc = ['ja','jb','jc','jd']
   const initials = profile.full_name?.split(' ').map((n: string) => n[0]).join('').slice(0,2).toUpperCase() || '?'
@@ -101,6 +113,49 @@ export default async function Dashboard() {
                     <span style={{ padding: '3px 10px', borderRadius: 999, fontSize: '0.72rem', fontWeight: 700, background: j.is_active ? 'rgba(61,186,126,0.15)' : 'rgba(255,255,255,0.07)', color: j.is_active ? '#3dba7e' : 'rgba(255,255,255,0.3)' }}>{j.is_active ? 'Aktiv' : 'Inaktiv'}</span>
                     <Link href={`/jobs/${j.id}`} style={{ padding: '7px 14px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 999, color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', fontWeight: 700, textDecoration: 'none', flexShrink: 0 }}>Ansehen</Link>
                   </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ARBEITGEBER: Interessierte Bewerber */}
+        {isEmp && (
+          <div style={{ marginTop: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span>💌 Interessierte Bewerber</span>
+                {interests.length > 0 && <span style={{ padding: '2px 10px', background: 'rgba(240,96,144,0.15)', border: '1px solid rgba(240,96,144,0.2)', borderRadius: 999, fontSize: '0.72rem', fontWeight: 700, color: '#f06090' }}>{interests.length}</span>}
+              </div>
+              {interests.length > 0 && <Link href={`/arbeitgeber/${user.id}`} style={{ padding: '7px 14px', background: 'rgba(240,96,144,0.15)', border: '1px solid rgba(240,96,144,0.2)', borderRadius: 999, color: '#f06090', fontSize: '0.8rem', fontWeight: 700, textDecoration: 'none' }}>Alle ansehen →</Link>}
+            </div>
+            {interests.length === 0 ? (
+              <div style={{ background: '#17172a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 20, padding: '2rem', textAlign: 'center' as const }}>
+                <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>💭</div>
+                <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.88rem' }}>Noch keine Interessenten. Deine Stellen werden bald angezeigt, wenn sich Bewerber als interessiert melden.</div>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
+                {interests.slice(0, 4).map((interest: any) => (
+                  <Link key={interest.id} href={`/arbeitgeber/${user.id}`} style={{ textDecoration: 'none' }}>
+                    <div style={{ background: 'rgba(240,96,144,0.04)', border: '1px solid rgba(240,96,144,0.12)', borderRadius: 14, padding: '1rem', transition: 'all 0.18s', cursor: 'pointer' }}>
+                      <div style={{ display: 'flex', gap: 10, marginBottom: '0.75rem', alignItems: 'center' }}>
+                        {interest.applicant?.avatar_url
+                          ? <img src={interest.applicant.avatar_url} alt="" style={{ width: 40, height: 40, borderRadius: 10, objectFit: 'cover' }} />
+                          : <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(240,96,144,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Syne', sans-serif", fontWeight: 700, color: '#f06090', fontSize: '0.85rem' }}>
+                              {(interest.applicant?.full_name || '?').slice(0,2).toUpperCase()}
+                            </div>}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontWeight: 700, color: '#fff', fontSize: '0.85rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{interest.applicant?.full_name}</div>
+                          <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.3)' }}>für {interest.job?.title}</div>
+                        </div>
+                      </div>
+                      {interest.applicant?.bio && (
+                        <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.25)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>"{interest.applicant.bio}"</div>
+                      )}
+                      <div style={{ marginTop: '0.75rem', color: '#f06090', fontSize: '0.75rem', fontWeight: 700 }}>→ Profil öffnen</div>
+                    </div>
+                  </Link>
                 ))}
               </div>
             )}
