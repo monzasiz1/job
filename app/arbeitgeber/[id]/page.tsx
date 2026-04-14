@@ -157,7 +157,7 @@ export default async function ArbeitgeberProfile({ params }: { params: { id: str
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
                   {interestedApplicants.map((interest: any) => (
                     <Link key={interest.id} href={`/chat?employer=${profile.id}&applicant=${interest.applicant_id}&job=${interest.job_id}`} style={{ textDecoration: 'none' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '1rem', background: 'rgba(240,96,144,0.04)', border: '1px solid rgba(240,96,144,0.12)', borderRadius: 14, transition: 'all 0.18s', cursor: 'pointer', height: '100%', display: 'flex' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '1rem', background: 'rgba(240,96,144,0.04)', border: '1px solid rgba(240,96,144,0.12)', borderRadius: 14, transition: 'all 0.18s', cursor: 'pointer', height: '100%' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                           {interest.applicant?.avatar_url
                             ? <img src={interest.applicant.avatar_url} alt="" style={{ width: 44, height: 44, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
