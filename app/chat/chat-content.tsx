@@ -10,17 +10,30 @@ export default function ChatContent() {
   const [messages, setMessages] = useState<any[]>([])
   const [msgText, setMsgText] = useState('')
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [otherUser, setOtherUser] = useState<any>(null)
   const [currentUser, setCurrentUser] = useState<any>(null)
+  const [paramsReady, setParamsReady] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  const employer = searchParams.get('employer')
-  const applicant = searchParams.get('applicant')
-  const job = searchParams.get('job')
+  const employer = searchParams?.get('employer')
+  const applicant = searchParams?.get('applicant')
+  const job = searchParams?.get('job')
+
+  // Warte auf Parameters
+  useEffect(() => {
+    if (searchParams && employer && applicant && job) {
+      setParamsReady(true)
+    }
+  }, [searchParams, employer, applicant, job])
 
   useEffect(() => {
+    if (!paramsReady) return
+    
     const initChat = async () => {
       try {
+        setError(null)
+        
         // Hole aktuelle User
         const userRes = await fetch('/api/auth/user')
         if (!userRes.ok) {
@@ -34,11 +47,17 @@ export default function ChatContent() {
         const convRes = await fetch(
           `/api/chat/conversations?applicant_id=${applicant}&job_id=${job}`
         )
+        if (!convRes.ok) {
+          throw new Error('Konversation konnte nicht erstellt werden')
+        }
         const convData = await convRes.json()
         setConversationId(convData.conversation_id)
 
         // Hole andere Person's Profil
         const otherRes = await fetch(`/api/user/${applicant}`)
+        if (!otherRes.ok) {
+          throw new Error('Benutzerprofil konnte nicht geladen werden')
+        }
         const otherData = await otherRes.json()
         setOtherUser(otherData)
 
@@ -46,20 +65,23 @@ export default function ChatContent() {
         const msgRes = await fetch(
           `/api/chat/messages?conversation_id=${convData.conversation_id}`
         )
+        if (!msgRes.ok) {
+          throw new Error('Nachrichten konnten nicht geladen werden')
+        }
         const msgData = await msgRes.json()
         setMessages(msgData || [])
 
         setLoading(false)
-      } catch (err) {
+      } catch (err: any) {
         console.error(err)
+        setError(err.message || 'Ein Fehler ist aufgetreten')
         setLoading(false)
       }
     }
 
-    if (applicant) {
-      initChat()
-    }
-  }, [applicant, job, router])
+    initChat()
+  }, [paramsReady, applicant, job, router])
+
 
   useEffect(() => {
     // Auto-scroll zu letzter Nachricht
@@ -103,6 +125,28 @@ export default function ChatContent() {
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '2rem', marginBottom: '1rem', opacity: 0.3 }}>💬</div>
           <div style={{ color: 'rgba(255,255,255,0.4)' }}>Chat wird geladen...</div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⚠️</div>
+          <div style={{ color: '#f06090', marginBottom: '1rem' }}>{error}</div>
+          <Link href="/" style={{ color: '#a080ff', textDecoration: 'none', fontWeight: 700 }}>← Zurück</Link>
+        </div>
+      </div>
+    )
+  }
+
+  if (!paramsReady) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ color: 'rgba(255,255,255,0.4)' }}>Wird initialisiert...</div>
         </div>
       </div>
     )
