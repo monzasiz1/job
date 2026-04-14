@@ -82,8 +82,32 @@ export default async function JobDetailPage({ params }: { params: { id: string }
           {/* BESCHREIBUNG */}
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 24, padding: 'clamp(1.5rem, 3vw, 2rem)' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--accent-soft)', border: '1px solid rgba(124,104,250,0.2)', color: '#a080ff', borderRadius: 999, padding: '4px 12px', fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '1rem' }}>📝 Aufgaben</div>
-            <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 'clamp(1.15rem, 2vw, 1.3rem)', color: '#fff', marginBottom: '1.2rem' }}>Über diese Stelle</h2>
+            <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 'clamp(1.15rem, 2vw, 1.3rem)', color: '#fff', marginBottom: '1.2rem' }}>{job.title}</h2>
             <div style={{ fontSize: 'clamp(0.9rem, 1.2vw, 1rem)', color: 'var(--text2)', lineHeight: 2, whiteSpace: 'pre-wrap' }}>{job.description}</div>
+          </div>
+
+          {/* VIER STRUKTURIERTE ABSCHNITTE */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(clamp(250px, 45vw, 320px), 1fr))', gap: '1.5rem' }}>
+            {/* DEIN PROFIL */}
+            <div style={{ background: 'linear-gradient(135deg, rgba(124,104,250,0.08), rgba(124,104,250,0.02))', border: '1px solid rgba(124,104,250,0.2)', borderRadius: 24, padding: 'clamp(1.5rem, 3vw, 2rem)' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(124,104,250,0.15)', border: '1px solid rgba(124,104,250,0.3)', color: '#a080ff', borderRadius: 999, padding: '4px 12px', fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '1rem' }}>👤 Profil</div>
+              <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 'clamp(1rem, 2vw, 1.15rem)', color: '#fff', marginBottom: '1rem' }}>Dein Profil</h3>
+              <div style={{ fontSize: 'clamp(0.88rem, 1.2vw, 0.95rem)', color: 'var(--text2)', lineHeight: 1.8, whiteSpace: 'pre-wrap', minHeight: '100px' }}>{job.requirements || 'Keine spezifischen Anforderungen angegeben.'}</div>
+            </div>
+
+            {/* WIR BIETEN DIR */}
+            <div style={{ background: 'linear-gradient(135deg, rgba(61,186,126,0.08), rgba(61,186,126,0.02))', border: '1px solid rgba(61,186,126,0.2)', borderRadius: 24, padding: 'clamp(1.5rem, 3vw, 2rem)' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(61,186,126,0.15)', border: '1px solid rgba(61,186,126,0.3)', color: 'var(--green)', borderRadius: 999, padding: '4px 12px', fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '1rem' }}>🎁 Bieten</div>
+              <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 'clamp(1rem, 2vw, 1.15rem)', color: '#fff', marginBottom: '1rem' }}>Wir bieten dir</h3>
+              <div style={{ fontSize: 'clamp(0.88rem, 1.2vw, 0.95rem)', color: 'var(--text2)', lineHeight: 1.8, whiteSpace: 'pre-wrap', minHeight: '100px' }}>{job.offers || 'Kompetitives Gehalt und attraktive Leistungen.'}</div>
+            </div>
+
+            {/* WAS ERWARTET DICH */}
+            <div style={{ background: 'linear-gradient(135deg, rgba(212,168,67,0.08), rgba(212,168,67,0.03))', border: '1px solid rgba(212,168,67,0.2)', borderRadius: 24, padding: 'clamp(1.5rem, 3vw, 2rem)' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(212,168,67,0.15)', border: '1px solid rgba(212,168,67,0.3)', color: 'var(--gold)', borderRadius: 999, padding: '4px 12px', fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '1rem' }}>🚀 Zukunft</div>
+              <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 'clamp(1rem, 2vw, 1.15rem)', color: '#fff', marginBottom: '1rem' }}>Was erwartet dich?</h3>
+              <div style={{ fontSize: 'clamp(0.88rem, 1.2vw, 0.95rem)', color: 'var(--text2)', lineHeight: 1.8, whiteSpace: 'pre-wrap', minHeight: '100px' }}>{job.expectations || 'Spannende Herausforderungen und Wachstumspotenzial.'}</div>
+            </div>
           </div>
 
           {/* BENEFITS */}
