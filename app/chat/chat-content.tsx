@@ -176,18 +176,6 @@ export default function ChatContent() {
     )
   }
 
-  if (!employer || !applicant || !job) {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⚠️</div>
-          <div style={{ color: '#f06090', marginBottom: '1rem' }}>Parameter fehlen (employer/applicant/job)</div>
-          <Link href="/" style={{ color: '#a080ff', textDecoration: 'none', fontWeight: 700 }}>← Zurück</Link>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '1rem', height: 'calc(100vh - 60px)', background: 'rgba(15,15,23,0.5)' }}>
       {/* CHAT BEREICH */}
@@ -202,13 +190,18 @@ export default function ChatContent() {
                 style={{ width: 44, height: 44, borderRadius: 12, objectFit: 'cover' }}
               />
             ) : (
-              <div
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 12,
-                  background: 'rgba(240,96,144,0.15)',
-           div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(240,96,144,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#f06090' }}>
+                {(otherUser?.full_name || '?').slice(0, 2).toUpperCase()}
+              </div>
+            )}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 700, color: '#fff', fontSize: '0.95rem' }}>
+                {otherUser?.full_name}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>Online</div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <button
               onClick={handleDeleteChat}
               disabled={deleting}
@@ -229,24 +222,7 @@ export default function ChatContent() {
             <Link href="/" style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'none', fontSize: '0.9rem' }}>
               ✕
             </Link>
-          </div  justifyContent: 'center',
-                  fontWeight: 700,
-                  color: '#f06090',
-                }}
-              >
-                {(otherUser?.full_name || '?').slice(0, 2).toUpperCase()}
-              </div>
-            )}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 700, color: '#fff', fontSize: '0.95rem' }}>
-                {otherUser?.full_name}
-              </div>
-              <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>Online</div>
-            </div>
           </div>
-          <Link href="/" style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'none', fontSize: '0.9rem' }}>
-            ✕
-          </Link>
         </div>
 
         {/* MESSAGES */}
