@@ -140,44 +140,44 @@ export default function JobsClient({ jobs, searchParams, user }: any) {
     <>
       <style>{STYLES}</style>
       {/* TOPBAR */}
-      <div style={{position:'sticky',top:0,zIndex:100,background:'rgba(15,15,23,0.92)',backdropFilter:'blur(20px)',borderBottom:'1px solid var(--border)',padding:'0 1.25rem',height:60,display:'flex',alignItems:'center',gap:8}}>
-        <form onSubmit={search} style={{display:'flex',gap:8,flex:1,flexWrap:'wrap',alignItems:'center'}}>
-          <div style={{display:'flex',alignItems:'center',gap:8,background:'var(--surface2)',border:'1px solid var(--border2)',borderRadius:12,padding:'8px 13px',flex:'1 1 200px',minWidth:0}}>
-            <span style={{color:'var(--text3)',flexShrink:0}}>🔍</span>
-            <input ref={qR} defaultValue={searchParams.q} placeholder="Jobtitel, Firma..." style={{border:'none',outline:'none',background:'transparent',color:'var(--text)',fontFamily:"'DM Sans',sans-serif",fontSize:'0.86rem',flex:1,minWidth:0}}/>
+      <div style={{position:'sticky',top:0,zIndex:100,background:'rgba(15,15,23,0.92)',backdropFilter:'blur(20px)',borderBottom:'1px solid var(--border)',padding:'clamp(0.5rem, 2vw, 1.25rem)',display:'flex',alignItems:'center',gap:'clamp(0.5rem, 2vw, 1rem)'}}>
+        <form onSubmit={search} style={{display:'flex',gap:'clamp(0.5rem, 2vw, 1rem)',flex:1,flexWrap:'wrap',alignItems:'center'}}>
+          <div style={{display:'flex',alignItems:'center',gap:8,background:'var(--surface2)',border:'1px solid var(--border2)',borderRadius:12,padding:'clamp(6px, 1.5vw, 10px) clamp(10px, 2vw, 16px)',flex:'1 1 clamp(180px, 35vw, 220px)',minWidth:0}}>
+            <span style={{color:'var(--text3)',flexShrink:0,fontSize:'clamp(0.95rem, 2vw, 1.1rem)'}}>🔍</span>
+            <input ref={qR} defaultValue={searchParams.q} placeholder="Job, Firma..." style={{border:'none',outline:'none',background:'transparent',color:'var(--text)',fontFamily:"'DM Sans',sans-serif",fontSize:'clamp(0.75rem, 2vw, 0.86rem)',flex:1,minWidth:0}}/>
           </div>
-          <div style={{display:'flex',alignItems:'center',gap:8,background:'var(--surface2)',border:'1px solid var(--border2)',borderRadius:12,padding:'8px 13px',flex:'1 1 140px',minWidth:0}}>
-            <span style={{color:'var(--text3)',flexShrink:0}}>📍</span>
-            <input ref={cR} defaultValue={searchParams.city} placeholder="Stadt / PLZ..." style={{border:'none',outline:'none',background:'transparent',color:'var(--text)',fontFamily:"'DM Sans',sans-serif",fontSize:'0.86rem',flex:1,minWidth:0}}/>
+          <div style={{display:'flex',alignItems:'center',gap:8,background:'var(--surface2)',border:'1px solid var(--border2)',borderRadius:12,padding:'clamp(6px, 1.5vw, 10px) clamp(10px, 2vw, 16px)',flex:'1 1 clamp(140px, 30vw, 180px)',minWidth:0}}>
+            <span style={{color:'var(--text3)',flexShrink:0,fontSize:'clamp(0.95rem, 2vw, 1.1rem)'}}>📍</span>
+            <input ref={cR} defaultValue={searchParams.city} placeholder="Stadt / PLZ..." style={{border:'none',outline:'none',background:'transparent',color:'var(--text)',fontFamily:"'DM Sans',sans-serif",fontSize:'clamp(0.75rem, 2vw, 0.86rem)',flex:1,minWidth:0}}/>
           </div>
-          <select ref={rR} defaultValue={searchParams.radius||''} style={{padding:'8px 11px',border:'1px solid var(--border2)',borderRadius:10,fontFamily:"'DM Sans',sans-serif",fontSize:'0.82rem',background:'var(--surface2)',color:'var(--text2)',outline:'none',cursor:'pointer',flexShrink:0}}>
+          <select ref={rR} defaultValue={searchParams.radius||''} style={{padding:'clamp(6px, 1.5vw, 10px) clamp(8px, 1.5vw, 12px)',border:'1px solid var(--border2)',borderRadius:10,fontFamily:"'DM Sans',sans-serif",fontSize:'clamp(0.7rem, 1.8vw, 0.82rem)',background:'var(--surface2)',color:'var(--text2)',outline:'none',cursor:'pointer',flexShrink:0}}>
             <option value="">Umkreis</option>
             <option value="10">+10 km</option><option value="25">+25 km</option>
             <option value="50">+50 km</option><option value="100">+100 km</option>
             <option value="999">Bundesweit</option>
           </select>
-          <select ref={tR} defaultValue={searchParams.type||''} style={{padding:'8px 11px',border:'1px solid var(--border2)',borderRadius:10,fontFamily:"'DM Sans',sans-serif",fontSize:'0.82rem',background:'var(--surface2)',color:'var(--text2)',outline:'none',cursor:'pointer',flexShrink:0}}>
+          <select ref={tR} defaultValue={searchParams.type||''} style={{padding:'clamp(6px, 1.5vw, 10px) clamp(8px, 1.5vw, 12px)',border:'1px solid var(--border2)',borderRadius:10,fontFamily:"'DM Sans',sans-serif",fontSize:'clamp(0.7rem, 1.8vw, 0.82rem)',background:'var(--surface2)',color:'var(--text2)',outline:'none',cursor:'pointer',flexShrink:0}}>
             <option value="">Alle Typen</option>
             <option value="Remote">Remote</option><option value="Hybrid">Hybrid</option><option value="Vor Ort">Vor Ort</option>
           </select>
-          <button type="submit" disabled={geo} style={{padding:'8px 18px',background:'var(--accent)',color:'#fff',border:'none',borderRadius:999,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:'0.82rem',cursor:'pointer',flexShrink:0}}>
+          <button type="submit" disabled={geo} style={{padding:'clamp(7px, 1.5vw, 10px) clamp(12px, 2vw, 18px)',background:'var(--accent)',color:'#fff',border:'none',borderRadius:999,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:'clamp(0.7rem, 1.8vw, 0.82rem)',cursor:'pointer',flexShrink:0,whiteSpace:'nowrap'}}>
             {geo ? '...' : 'Suchen'}
           </button>
-          <button onClick={toggleAiFilter} style={{padding:'8px 18px',background:aiFilter?'var(--accent)':'var(--surface2)',color:aiFilter?'#fff':'var(--text2)',border:`1px solid ${aiFilter?'transparent':'var(--border2)'}`,borderRadius:999,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:'0.82rem',cursor:'pointer',flexShrink:0}}>
-            {aiFilter?'✓ KI-Filter':'KI-Filter'}
+          <button onClick={toggleAiFilter} style={{padding:'clamp(7px, 1.5vw, 10px) clamp(12px, 2vw, 18px)',background:aiFilter?'var(--accent)':'var(--surface2)',color:aiFilter?'#fff':'var(--text2)',border:`1px solid ${aiFilter?'transparent':'var(--border2)'}`,borderRadius:999,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:'clamp(0.65rem, 1.6vw, 0.82rem)',cursor:'pointer',flexShrink:0,whiteSpace:'nowrap'}}>
+            {aiFilter?'✓ KI':'KI-Filter'}
           </button>
-          <button onClick={() => {setSwipeMode(!swipeMode); setSwipeIdx(0)}} style={{padding:'8px 18px',background:swipeMode?'var(--accent)':'var(--surface2)',color:swipeMode?'#fff':'var(--text2)',border:`1px solid ${swipeMode?'transparent':'var(--border2)'}`,borderRadius:999,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:'0.82rem',cursor:'pointer',flexShrink:0}}>
-            {swipeMode?'Liste':'💫 Smart-Swipe'}
+          <button onClick={() => {setSwipeMode(!swipeMode); setSwipeIdx(0)}} style={{padding:'clamp(7px, 1.5vw, 10px) clamp(12px, 2vw, 18px)',background:swipeMode?'var(--accent)':'var(--surface2)',color:swipeMode?'#fff':'var(--text2)',border:`1px solid ${swipeMode?'transparent':'var(--border2)'}`,borderRadius:999,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:'clamp(0.65rem, 1.6vw, 0.82rem)',cursor:'pointer',flexShrink:0,whiteSpace:'nowrap'}}>
+            {swipeMode?'Liste':'💫 Swipe'}
           </button>
         </form>
       </div>
 
       {/* CHIPS */}
-      <div style={{padding:'0.7rem 1.25rem',display:'flex',gap:7,flexWrap:'wrap',alignItems:'center',borderBottom:'1px solid var(--border)',overflowX:'auto'}}>
+      <div style={{padding:'clamp(0.5rem, 2vw, 0.7rem) clamp(0.75rem, 3vw, 1.25rem)',display:'flex',gap:'clamp(0.4rem, 1.5vw, 0.7rem)',flexWrap:'wrap',alignItems:'center',borderBottom:'1px solid var(--border)',overflowX:'auto'}}>
         {[['Alle','/jobs'],['Remote','/jobs?type=Remote'],['Vollzeit','/jobs?contract=Vollzeit'],['Junior','/jobs?level=Junior'],['Senior','/jobs?level=Senior'],['Tech','/jobs?field=Tech+%26+IT'],['Handwerk','/jobs?field=Handwerk']].map(([l,h])=>(
-          <Link key={l} href={h} style={{padding:'5px 13px',borderRadius:999,fontSize:'0.75rem',fontWeight:700,border:'1px solid var(--border2)',background:'var(--surface)',color:'var(--text2)',textDecoration:'none',whiteSpace:'nowrap'}}>{l}</Link>
+          <Link key={l} href={h} style={{padding:'clamp(4px, 1vw, 6px) clamp(10px, 2vw, 14px)',borderRadius:999,fontSize:'clamp(0.65rem, 1.5vw, 0.75rem)',fontWeight:700,border:'1px solid var(--border2)',background:'var(--surface)',color:'var(--text2)',textDecoration:'none',whiteSpace:'nowrap'}}>{l}</Link>
         ))}
-        <span style={{marginLeft:'auto',fontSize:'0.76rem',color:'var(--text3)',fontWeight:600,whiteSpace:'nowrap'}}>{filteredJobs.length} Jobs {aiFilter && '(KI-gefiltert)'}</span>
+        <span style={{marginLeft:'auto',fontSize:'clamp(0.65rem, 1.5vw, 0.76rem)',color:'var(--text3)',fontWeight:600,whiteSpace:'nowrap'}}>{filteredJobs.length} {filteredJobs.length === 1 ? 'Job' : 'Jobs'} {aiFilter && '(KI)'}</span>
       </div>
 
       {/* SPLIT VIEW oder SWIPE */}
