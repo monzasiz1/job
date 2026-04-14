@@ -3,7 +3,6 @@ import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import FavoriteButton from '@/components/FavoriteButton'
-import ShareButton from '@/components/ShareButton'
 
 const LC = ['ja','jb','jc','jd','je','jf']
 const ll = (n: string) => n.slice(0,2).toUpperCase()
@@ -269,8 +268,7 @@ export default function JobsClient({ jobs, searchParams, user }: any) {
               <div style={{height:140,background:'linear-gradient(135deg,var(--surface2),var(--surface3))',position:'relative',overflow:'hidden'}}>
                 {j.cover_image_url && <img src={j.cover_image_url} alt="" style={{width:'100%',height:'100%',objectFit:'cover',opacity:0.6}}/>}
                 <div style={{position:'absolute',inset:0,background:'linear-gradient(to bottom,rgba(23,23,42,0.3),rgba(23,23,42,0.8))'}}/>
-                <div style={{position:'absolute',top:12,right:12,display:'flex',gap:8}}>
-                  <ShareButton jobId={j.id} jobTitle={j.title} jobCompany={j.company} />
+                <div style={{position:'absolute',top:12,right:12}}>
                   <FavoriteButton jobId={j.id} />
                 </div>
               </div>
@@ -308,7 +306,6 @@ export default function JobsClient({ jobs, searchParams, user }: any) {
                 <div style={{color:'rgba(255,255,255,0.7)',fontSize:'0.95rem',fontWeight:500}}>{sel.company} · {sel.location}</div>
               </div>
               <div style={{position:'absolute',top:16,right:16,display:'flex',gap:8}}>
-                <ShareButton jobId={sel.id} jobTitle={sel.title} jobCompany={sel.company} />
                 <FavoriteButton jobId={sel.id} />
                 <Link href={`/jobs/${sel.id}`} style={{width:40,height:40,background:'rgba(255,255,255,0.15)',border:'1px solid rgba(255,255,255,0.25)',borderRadius:12,display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontSize:'1rem',textDecoration:'none',backdropFilter:'blur(10px)',transition:'all 0.2s'}}>↗</Link>
               </div>
