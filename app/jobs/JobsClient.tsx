@@ -146,7 +146,7 @@ export default function JobsClient({ jobs, searchParams, user }: any) {
 
   return (
     <>
-      <style>{STYLES}</style>
+      <style dangerouslySetInnerHTML={{ __html: STYLES }} />
       {/* TOPBAR */}
       <div style={{position:'sticky',top:0,zIndex:100,background:'rgba(15,15,23,0.92)',backdropFilter:'blur(20px)',borderBottom:'1px solid var(--border)',padding:'clamp(0.5rem, 2vw, 1.25rem)',display:'flex',alignItems:'center',gap:'clamp(0.5rem, 2vw, 1rem)'}}>
         <form onSubmit={search} style={{display:'flex',gap:'clamp(0.5rem, 2vw, 1rem)',flex:1,flexWrap:'wrap',alignItems:'center'}}>
