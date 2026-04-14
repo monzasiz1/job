@@ -67,38 +67,38 @@ export default async function Dashboard() {
 
   return (
     <AppShell>
-      <div style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(15,15,23,0.92)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: '1rem', padding: '0 1.5rem', height: 60 }}>
-        <span style={{ fontWeight: 800, fontSize: '0.95rem', color: '#fff', flex: 1 }}>Dashboard</span>
-        <div style={{ display: 'flex', gap: 8 }}>
-          {isEmp && <Link href="/post-job" style={{ padding: '8px 16px', background: '#d4a843', color: '#000', borderRadius: 999, fontWeight: 700, fontSize: '0.82rem', textDecoration: 'none' }}>＋ Stelle inserieren</Link>}
-          <Link href="/ki-tools" style={{ padding: '8px 16px', background: '#7c68fa', color: '#fff', borderRadius: 999, fontWeight: 700, fontSize: '0.82rem', textDecoration: 'none' }}>✦ KI-Tools</Link>
+      <div style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(15,15,23,0.92)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: '1rem', padding: '0 clamp(0.75rem, 3vw, 1.5rem)', height: 60 }}>
+        <span style={{ fontWeight: 800, fontSize: 'clamp(0.85rem, 3vw, 0.95rem)', color: '#fff', flex: 1 }}>Dashboard</span>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          {isEmp && <Link href="/post-job" style={{ padding: '8px clamp(12px, 3vw, 16px)', background: '#d4a843', color: '#000', borderRadius: 999, fontWeight: 700, fontSize: 'clamp(0.7rem, 2vw, 0.82rem)', textDecoration: 'none', whiteSpace: 'nowrap' }}>＋ Stelle</Link>}
+          <Link href="/ki-tools" style={{ padding: '8px clamp(12px, 3vw, 16px)', background: '#7c68fa', color: '#fff', borderRadius: 999, fontWeight: 700, fontSize: 'clamp(0.7rem, 2vw, 0.82rem)', textDecoration: 'none', whiteSpace: 'nowrap' }}>✦ KI-Tools</Link>
         </div>
       </div>
 
-      <div style={{ padding: '1.5rem', maxWidth: 900, margin: '0 auto' }}>
+      <div style={{ padding: 'clamp(1rem, 4vw, 1.5rem)', maxWidth: 900, margin: '0 auto' }}>
 
         {/* PROFIL CARD */}
-        <div style={{ background: 'linear-gradient(135deg, rgba(124,104,250,0.1), rgba(124,104,250,0.04))', border: '1px solid rgba(124,104,250,0.2)', borderRadius: 20, padding: '1.5rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
-          <div style={{ width: 64, height: 64, borderRadius: 18, background: 'linear-gradient(135deg, #7c68fa, #a080ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '1.4rem', color: '#fff', flexShrink: 0, overflow: 'hidden', border: '2px solid rgba(255,255,255,0.1)' }}>
+        <div style={{ background: 'linear-gradient(135deg, rgba(124,104,250,0.1), rgba(124,104,250,0.04))', border: '1px solid rgba(124,104,250,0.2)', borderRadius: 20, padding: 'clamp(1rem, 3vw, 1.5rem)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: 'clamp(0.75rem, 3vw, 1.25rem)', flexWrap: 'wrap' }}>
+          <div style={{ width: 'clamp(48px, 12vw, 64px)', height: 'clamp(48px, 12vw, 64px)', borderRadius: 18, background: 'linear-gradient(135deg, #7c68fa, #a080ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 'clamp(1rem, 4vw, 1.4rem)', color: '#fff', flexShrink: 0, overflow: 'hidden', border: '2px solid rgba(255,255,255,0.1)' }}>
             {profile.avatar_url ? <img src={profile.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initials}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#fff', marginBottom: 4 }}>{profile.full_name}</div>
-            <div style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.4)' }}>
+            <div style={{ fontWeight: 800, fontSize: 'clamp(0.9rem, 3vw, 1.1rem)', color: '#fff', marginBottom: 4 }}>{profile.full_name}</div>
+            <div style={{ fontSize: 'clamp(0.7rem, 2vw, 0.82rem)', color: 'rgba(255,255,255,0.4)', lineHeight: 1.4 }}>
               {isEmp ? `🏢 ${profile.company_name || 'Arbeitgeber'}` : '🔍 Auf Jobsuche'}
               {profile.location && ` · 📍 ${profile.location}`}
-              {!profile.bio && <span style={{ color: '#f06090', marginLeft: 8 }}>⚠️ Bio fehlt noch</span>}
+              {!profile.bio && <span style={{ color: '#f06090', marginLeft: 8, display: 'block' }}>⚠️ Bio fehlt noch</span>}
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-            <Link href="/dashboard/profil" style={{ padding: '9px 18px', background: 'rgba(124,104,250,0.2)', border: '1px solid rgba(124,104,250,0.3)', borderRadius: 999, color: '#a080ff', fontSize: '0.83rem', fontWeight: 700, textDecoration: 'none' }}>✏️ Profil bearbeiten</Link>
-            {!isEmp && <Link href={`/bewerber/${user.id}`} style={{ padding: '9px 18px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 999, color: 'rgba(255,255,255,0.5)', fontSize: '0.83rem', fontWeight: 700, textDecoration: 'none' }}>Profil ansehen</Link>}
-            {isEmp && <Link href={`/arbeitgeber/${user.id}`} style={{ padding: '9px 18px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 999, color: 'rgba(255,255,255,0.5)', fontSize: '0.83rem', fontWeight: 700, textDecoration: 'none' }}>Firmenprofil</Link>}
+          <div style={{ display: 'flex', gap: 6, flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end', width: '100%' }}>
+            <Link href="/dashboard/profil" style={{ padding: '8px clamp(12px, 2vw, 18px)', background: 'rgba(124,104,250,0.2)', border: '1px solid rgba(124,104,250,0.3)', borderRadius: 999, color: '#a080ff', fontSize: 'clamp(0.7rem, 2vw, 0.83rem)', fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap' }}>✏️ Bearbeiten</Link>
+            {!isEmp && <Link href={`/bewerber/${user.id}`} style={{ padding: '8px clamp(12px, 2vw, 18px)', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 999, color: 'rgba(255,255,255,0.5)', fontSize: 'clamp(0.7rem, 2vw, 0.83rem)', fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap' }}>Profil</Link>}
+            {isEmp && <Link href={`/arbeitgeber/${user.id}`} style={{ padding: '8px clamp(12px, 2vw, 18px)', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 999, color: 'rgba(255,255,255,0.5)', fontSize: 'clamp(0.7rem, 2vw, 0.83rem)', fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap' }}>Firma</Link>}
           </div>
         </div>
 
         {/* STATS */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginBottom: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 'clamp(10px, 2vw, 12px)', marginBottom: '1.5rem' }}>
           {(isEmp ? [
             [jobs.length, 'Aktive Stellen', '#7aa2f7'],
             [jobs.length * 12, 'Aufrufe', '#3dba7e'],
@@ -110,9 +110,9 @@ export default async function Dashboard() {
             ['–', 'Analysen', '#d4a843'],
             ['65%', 'Match-Score', '#f06090'],
           ]).map(([n, l, c]: any) => (
-            <div key={l} style={{ background: '#17172a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: '1.1rem' }}>
-              <div style={{ fontFamily: 'sans-serif', fontSize: '1.8rem', fontWeight: 800, color: c }}>{n}</div>
-              <div style={{ fontSize: '0.73rem', color: 'rgba(255,255,255,0.3)', marginTop: 4, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>{l}</div>
+            <div key={l} style={{ background: '#17172a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: 'clamp(0.8rem, 3vw, 1.1rem)' }}>
+              <div style={{ fontFamily: 'sans-serif', fontSize: 'clamp(1.4rem, 4vw, 1.8rem)', fontWeight: 800, color: c }}>{n}</div>
+              <div style={{ fontSize: 'clamp(0.65rem, 1.5vw, 0.73rem)', color: 'rgba(255,255,255,0.3)', marginTop: 4, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>{l}</div>
             </div>
           ))}
         </div>
@@ -120,13 +120,13 @@ export default async function Dashboard() {
         {/* ARBEITGEBER: Stellen */}
         {isEmp && (
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#fff' }}>Meine Stellen</div>
-              <Link href="/post-job" style={{ padding: '7px 14px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 999, color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', fontWeight: 700, textDecoration: 'none' }}>＋ Neu</Link>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: 8 }}>
+              <div style={{ fontWeight: 800, fontSize: 'clamp(0.9rem, 3vw, 0.95rem)', color: '#fff' }}>Meine Stellen</div>
+              <Link href="/post-job" style={{ padding: '7px 14px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 999, color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap' }}>＋ Neu</Link>
             </div>
             {jobs.length === 0 ? (
-              <div style={{ background: '#17172a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 20, padding: '3rem', textAlign: 'center' as const }}>
-                <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>📋</div>
+              <div style={{ background: '#17172a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 20, padding: 'clamp(1.5rem, 4vw, 3rem)', textAlign: 'center' as const }}>
+                <div style={{ fontSize: 'clamp(1.8rem, 6vw, 2.5rem)', marginBottom: '1rem' }}>📋</div>
                 <div style={{ fontWeight: 700, color: '#fff', marginBottom: '0.5rem' }}>Noch keine Stellen</div>
                 <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.88rem', marginBottom: '1.5rem' }}>Schalten Sie Ihre erste Stelle live.</div>
                 <Link href="/post-job" style={{ padding: '11px 22px', background: '#d4a843', color: '#000', borderRadius: 999, fontWeight: 700, fontSize: '0.88rem', textDecoration: 'none' }}>Erste Stelle inserieren →</Link>
@@ -134,19 +134,19 @@ export default async function Dashboard() {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 10 }}>
                 {jobs.map((j, i) => (
-                  <div key={j.id} style={{ background: '#17172a', borderRadius: 14, border: '1px solid rgba(255,255,255,0.06)', padding: '1rem 1.1rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                  <div key={j.id} style={{ background: '#17172a', borderRadius: 14, border: '1px solid rgba(255,255,255,0.06)', padding: 'clamp(0.75rem, 2vw, 1.1rem)', display: 'flex', gap: 'clamp(0.75rem, 2vw, 1rem)', alignItems: 'center', flexWrap: 'wrap' }}>
                     {j.cover_image_url
-                      ? <img src={j.cover_image_url} alt="" style={{ width: 44, height: 44, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
-                      : <div className={`jlogo ${lc[i%4]}`} style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.85rem' }}>{j.company.slice(0,2).toUpperCase()}</div>}
+                      ? <img src={j.cover_image_url} alt="" style={{ width: 'clamp(40px, 10vw, 44px)', height: 'clamp(40px, 10vw, 44px)', borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
+                      : <div className={`jlogo ${lc[i%4]}`} style={{ width: 'clamp(40px, 10vw, 44px)', height: 'clamp(40px, 10vw, 44px)', flexShrink: 0, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.85rem' }}>{j.company.slice(0,2).toUpperCase()}</div>}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, color: '#fff', fontSize: '0.88rem', marginBottom: 3 }}>{j.title}</div>
-                      <div style={{ fontSize: '0.76rem', color: 'rgba(255,255,255,0.3)', display: 'flex', gap: 10 }}>
+                      <div style={{ fontWeight: 700, color: '#fff', fontSize: 'clamp(0.8rem, 2vw, 0.88rem)', marginBottom: 3 }}>{j.title}</div>
+                      <div style={{ fontSize: 'clamp(0.7rem, 1.5vw, 0.76rem)', color: 'rgba(255,255,255,0.3)', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                         <span>📍 {j.location}</span><span>⏰ {j.contract}</span>
                         <span>{new Date(j.created_at).toLocaleDateString('de-DE')}</span>
                       </div>
                     </div>
-                    <span style={{ padding: '3px 10px', borderRadius: 999, fontSize: '0.72rem', fontWeight: 700, background: j.is_active ? 'rgba(61,186,126,0.15)' : 'rgba(255,255,255,0.07)', color: j.is_active ? '#3dba7e' : 'rgba(255,255,255,0.3)' }}>{j.is_active ? 'Aktiv' : 'Inaktiv'}</span>
-                    <Link href={`/jobs/${j.id}`} style={{ padding: '7px 14px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 999, color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', fontWeight: 700, textDecoration: 'none', flexShrink: 0 }}>Ansehen</Link>
+                    <span style={{ padding: '3px 10px', borderRadius: 999, fontSize: '0.72rem', fontWeight: 700, background: j.is_active ? 'rgba(61,186,126,0.15)' : 'rgba(255,255,255,0.07)', color: j.is_active ? '#3dba7e' : 'rgba(255,255,255,0.3)', whiteSpace: 'nowrap' }}>{j.is_active ? 'Aktiv' : 'Inaktiv'}</span>
+                    <Link href={`/jobs/${j.id}`} style={{ padding: '7px 14px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 999, color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', fontWeight: 700, textDecoration: 'none', flexShrink: 0, whiteSpace: 'nowrap' }}>Ansehen</Link>
                   </div>
                 ))}
               </div>
@@ -166,38 +166,38 @@ export default async function Dashboard() {
         {/* ARBEITGEBER: Interessierte Bewerber */}
         {isEmp && (
           <div style={{ marginTop: '2rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: 8 }}>
+              <div style={{ fontWeight: 800, fontSize: 'clamp(0.85rem, 3vw, 0.95rem)', color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span>💌 Interessierte Bewerber</span>
                 {interests.length > 0 && <span style={{ padding: '2px 10px', background: 'rgba(240,96,144,0.15)', border: '1px solid rgba(240,96,144,0.2)', borderRadius: 999, fontSize: '0.72rem', fontWeight: 700, color: '#f06090' }}>{interests.length}</span>}
               </div>
-              {interests.length > 0 && <Link href={`/arbeitgeber/${user.id}`} style={{ padding: '7px 14px', background: 'rgba(240,96,144,0.15)', border: '1px solid rgba(240,96,144,0.2)', borderRadius: 999, color: '#f06090', fontSize: '0.8rem', fontWeight: 700, textDecoration: 'none' }}>Alle ansehen →</Link>}
+              {interests.length > 0 && <Link href={`/arbeitgeber/${user.id}`} style={{ padding: '7px 14px', background: 'rgba(240,96,144,0.15)', border: '1px solid rgba(240,96,144,0.2)', borderRadius: 999, color: '#f06090', fontSize: '0.8rem', fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap' }}>Alle ansehen →</Link>}
             </div>
             {interests.length === 0 ? (
-              <div style={{ background: '#17172a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 20, padding: '2rem', textAlign: 'center' as const }}>
-                <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>💭</div>
+              <div style={{ background: '#17172a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 20, padding: 'clamp(1.5rem, 4vw, 2rem)', textAlign: 'center' as const }}>
+                <div style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', marginBottom: '0.75rem' }}>💭</div>
                 <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.88rem' }}>Noch keine Interessenten. Deine Stellen werden bald angezeigt, wenn sich Bewerber als interessiert melden.</div>
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(clamp(160px, 40vw, 220px), 1fr))', gap: 12 }}>
                 {interests.slice(0, 4).map((interest: any) => (
                   <Link key={interest.id} href={`/bewerber/${interest.applicant_id}`} style={{ textDecoration: 'none' }}>
-                    <div style={{ background: 'rgba(240,96,144,0.04)', border: '1px solid rgba(240,96,144,0.12)', borderRadius: 14, padding: '1rem', transition: 'all 0.18s', cursor: 'pointer' }}>
+                    <div style={{ background: 'rgba(240,96,144,0.04)', border: '1px solid rgba(240,96,144,0.12)', borderRadius: 14, padding: 'clamp(0.75rem, 3vw, 1rem)', transition: 'all 0.18s', cursor: 'pointer', height: '100%', display: 'flex', flexDirection: 'column' }}>
                       <div style={{ display: 'flex', gap: 10, marginBottom: '0.75rem', alignItems: 'center' }}>
                         {interest.applicant?.avatar_url
-                          ? <img src={interest.applicant.avatar_url} alt="" style={{ width: 40, height: 40, borderRadius: 10, objectFit: 'cover' }} />
-                          : <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(240,96,144,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Syne', sans-serif", fontWeight: 700, color: '#f06090', fontSize: '0.85rem' }}>
+                          ? <img src={interest.applicant.avatar_url} alt="" style={{ width: 'clamp(36px, 10vw, 40px)', height: 'clamp(36px, 10vw, 40px)', borderRadius: 10, objectFit: 'cover' }} />
+                          : <div style={{ width: 'clamp(36px, 10vw, 40px)', height: 'clamp(36px, 10vw, 40px)', borderRadius: 10, background: 'rgba(240,96,144,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Syne', sans-serif", fontWeight: 700, color: '#f06090', fontSize: '0.85rem' }}>
                               {(interest.applicant?.full_name || '?').slice(0,2).toUpperCase()}
                             </div>}
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontWeight: 700, color: '#fff', fontSize: '0.85rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{interest.applicant?.full_name}</div>
-                          <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.3)' }}>für {interest.job?.title}</div>
+                          <div style={{ fontWeight: 700, color: '#fff', fontSize: 'clamp(0.75rem, 2vw, 0.85rem)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{interest.applicant?.full_name}</div>
+                          <div style={{ fontSize: 'clamp(0.65rem, 1.5vw, 0.72rem)', color: 'rgba(255,255,255,0.3)' }}>für {interest.job?.title}</div>
                         </div>
                       </div>
                       {interest.applicant?.bio && (
-                        <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.25)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>"{interest.applicant.bio}"</div>
+                        <div style={{ fontSize: 'clamp(0.65rem, 1.5vw, 0.75rem)', color: 'rgba(255,255,255,0.25)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>"{interest.applicant.bio}"</div>
                       )}
-                      <div style={{ marginTop: '0.75rem', color: '#f06090', fontSize: '0.75rem', fontWeight: 700 }}>→ Profil öffnen</div>
+                      <div style={{ marginTop: '0.75rem', color: '#f06090', fontSize: 'clamp(0.65rem, 1.5vw, 0.75rem)', fontWeight: 700 }}>→ Profil öffnen</div>
                     </div>
                   </Link>
                 ))}
@@ -208,18 +208,18 @@ export default async function Dashboard() {
 
         {/* BEWERBER: Schnellzugriff */}
         {!isEmp && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(clamp(160px, 40vw, 230px), 1fr))', gap: 'clamp(12px, 3vw, 14px)' }}>
             {[
               { ic: '◈', t: 'Jobs finden', d: 'Tausende aktuelle Stellen in deiner Region.', h: '/jobs', c: 'rgba(124,104,250,0.12)', b: 'rgba(124,104,250,0.2)' },
               { ic: '✦', t: 'KI-Assistent', d: 'Lebenslauf analysieren, matchen, Anschreiben generieren.', h: '/ki-tools', c: 'rgba(212,168,67,0.07)', b: 'rgba(212,168,67,0.18)' },
               { ic: '⭐', t: 'Favoriten', d: 'Deine gespeicherten Stellenanzeigen.', h: '/favoriten', c: 'rgba(61,186,126,0.07)', b: 'rgba(61,186,126,0.18)' },
             ].map(c => (
               <Link key={c.t} href={c.h} style={{ textDecoration: 'none' }}>
-                <div style={{ background: c.c, border: `1px solid ${c.b}`, borderRadius: 20, padding: '1.5rem', cursor: 'pointer', transition: 'all 0.18s', height: '100%' }}>
-                  <div style={{ fontSize: '1.75rem', marginBottom: '0.7rem', color: '#a080ff' }}>{c.ic}</div>
-                  <div style={{ fontWeight: 700, color: '#fff', marginBottom: '0.35rem', fontSize: '0.92rem' }}>{c.t}</div>
-                  <div style={{ fontSize: '0.83rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.7 }}>{c.d}</div>
-                  <div style={{ marginTop: '1rem', color: '#a080ff', fontSize: '0.79rem', fontWeight: 700 }}>Öffnen →</div>
+                <div style={{ background: c.c, border: `1px solid ${c.b}`, borderRadius: 20, padding: 'clamp(1rem, 3vw, 1.5rem)', cursor: 'pointer', transition: 'all 0.18s', height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ fontSize: 'clamp(1.4rem, 5vw, 1.75rem)', marginBottom: '0.7rem', color: '#a080ff' }}>{c.ic}</div>
+                  <div style={{ fontWeight: 700, color: '#fff', marginBottom: '0.35rem', fontSize: 'clamp(0.8rem, 2.5vw, 0.92rem)' }}>{c.t}</div>
+                  <div style={{ fontSize: 'clamp(0.75rem, 2vw, 0.83rem)', color: 'rgba(255,255,255,0.4)', lineHeight: 1.7, flex: 1 }}>{c.d}</div>
+                  <div style={{ marginTop: '1rem', color: '#a080ff', fontSize: 'clamp(0.7rem, 2vw, 0.79rem)', fontWeight: 700 }}>Öffnen →</div>
                 </div>
               </Link>
             ))}
