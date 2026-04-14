@@ -258,7 +258,7 @@ export default function JobsClient({ jobs, searchParams, user }: any) {
           )}
         </div>
       ) : (
-      <div style={{display:'grid',gridTemplateColumns:'420px 1fr',gap:'1.5rem',padding:'1.5rem',minHeight:'calc(100vh - 130px)',background:'linear-gradient(135deg,rgba(124,104,250,0.02),rgba(212,168,67,0.01))'}} className="split-view">
+        <div style={{display:'grid',gridTemplateColumns:'420px 1fr',gap:'1.5rem',padding:'1.5rem',minHeight:'calc(100vh - 130px)',background:'linear-gradient(135deg,rgba(124,104,250,0.02),rgba(212,168,67,0.01))'}} className="split-view">
 
         {/* JOB LIST */}
         <div style={{display:'flex',flexDirection:'column',gap:12,overflowY:'auto',paddingRight:'clamp(0rem, 2vw, 0.5rem)'}>
