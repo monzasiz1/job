@@ -8,12 +8,7 @@ export default async function BewerberProfile({ params }: { params: { id: string
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', params.id)
-    .single()
-
+  const { data: profile } = await supabase.from('profiles').select('*').eq('id', params.id).single()
   if (!profile) notFound()
 
   const isOwn = user.id === params.id
@@ -25,6 +20,7 @@ export default async function BewerberProfile({ params }: { params: { id: string
     <div style={{ minHeight: '100vh', background: '#0f0f1e' }}>
       <Navbar />
 
+      {/* HERO */}
       <div style={{ background: 'linear-gradient(135deg, #1a1a35 0%, #0f0f20 100%)', position: 'relative', overflow: 'hidden', paddingBottom: '3rem' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 80% 60% at 50% -10%, rgba(124,104,250,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
@@ -47,15 +43,20 @@ export default async function BewerberProfile({ params }: { params: { id: string
               {skills.length > 0 && (
                 <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
                   {skills.slice(0, 6).map((s: string) => <span key={s} style={{ padding: '4px 12px', background: 'rgba(124,104,250,0.15)', border: '1px solid rgba(124,104,250,0.2)', borderRadius: 999, fontSize: '0.78rem', fontWeight: 700, color: '#a080ff' }}>{s}</span>)}
-                  {skills.length > 6 && <span style={{ padding: '4px 12px', background: 'rgba(255,255,255,0.06)', borderRadius: 999, fontSize: '0.78rem', fontWeight: 700, color: 'rgba(255,255,255,0.4)' }}>+{skills.length - 6}</span>}
+                  {skills.length > 6 && <span style={{ padding: '4px 12px', background: 'rgba(255,255,255,0.06)', borderRadius: 999, fontSize: '0.78rem', color: 'rgba(255,255,255,0.4)' }}>+{skills.length - 6}</span>}
                 </div>
               )}
             </div>
-            {isOwn && <Link href="/dashboard" style={{ padding: '10px 18px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 999, color: '#fff', fontSize: '0.84rem', fontWeight: 600, textDecoration: 'none', flexShrink: 0 }}>✏️ Bearbeiten</Link>}
+
+            {/* Nur 1 Button — nur wenn eigenes Profil */}
+            {isOwn && (
+              <Link href="/dashboard/profil" style={{ padding: '10px 20px', background: 'rgba(124,104,250,0.15)', border: '1px solid rgba(124,104,250,0.25)', borderRadius: 999, color: '#a080ff', fontSize: '0.84rem', fontWeight: 700, textDecoration: 'none', flexShrink: 0 }}>✏️ Profil bearbeiten</Link>
+            )}
           </div>
         </div>
       </div>
 
+      {/* BODY */}
       <div style={{ maxWidth: 1000, margin: '0 auto', padding: '2rem', display: 'grid', gridTemplateColumns: '1fr 300px', gap: '1.5rem', alignItems: 'start' }}>
         <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '1.25rem' }}>
           {profile.bio ? (
@@ -66,19 +67,25 @@ export default async function BewerberProfile({ params }: { params: { id: string
           ) : isOwn ? (
             <div style={{ background: 'rgba(124,104,250,0.05)', border: '2px dashed rgba(124,104,250,0.2)', borderRadius: 20, padding: '2rem', textAlign: 'center' as const }}>
               <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>💬</div>
-              <div style={{ fontWeight: 700, color: 'rgba(255,255,255,0.5)', marginBottom: '0.4rem' }}>Noch kein Bio</div>
-              <Link href="/dashboard" style={{ padding: '8px 18px', background: 'rgba(124,104,250,0.15)', border: '1px solid rgba(124,104,250,0.25)', borderRadius: 999, color: '#a080ff', fontSize: '0.82rem', fontWeight: 700, textDecoration: 'none' }}>Im Dashboard bearbeiten →</Link>
+              <div style={{ fontWeight: 700, color: 'rgba(255,255,255,0.5)', marginBottom: '0.75rem' }}>Noch kein Bio</div>
+              <Link href="/dashboard/profil" style={{ padding: '8px 18px', background: 'rgba(124,104,250,0.15)', border: '1px solid rgba(124,104,250,0.25)', borderRadius: 999, color: '#a080ff', fontSize: '0.82rem', fontWeight: 700, textDecoration: 'none' }}>Jetzt hinzufügen →</Link>
             </div>
           ) : null}
 
-          {skills.length > 0 && (
+          {skills.length > 0 ? (
             <div style={{ background: '#17172a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 20, padding: '1.75rem' }}>
               <div style={{ fontWeight: 700, fontSize: '1rem', color: '#fff', marginBottom: '1rem' }}>⚡ Skills</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {skills.map((skill: string) => <span key={skill} style={{ padding: '7px 16px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 999, fontSize: '0.83rem', fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>{skill}</span>)}
               </div>
             </div>
-          )}
+          ) : isOwn ? (
+            <div style={{ background: 'rgba(212,168,67,0.05)', border: '2px dashed rgba(212,168,67,0.2)', borderRadius: 20, padding: '2rem', textAlign: 'center' as const }}>
+              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⚡</div>
+              <div style={{ fontWeight: 700, color: 'rgba(255,255,255,0.5)', marginBottom: '0.75rem' }}>Noch keine Skills</div>
+              <Link href="/dashboard/profil" style={{ padding: '8px 18px', background: 'rgba(212,168,67,0.12)', border: '1px solid rgba(212,168,67,0.25)', borderRadius: 999, color: '#d4a843', fontSize: '0.82rem', fontWeight: 700, textDecoration: 'none' }}>Skills hinzufügen →</Link>
+            </div>
+          ) : null}
 
           <div style={{ background: 'rgba(124,104,250,0.07)', border: '1px solid rgba(124,104,250,0.2)', borderRadius: 20, padding: '1.75rem', display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
             <div style={{ fontSize: '2.5rem' }}>🎯</div>
@@ -96,18 +103,17 @@ export default async function BewerberProfile({ params }: { params: { id: string
             <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 10 }}>
               <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                 <span style={{ width: 34, height: 34, background: 'rgba(124,104,250,0.12)', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>✉️</span>
-                <a href={`mailto:${profile.email}`} style={{ fontSize: '0.84rem', color: '#a080ff', textDecoration: 'none', fontWeight: 600 }}>{profile.email}</a>
+                <a href={`mailto:${profile.email}`} style={{ fontSize: '0.84rem', color: '#a080ff', textDecoration: 'none', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{profile.email}</a>
               </div>
               {profile.phone && <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}><span style={{ width: 34, height: 34, background: 'rgba(61,186,126,0.12)', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>📞</span><span style={{ fontSize: '0.84rem', color: 'rgba(255,255,255,0.6)' }}>{profile.phone}</span></div>}
               {profile.location && <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}><span style={{ width: 34, height: 34, background: 'rgba(240,96,144,0.12)', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>📍</span><span style={{ fontSize: '0.84rem', color: 'rgba(255,255,255,0.6)' }}>{profile.location}</span></div>}
               {profile.linkedin && <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}><span style={{ width: 34, height: 34, background: 'rgba(30,64,175,0.2)', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>in</span><a href={profile.linkedin} target="_blank" rel="noopener" style={{ fontSize: '0.84rem', color: '#7aa2f7', textDecoration: 'none', fontWeight: 600 }}>LinkedIn</a></div>}
             </div>
-            {isOwn && <Link href="/dashboard" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '1.25rem', padding: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, color: 'rgba(255,255,255,0.5)', fontSize: '0.82rem', fontWeight: 600, textDecoration: 'none' }}>✏️ Profil bearbeiten</Link>}
           </div>
 
           <div style={{ background: '#17172a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 20, padding: '1.25rem' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              {([[''+skills.length,'Skills','#a080ff'],[expYears>0?expYears+'J':'–','Erfahrung','#d4a843'],['–','Matches','#3dba7e'],['–','Bewerbungen','#f06090']] as [string,string,string][]).map(([n,l,c])=>(
+              {([[''+skills.length,'Skills','#a080ff'],[expYears>0?expYears+'J':'–','Erfahrung','#d4a843'],['–','Matches','#3dba7e'],['–','Bewerbungen','#f06090']] as [string,string,string][]).map(([n,l,c]) => (
                 <div key={l} style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 12, padding: '0.9rem', textAlign: 'center' as const }}>
                   <div style={{ fontSize: '1.4rem', fontWeight: 800, color: c }}>{n}</div>
                   <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', marginTop: 3, fontWeight: 600, textTransform: 'uppercase' as const }}>{l}</div>
