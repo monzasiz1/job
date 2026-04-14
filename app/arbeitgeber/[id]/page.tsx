@@ -76,10 +76,10 @@ export default async function ArbeitgeberProfile({ params }: { params: { id: str
       </div>
 
       {/* BODY */}
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '2rem', display: 'grid', gridTemplateColumns: '1fr 320px', gap: '1.5rem', alignItems: 'start' }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'clamp(1rem, 3vw, 2rem)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', alignItems: 'start' }}>
 
         {/* LEFT */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', minWidth: 0 }}>
 
           {/* ÜBER UNS */}
           {profile.bio && (
@@ -150,22 +150,24 @@ export default async function ArbeitgeberProfile({ params }: { params: { id: str
                 <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.88rem' }}>Noch keine Interessenten</div>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
                 {interestedApplicants.map((interest: any) => (
-                  <div key={interest.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem 1.1rem', background: 'rgba(240,96,144,0.04)', border: '1px solid rgba(240,96,144,0.12)', borderRadius: 14, transition: 'all 0.18s' }}>
-                    {interest.applicant?.avatar_url
-                      ? <img src={interest.applicant.avatar_url} alt="" style={{ width: 52, height: 52, borderRadius: 12, objectFit: 'cover', flexShrink: 0 }} />
-                      : <div style={{ width: 52, height: 52, flexShrink: 0, borderRadius: 12, background: 'rgba(240,96,144,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Syne', sans-serif", fontWeight: 700, color: '#f06090', fontSize: '1rem' }}>
-                          {(interest.applicant?.full_name || '?').slice(0,2).toUpperCase()}
-                        </div>}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, color: '#fff', fontSize: '0.9rem', marginBottom: 4 }}>{interest.applicant?.full_name}</div>
-                      <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.35)' }}>👀 interessiert in: <strong style={{ color: '#f06090' }}>{interest.job?.title}</strong></div>
-                      {interest.applicant?.bio && (
-                        <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.25)', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>"{interest.applicant.bio}"</div>
-                      )}
+                  <div key={interest.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '1rem', background: 'rgba(240,96,144,0.04)', border: '1px solid rgba(240,96,144,0.12)', borderRadius: 14, transition: 'all 0.18s' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      {interest.applicant?.avatar_url
+                        ? <img src={interest.applicant.avatar_url} alt="" style={{ width: 44, height: 44, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
+                        : <div style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 10, background: 'rgba(240,96,144,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Syne', sans-serif", fontWeight: 700, color: '#f06090', fontSize: '0.85rem' }}>
+                            {(interest.applicant?.full_name || '?').slice(0,2).toUpperCase()}
+                          </div>}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, color: '#fff', fontSize: '0.85rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{interest.applicant?.full_name}</div>
+                        <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>👀 {interest.job?.title}</div>
+                      </div>
                     </div>
-                    <Link href={`/chat?employer=${profile.id}&applicant=${interest.applicant?.id}&job=${interest.job?.id}`} style={{ padding: '8px 14px', background: 'linear-gradient(135deg, rgba(240,96,144,0.15), rgba(240,96,144,0.08))', border: '1px solid rgba(240,96,144,0.3)', color: '#f06090', borderRadius: 10, fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, transition: 'all 0.2s', textDecoration: 'none', display: 'inline-block' }}>
+                    {interest.applicant?.bio && (
+                      <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.25)', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>"{interest.applicant.bio}"</div>
+                    )}
+                    <Link href={`/chat?employer=${profile.id}&applicant=${interest.applicant?.id}&job=${interest.job?.id}`} style={{ padding: '6px 10px', background: 'linear-gradient(135deg, rgba(240,96,144,0.15), rgba(240,96,144,0.08))', border: '1px solid rgba(240,96,144,0.3)', color: '#f06090', borderRadius: 8, fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '0.75rem', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.2s', textDecoration: 'none', display: 'inline-block', textAlign: 'center' }}>
                       💬 Chat
                     </Link>
                   </div>
@@ -176,7 +178,7 @@ export default async function ArbeitgeberProfile({ params }: { params: { id: str
         </div>
 
         {/* SIDEBAR */}
-        <div style={{ position: 'sticky', top: 80, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ position: 'sticky', top: 'clamp(60px, 10vh, 100px)', display: 'flex', flexDirection: 'column', gap: '1rem', minWidth: 0 }}>
 
           {/* KONTAKT */}
           <div style={{ background: 'var(--surface, #17172a)', border: '1px solid rgba(212,168,67,0.2)', borderRadius: 20, padding: '1.5rem' }}>
@@ -227,8 +229,8 @@ export default async function ArbeitgeberProfile({ params }: { params: { id: str
           </div>
         </div>
       </div>
-
-      <style>{`
+ (max-width: 768px) {
+          /* Mobile: Stack layout */
         @media(max-width:760px){
           .arbeitgeber-grid { grid-template-columns: 1fr !important; }
         }
