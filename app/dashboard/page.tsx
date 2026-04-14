@@ -13,10 +13,14 @@ export default async function Dashboard() {
   let jobs: any[] = []
   let interests: any[] = []
   let conversations: any[] = []
+  let myInterests: any[] = []
+
   if (isEmp) {
+    // ARBEITGEBER: Meine Stellen
     const { data } = await supabase.from('jobs').select('*').eq('employer_id', user.id).order('created_at', { ascending: false })
     jobs = data || []
     
+    // ARBEITGEBER: Interessierte Bewerber (an meinen Stellen)
     const jobIds = jobs.map((j: any) => j.id) || []
     if (jobIds.length > 0) {
       const { data: intData } = await supabase
@@ -28,6 +32,7 @@ export default async function Dashboard() {
       interests = intData || []
     }
 
+    // ARBEITGEBER: Meine Chats
     const { data: convData } = await supabase
       .from('conversations')
       .select('*, applicant:applicant_id(full_name, avatar_url), job:job_id(title)')
@@ -35,6 +40,25 @@ export default async function Dashboard() {
       .order('last_message_at', { ascending: false })
       .limit(5)
     conversations = convData || []
+  } else {
+    // BEWERBER: Meine Chat-Konversationen
+    const { data: convData } = await supabase
+      .from('conversations')
+      .select('*, employer:employer_id(full_name, avatar_url, company_name), job:job_id(title, company)')
+      .eq('applicant_id', user.id)
+      .order('last_message_at', { ascending: false })
+      .limit(5)
+    conversations = convData || []
+
+    // BEWERBER: Jobs an denen ich interessiert bin
+    const { data: intData } = await supabase
+      .from('job_interests')
+      .select('*, job:job_id(id, title, company, location, salary_min, salary_max)')
+      .eq('applicant_id', user.id)
+      .eq('action', 'like')
+      .order('created_at', { ascending: false })
+      .limit(6)
+    myInterests = intData || []
   }
   const lc = ['ja','jb','jc','jd']
   const initials = profile.full_name?.split(' ').map((n: string) => n[0]).join('').slice(0,2).toUpperCase() || '?'
@@ -128,7 +152,83 @@ export default async function Dashboard() {
           </div>
         )}
 
-        {/* ARBEITGEBER: Meine Chats */}
+        {/* BEWERBER: Meine Chat-Konversationen */}
+        {!isEmp && conversations.length > 0 && (
+          <div style={{ marginTop: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span>💬 Meine Chats</span>
+                <span style={{ padding: '2px 10px', background: 'rgba(124,104,250,0.15)', border: '1px solid rgba(124,104,250,0.2)', borderRadius: 999, fontSize: '0.72rem', fontWeight: 700, color: '#a080ff' }}>{conversations.length}</span>
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 10 }}>
+              {conversations.map((conv: any) => (
+                <Link key={conv.id} href={`/chat?employer=${conv.employer_id}&applicant=${conv.applicant_id}&job=${conv.job_id}`} style={{ textDecoration: 'none' }}>
+                  <div style={{ background: 'rgba(124,104,250,0.04)', border: '1px solid rgba(124,104,250,0.12)', borderRadius: 14, padding: '1rem', transition: 'all 0.18s', cursor: 'pointer', display: 'flex', gap: 12, alignItems: 'center' }}>
+                    {conv.employer?.avatar_url
+                      ? <img src={conv.employer.avatar_url} alt="" style={{ width: 44, height: 44, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
+                      : <div style={{ width: 44, height: 44, borderRadius: 10, background: 'rgba(124,104,250,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Syne', sans-serif", fontWeight: 700, color: '#a080ff', fontSize: '0.9rem', flexShrink: 0 }}>
+                          {(conv.employer?.full_name || '?').slice(0,2).toUpperCase()}
+                        </div>}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, color: '#fff', fontSize: '0.88rem', marginBottom: 3 }}>{conv.employer?.company_name || conv.employer?.full_name}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{conv.last_message || 'Keine Nachrichten'}</div>
+                      <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.2)', marginTop: 2 }}>📌 {conv.job?.title}</div>
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)', flexShrink: 0 }}>→</div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* BEWERBER: Keine Chats */}
+        {!isEmp && conversations.length === 0 && (
+          <div style={{ marginTop: '2rem', background: '#17172a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 20, padding: '2rem', textAlign: 'center' as const }}>
+            <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>💬</div>
+            <div style={{ fontWeight: 700, color: '#fff', marginBottom: '0.5rem' }}>Noch keine Chats</div>
+            <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.88rem' }}>Wenn ein Arbeitgeber an dir interessiert ist, startet er einen Chat mit dir.</div>
+          </div>
+        )}
+
+        {/* BEWERBER: Interessierte Jobs */}
+        {!isEmp && (
+          <div style={{ marginTop: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span>❤️ Meine Interessen</span>
+                {myInterests.length > 0 && <span style={{ padding: '2px 10px', background: 'rgba(240,96,144,0.15)', border: '1px solid rgba(240,96,144,0.2)', borderRadius: 999, fontSize: '0.72rem', fontWeight: 700, color: '#f06090' }}>{myInterests.length}</span>}
+              </div>
+            </div>
+            {myInterests.length === 0 ? (
+              <div style={{ background: '#17172a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 20, padding: '2rem', textAlign: 'center' as const }}>
+                <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>👀</div>
+                <div style={{ fontWeight: 700, color: '#fff', marginBottom: '0.5rem' }}>Noch keine Interessen</div>
+                <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.88rem', marginBottom: '1.5rem' }}>Markiere Jobs als "Interessiert", um sie hier zu sehen.</div>
+                <Link href="/jobs" style={{ padding: '11px 22px', background: '#a080ff', color: '#fff', borderRadius: 999, fontWeight: 700, fontSize: '0.88rem', textDecoration: 'none' }}>Zu den Stellen →</Link>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 }}>
+                {myInterests.map((interest: any) => (
+                  <Link key={interest.id} href={`/jobs/${interest.job?.id}`} style={{ textDecoration: 'none' }}>
+                    <div style={{ background: 'rgba(240,96,144,0.04)', border: '1px solid rgba(240,96,144,0.12)', borderRadius: 14, padding: '1rem', transition: 'all 0.18s', cursor: 'pointer', height: '100%', display: 'flex', flexDirection: 'column' as const }}>
+                      <div style={{ fontWeight: 700, color: '#fff', fontSize: '0.9rem', marginBottom: '0.35rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{interest.job?.title}</div>
+                      <div style={{ fontSize: '0.77rem', color: 'rgba(255,255,255,0.4)', marginBottom: '0.5rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        🏢 {interest.job?.company}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', display: 'flex', gap: 8, marginBottom: 'auto', flexWrap: 'wrap' }}>
+                        {interest.job?.location && <span>📍 {interest.job.location}</span>}
+                        {interest.job?.salary_min > 0 && <span>💰 {interest.job.salary_min / 1000}k€</span>}
+                      </div>
+                      <div style={{ marginTop: '0.75rem', color: '#f06090', fontSize: '0.75rem', fontWeight: 700 }}>→ Zum Job</div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         {isEmp && conversations.length > 0 && (
           <div style={{ marginTop: '2rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
