@@ -68,6 +68,8 @@ export default async function JobDetailPage({ params }: { params: { id: string }
             <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexShrink: 0 }}>
               <ShareButton jobId={job.id} jobTitle={job.title} jobCompany={job.company} />
               <FavoriteButton jobId={job.id} />
+              <Link href={`/jobs/${job.id}`} style={{display:'none',width:40,height:40,background:'rgba(255,255,255,0.15)',border:'1px solid rgba(255,255,255,0.25)',borderRadius:12,alignItems:'center',justifyContent:'center',color:'#fff',fontSize:'1rem',textDecoration:'none',backdropFilter:'blur(10px)',transition:'all 0.2s'}} className="desktop-icon-link">↗</Link>
+              <Link href={`/jobs/${job.id}`} style={{display:'none',padding:'10px 16px',background:'rgba(255,255,255,0.15)',border:'1px solid rgba(255,255,255,0.25)',borderRadius:12,color:'#fff',fontSize:'0.85rem',fontWeight:700,textDecoration:'none',backdropFilter:'blur(10px)',transition:'all 0.2s',whiteSpace:'nowrap'}} className="mobile-text-link">Inserat öffnen →</Link>
             </div>
           </div>
         </div>
@@ -217,6 +219,12 @@ export default async function JobDetailPage({ params }: { params: { id: string }
         @media(max-width:860px){
           .detail-grid { grid-template-columns: 1fr !important; }
           .mob-cta { display: none !important; }
+          .desktop-icon-link { display: none !important; }
+          .mobile-text-link { display: inline-flex !important; }
+        }
+        @media(min-width:861px){
+          .mobile-text-link { display: none !important; }
+          .desktop-icon-link { display: flex !important; }
         }
       `}</style>
     </>
