@@ -11,7 +11,7 @@ const tb = (t: string) => t==='Remote'?'b-remote':t==='Hybrid'?'b-hybrid':'b-off
 
 export default function JobsClient({ jobs, searchParams, user }: any) {
   const router = useRouter()
-  const [sel, setSel] = useState<any>(jobs[0] || null)
+  const [sel, setSel] = useState<any>(jobs[0] || null)A
   const [geo, setGeo] = useState(false)
   const [swipeMode, setSwipeMode] = useState(false)
   const [swipeIdx, setSwipeIdx] = useState(0)
@@ -183,7 +183,7 @@ export default function JobsClient({ jobs, searchParams, user }: any) {
             </div>
           ) : filteredJobs.map((j: any, i: number) => (
             <div key={j.id} onClick={() => { if(window.innerWidth < 860) router.push(`/jobs/${j.id}`); else setSel(j) }}
-              style={{background:'var(--surface)',border:`1px solid ${sel?.id===j.id?'var(--accent)':'var(--border)'}`,borderRadius:16,padding:'0.9rem 1rem',display:'flex',alignItems:'center',gap:'0.85rem',cursor:'pointer',transition:'all 0.18s',position:'relative',overflow:'hidden',background:sel?.id===j.id?'rgba(124,104,250,0.07)':'var(--surface)'}}>
+              style={{border:`1px solid ${sel?.id===j.id?'var(--accent)':'var(--border)'}`,borderRadius:16,padding:'0.9rem 1rem',display:'flex',alignItems:'center',gap:'0.85rem',cursor:'pointer',transition:'all 0.18s',position:'relative',overflow:'hidden',background:sel?.id===j.id?'rgba(124,104,250,0.07)':'var(--surface)'}}>
               {sel?.id===j.id && <div style={{position:'absolute',left:0,top:0,bottom:0,width:3,background:'var(--accent)'}}/>}
               {j.company_logo_url
                 ? <div style={{width:42,height:42,borderRadius:12,overflow:'hidden',flexShrink:0}}><img src={j.company_logo_url} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/></div>
