@@ -167,7 +167,7 @@ export default async function ArbeitgeberProfile({ params }: { params: { id: str
                     {interest.applicant?.bio && (
                       <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.25)', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>"{interest.applicant.bio}"</div>
                     )}
-                    <Link href={`/chat?employer=${profile.id}&applicant=${interest.applicant?.id}&job=${interest.job?.id}`} style={{ padding: '6px 10px', background: 'linear-gradient(135deg, rgba(240,96,144,0.15), rgba(240,96,144,0.08))', border: '1px solid rgba(240,96,144,0.3)', color: '#f06090', borderRadius: 8, fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '0.75rem', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.2s', textDecoration: 'none', display: 'inline-block', textAlign: 'center' }}>
+                    <Link href={`/chat?employer=${profile.id}&applicant=${interest.applicant_id}&job=${interest.job_id}`} style={{ padding: '6px 10px', background: 'linear-gradient(135deg, rgba(240,96,144,0.15), rgba(240,96,144,0.08))', border: '1px solid rgba(240,96,144,0.3)', color: '#f06090', borderRadius: 8, fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '0.75rem', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.2s', textDecoration: 'none', display: 'inline-block', textAlign: 'center' }}>
                       💬 Chat
                     </Link>
                   </div>
