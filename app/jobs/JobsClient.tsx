@@ -11,7 +11,7 @@ const tb = (t: string) => t==='Remote'?'b-remote':t==='Hybrid'?'b-hybrid':'b-off
 
 export default function JobsClient({ jobs, searchParams, user }: any) {
   const router = useRouter()
-  const [sel, setSel] = useState<any>(jobs[0] || null)A
+  const [sel, setSel] = useState<any>(jobs[0] || null)
   const [geo, setGeo] = useState(false)
   const [swipeMode, setSwipeMode] = useState(false)
   const [swipeIdx, setSwipeIdx] = useState(0)
