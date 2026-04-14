@@ -13,6 +13,7 @@ export default function ChatContent() {
   const [error, setError] = useState<string | null>(null)
   const [otherUser, setOtherUser] = useState<any>(null)
   const [currentUser, setCurrentUser] = useState<any>(null)
+  const [deleting, setDeleting] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Sichere Parameter-Extraktion
@@ -123,6 +124,23 @@ export default function ChatContent() {
     }
   }
 
+  const handleDeleteChat = async () => {
+    if (!conversationId || !window.confirm('Chat wirklich löschen?')) return
+    
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/delete-conversation?id=${conversationId}`, {
+        method: 'DELETE',
+      })
+      if (res.ok) {
+        router.push('/dashboard')
+      }
+    } catch (err) {
+      console.error('Error deleting conversation:', err)
+      setDeleting(false)
+    }
+  }
+
   if (!employer || !applicant || !job) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
@@ -178,9 +196,28 @@ export default function ChatContent() {
                   height: 44,
                   borderRadius: 12,
                   background: 'rgba(240,96,144,0.15)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+           div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button
+              onClick={handleDeleteChat}
+              disabled={deleting}
+              style={{
+                padding: '6px 10px',
+                background: 'rgba(240,96,144,0.15)',
+                border: '1px solid rgba(240,96,144,0.3)',
+                color: '#f06090',
+                borderRadius: 8,
+                cursor: 'pointer',
+                fontWeight: 700,
+                fontSize: '0.8rem',
+                opacity: deleting ? 0.5 : 1,
+              }}
+            >
+              ✕ Löschen
+            </button>
+            <Link href="/" style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'none', fontSize: '0.9rem' }}>
+              ✕
+            </Link>
+          </div  justifyContent: 'center',
                   fontWeight: 700,
                   color: '#f06090',
                 }}
