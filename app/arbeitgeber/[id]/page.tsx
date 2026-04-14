@@ -229,10 +229,10 @@ export default async function ArbeitgeberProfile({ params }: { params: { id: str
           </div>
         </div>
       </div>
- (max-width: 768px) {
+
+      <style>{`
+        @media (max-width: 768px) {
           /* Mobile: Stack layout */
-        @media(max-width:760px){
-          .arbeitgeber-grid { grid-template-columns: 1fr !important; }
         }
         .jlogo { display: flex; align-items: center; justify-content: center; font-weight: 800; font-family: 'Syne', sans-serif; }
         .ja { background: rgba(30,64,175,0.2); color: #7aa2f7; }
