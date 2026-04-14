@@ -30,7 +30,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
         background: job.cover_image_url
           ? 'var(--surface)'
           : 'linear-gradient(135deg, rgba(124,104,250,0.1), rgba(212,168,67,0.05))',
-        minHeight: 380,
+        minHeight: 'clamp(280px, 50vh, 320px)',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-end',
