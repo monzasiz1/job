@@ -30,6 +30,13 @@ const STYLES = `
   .anime-out { animation: slideOutDown 0.4s ease-out; }
   .anime-throw { animation: throwLeft 0.45s ease-in forwards; }
   .anime-select { animation: selectPulse 0.6s ease-out; }
+  @media(max-width:999px){
+    .split-view { grid-template-columns: 1fr !important; }
+    .split-view > div:last-child { display: none !important; }
+  }
+  @media(min-width:1000px){
+    .split-view > div:last-child { border: 2px solid var(--accent) !important; box-shadow: 0 8px 32px rgba(124,104,250,0.2) !important; }
+  }
 `
 
 export default function JobsClient({ jobs, searchParams, user }: any) {
@@ -250,7 +257,7 @@ export default function JobsClient({ jobs, searchParams, user }: any) {
           )}
         </div>
       ) : (
-      <div style={{display:'grid',gridTemplateColumns:'420px 1fr',gap:'1.5rem',padding:'1.5rem',minHeight:'calc(100vh - 130px)',background:'linear-gradient(135deg,rgba(124,104,250,0.02),rgba(212,168,67,0.01))'}} className="split">
+      <div style={{display:'grid',gridTemplateColumns:'420px 1fr',gap:'1.5rem',padding:'1.5rem',minHeight:'calc(100vh - 130px)',background:'linear-gradient(135deg,rgba(124,104,250,0.02),rgba(212,168,67,0.01))'}} className="split-view">
 
         {/* JOB LIST */}
         <div style={{display:'flex',flexDirection:'column',gap:12,overflowY:'auto',paddingRight:'0.5rem'}}>
