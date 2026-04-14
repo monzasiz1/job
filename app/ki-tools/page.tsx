@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-browser'
 
-type Tab = 'analyse' | 'matching' | 'anschreiben' | 'history'
+type Tab = 'analyse' | 'matching' | 'history'
 
 export default function KIToolsPage() {
   const router = useRouter()
@@ -18,9 +18,7 @@ export default function KIToolsPage() {
   const [analysis, setAnalysis] = useState<any>(null)
   const [matchResult, setMatchResult] = useState<any>(null)
   const [nearbyJobs, setNearbyJobs] = useState<any[]>([])
-  const [coverLetter, setCoverLetter] = useState('')
   const [history, setHistory] = useState<any[]>([])
-  const [copied, setCopied] = useState(false)
   const [city, setCity] = useState('')
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
@@ -77,17 +75,7 @@ export default function KIToolsPage() {
     setLoading(false)
   }
 
-  const generateCoverLetter = async () => {
-    if (!resumeText.trim() || !jobDesc.trim()) return
-    setLoading(true); setCoverLetter('')
-    try {
-      const res = await fetch('/api/generate-application', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ resumeText, jobDescription: jobDesc }) })
-      const data = await res.json()
-      setCoverLetter(data.coverLetter || '')
-      if (user) { await supabase.from('applications').insert({ user_id: user.id, job_description: jobDesc, cover_letter: data.coverLetter }); loadHistory(user.id) }
-    } catch { setCoverLetter('Fehler.') }
-    setLoading(false)
-  }
+
 
   const logout = async () => { await supabase.auth.signOut(); window.location.href = '/' }
   const sc = (s: number) => s >= 70 ? 'mr-hi' : s >= 40 ? 'mr-md' : 'mr-lo'
@@ -166,7 +154,7 @@ export default function KIToolsPage() {
 
           {/* TABS */}
           <div style={{ display: 'flex', gap: 2, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: 4, marginBottom: '1.25rem', overflowX: 'auto' }}>
-            {[{ id: 'analyse', l: '🧠 Lebenslauf' }, { id: 'matching', l: '🎯 Matching' }, { id: 'anschreiben', l: '✍️ Anschreiben' }, { id: 'history', l: '📋 Verlauf' }].map(t => (
+            {[{ id: 'analyse', l: '🧠 Lebenslauf' }, { id: 'matching', l: '🎯 Matching' }, { id: 'history', l: '📋 Verlauf' }].map(t => (
               <button key={t.id} onClick={() => setTab(t.id as Tab)} style={{ flex: '1 1 auto', textAlign: 'center', padding: '9px 14px', borderRadius: 12, border: 'none', cursor: 'pointer', fontFamily: "'DM Sans',sans-serif", fontWeight: 700, fontSize: '0.8rem', transition: 'all 0.15s', background: tab === t.id ? 'var(--surface3)' : 'transparent', color: tab === t.id ? '#fff' : 'var(--text3)', whiteSpace: 'nowrap' }}>{t.l}</button>
             ))}
           </div>
@@ -274,15 +262,7 @@ export default function KIToolsPage() {
                       </div>
                     </div>
                   </div>
-                  {matchResult.score >= 50 && (
-                    <div style={{ background: 'var(--surface)', border: '1px solid rgba(124,104,250,0.3)', borderRadius: 18, padding: '1.1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-                      <div>
-                        <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, color: '#fff', marginBottom: 4, fontSize: '0.9rem' }}>✍️ Gleich bewerben?</div>
-                        <div style={{ fontSize: '0.82rem', color: 'var(--text2)' }}>Dein Match ist gut — jetzt Anschreiben generieren.</div>
-                      </div>
-                      <button onClick={() => setTab('anschreiben')} style={{ padding: '9px 18px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 999, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>Anschreiben →</button>
-                    </div>
-                  )}
+
                   {nearbyJobs.length > 0 && (
                     <div>
                       <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, color: '#fff', fontSize: '0.95rem', marginBottom: '0.75rem' }}>📍 Ähnliche Jobs {city ? `in ${city}` : ''}</div>
@@ -308,33 +288,7 @@ export default function KIToolsPage() {
             </div>
           )}
 
-          {/* ANSCHREIBEN */}
-          {tab === 'anschreiben' && (
-            <div>
-              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 18, padding: '1.1rem', marginBottom: '1rem' }}>
-                <label style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text2)', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Stellenanzeige</label>
-                <textarea value={jobDesc} onChange={e => setJobDesc(e.target.value)} placeholder="Stellenanzeige einfügen..." rows={4}
-                  style={{ width: '100%', border: '1px solid var(--border2)', outline: 'none', borderRadius: 10, padding: '10px 13px', fontFamily: "'DM Sans',sans-serif", fontSize: '0.87rem', background: 'var(--surface2)', color: 'var(--text)', resize: 'vertical' }} />
-              </div>
-              <button onClick={generateCoverLetter} disabled={loading || !resumeText.trim() || !jobDesc.trim()}
-                style={{ padding: '12px 22px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 999, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, fontSize: '0.88rem', cursor: 'pointer', opacity: (!resumeText.trim() || !jobDesc.trim()) ? 0.4 : 1, marginBottom: '1.25rem' }}>
-                {loading ? '✍️ Generiere...' : '✍️ Anschreiben generieren'}
-              </button>
-              {coverLetter && (
-                <div style={{ background: 'var(--surface)', border: '1px solid rgba(212,168,67,0.25)', borderRadius: 18, padding: '1.25rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, color: '#fff', fontSize: '0.9rem' }}>📄 Dein Anschreiben</div>
-                    <button onClick={() => { navigator.clipboard.writeText(coverLetter); setCopied(true); setTimeout(() => setCopied(false), 2000) }}
-                      style={{ padding: '7px 14px', background: copied ? 'var(--green-soft)' : 'var(--surface2)', color: copied ? 'var(--green)' : 'var(--text2)', border: '1px solid var(--border2)', borderRadius: 999, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer' }}>
-                      {copied ? '✓ Kopiert!' : '📋 Kopieren'}
-                    </button>
-                  </div>
-                  <textarea value={coverLetter} onChange={e => setCoverLetter(e.target.value)} rows={16}
-                    style={{ width: '100%', border: '1px solid var(--border2)', outline: 'none', borderRadius: 12, padding: '12px 15px', fontFamily: "'DM Sans',sans-serif", fontSize: '0.87rem', background: 'var(--surface2)', color: 'var(--text)', resize: 'vertical', lineHeight: 1.8 }} />
-                </div>
-              )}
-            </div>
-          )}
+
 
           {/* HISTORY */}
           {tab === 'history' && (
