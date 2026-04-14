@@ -19,7 +19,7 @@ export default function PostJobForm(){
   const [logo,setLogo]=useState('')
   const coverRef=useRef<HTMLInputElement>(null)
   const logoRef=useRef<HTMLInputElement>(null)
-  const [form,setForm]=useState({title:'',location:'',type:'Vor Ort',contract:'Vollzeit',level:'Mid',field:'Sonstiges',salary_min:'',salary_max:'',description:'',company_description:'',company_website:'',benefits:'',cover_image_url:'',company_logo_url:''})
+  const [form,setForm]=useState({title:'',location:'',type:'Vor Ort',contract:'Vollzeit',level:'Mid',field:'Sonstiges',salary_min:'',salary_max:'',description:'',requirements:'',offers:'',expectations:'',company_description:'',company_website:'',benefits:'',cover_image_url:'',company_logo_url:''})
   
   useEffect(()=>{
     supabase.auth.getUser().then(async({data})=>{
@@ -43,6 +43,9 @@ export default function PostJobForm(){
             salary_min:job.salary_min?.toString()||'',
             salary_max:job.salary_max?.toString()||'',
             description:job.description||'',
+            requirements:job.requirements||'',
+            offers:job.offers||'',
+            expectations:job.expectations||'',
             company_description:job.company_description||'',
             company_website:job.company_website||'',
             benefits:(job.benefits||[]).join('\n'),
@@ -80,7 +83,7 @@ export default function PostJobForm(){
     let lat=null,lng=null
     if(form.location&&form.type!=='Remote'){try{const r=await fetch(`/api/geocode?city=${encodeURIComponent(form.location)}`);const g=await r.json();if(g.lat){lat=g.lat;lng=g.lng}}catch{}}
     const benefits=form.benefits.split('\n').map((b:string)=>b.trim()).filter(Boolean)
-    const jobData={employer_id:user.id,title:form.title,company:profile?.company_name||'Unbekannt',location:form.location,type:form.type,contract:form.contract,level:form.level,field:form.field,salary_min:parseInt(form.salary_min)||0,salary_max:parseInt(form.salary_max)||0,description:form.description,company_description:form.company_description,company_website:form.company_website,cover_image_url:form.cover_image_url,company_logo_url:form.company_logo_url,benefits,is_active:true,lat,lng}
+    const jobData={employer_id:user.id,title:form.title,company:profile?.company_name||'Unbekannt',location:form.location,type:form.type,contract:form.contract,level:form.level,field:form.field,salary_min:parseInt(form.salary_min)||0,salary_max:parseInt(form.salary_max)||0,description:form.description,requirements:form.requirements,offers:form.offers,expectations:form.expectations,company_description:form.company_description,company_website:form.company_website,cover_image_url:form.cover_image_url,company_logo_url:form.company_logo_url,benefits,is_active:true,lat,lng}
     
     if(editId){
       const {error}=await supabase.from('jobs').update(jobData).eq('id',editId)
@@ -160,9 +163,17 @@ export default function PostJobForm(){
 
           {/* BESCHREIBUNG */}
           <div className="card">
-            <div style={{fontFamily:"'Syne',sans-serif",fontWeight:700,color:'#fff',marginBottom:'1.1rem',fontSize:'0.9rem'}}>✍️ Beschreibung & Benefits</div>
-            <div className="fg"><label className="fl">Stellenbeschreibung *</label><textarea className="fi" value={form.description} onChange={set('description')} placeholder="Aufgaben, Anforderungen, was die Stelle besonders macht..." rows={7} required style={{resize:'vertical'}}/></div>
-            <div className="fg" style={{marginBottom:0}}><label className="fl">Benefits <span style={{fontWeight:400,textTransform:'none',letterSpacing:0,fontSize:'0.75rem',color:'var(--text3)'}}>— ein Benefit pro Zeile</span></label><textarea className="fi" value={form.benefits} onChange={set('benefits')} placeholder={"30 Tage Urlaub\nHome Office\nFirmenwagen"} rows={4} style={{resize:'vertical'}}/></div>
+            <div style={{fontFamily:"'Syne',sans-serif",fontWeight:700,color:'#fff',marginBottom:'1.1rem',fontSize:'0.9rem'}}>✍️ Stellenbeschreibung & Anforderungen</div>
+            <div className="fg"><label className="fl">🎯 Deine Aufgaben *</label><textarea className="fi" value={form.description} onChange={set('description')} placeholder="Hauptaufgaben und Verantwortungen in dieser Position..." rows={5} required style={{resize:'vertical'}}/></div>
+            <div className="fg"><label className="fl">👤 Dein Profil</label><textarea className="fi" value={form.requirements} onChange={set('requirements')} placeholder="Erforderliche Qualifikationen, Erfahrung, Skills..." rows={4} style={{resize:'vertical'}}/></div>
+            <div className="fg"><label className="fl">🎁 Wir bieten dir</label><textarea className="fi" value={form.offers} onChange={set('offers')} placeholder="Gehalt, Leistungen, Entwicklungsmöglichkeiten..." rows={4} style={{resize:'vertical'}}/></div>
+            <div className="fg"><label className="fl">🚀 Was erwartet dich?</label><textarea className="fi" value={form.expectations} onChange={set('expectations')} placeholder="Perspektiven, Herausforderungen, Team-Dynamik..." rows={4} style={{resize:'vertical',marginBottom:0}}/></div>
+          </div>
+
+          {/* BENEFITS */}
+          <div className="card">
+            <div style={{fontFamily:"'Syne',sans-serif",fontWeight:700,color:'#fff',marginBottom:'1.1rem',fontSize:'0.9rem'}}>✨ Benefits <span style={{fontWeight:400,fontSize:'0.8rem',color:'var(--text3)'}}>optional</span></div>
+            <div className="fg" style={{marginBottom:0}}><label className="fl">Highlights <span style={{fontWeight:400,textTransform:'none',letterSpacing:0,fontSize:'0.75rem',color:'var(--text3)'}}>— ein Benefit pro Zeile</span></label><textarea className="fi" value={form.benefits} onChange={set('benefits')} placeholder={"30 Tage Urlaub\nHome Office\nFirmenwagen\nWeiterbildungsbudget"} rows={4} style={{resize:'vertical'}}/></div>
           </div>
 
           <button type="submit" className="f-sub" disabled={loading||ok||uploading}>
