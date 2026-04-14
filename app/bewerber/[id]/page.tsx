@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase-server'
 import { notFound, redirect } from 'next/navigation'
 import Navbar from '@/components/Navbar'
 import Link from 'next/link'
+import React from 'react'
 
 export default async function BewerberProfile({ params }: { params: { id: string } }) {
   const supabase = createClient()
