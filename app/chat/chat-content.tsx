@@ -22,7 +22,8 @@ export default function ChatContent() {
 
   useEffect(() => {
     // Warte bis Parameter verfügbar sind
-    if (!applicant || !job) {
+    if (!employer || !applicant || !job) {
+      setLoading(false)
       return
     }
     
@@ -40,9 +41,9 @@ export default function ChatContent() {
         const user = await userRes.json()
         setCurrentUser(user)
 
-        // Finde oder erstelle Konversation
+        // Finde oder erstelle Konversation MIT employer_id
         const convRes = await fetch(
-          `/api/chat/conversations?applicant_id=${applicant}&job_id=${job}`,
+          `/api/chat/conversations?employer_id=${employer}&applicant_id=${applicant}&job_id=${job}`,
           { cache: 'no-store' }
         )
         if (!convRes.ok) {
@@ -55,8 +56,9 @@ export default function ChatContent() {
         }
         setConversationId(convData.conversation_id)
 
-        // Hole andere Person's Profil
-        const otherRes = await fetch(`/api/user/${applicant}`, { cache: 'no-store' })
+        // Hole andere Person's Profil (Bewerber sieht Arbeitgeber, Arbeitgeber sieht Bewerber)
+        const otherUserId = user.id === employer ? applicant : employer
+        const otherRes = await fetch(`/api/user/${otherUserId}`, { cache: 'no-store' })
         if (!otherRes.ok) {
           throw new Error('Benutzerprofil konnte nicht geladen werden')
         }
@@ -83,7 +85,7 @@ export default function ChatContent() {
     }
 
     initChat()
-  }, [applicant, job, router])
+  }, [employer, applicant, job, router])
 
   useEffect(() => {
     // Auto-scroll zu letzter Nachricht
@@ -121,12 +123,12 @@ export default function ChatContent() {
     }
   }
 
-  if (!applicant || !job) {
+  if (!employer || !applicant || !job) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⚠️</div>
-          <div style={{ color: '#f06090', marginBottom: '1rem' }}>Parameter fehlen</div>
+          <div style={{ color: '#f06090', marginBottom: '1rem' }}>Parameter fehlen (employer/applicant/job)</div>
           <Link href="/" style={{ color: '#a080ff', textDecoration: 'none', fontWeight: 700 }}>← Zurück</Link>
         </div>
       </div>
