@@ -312,9 +312,9 @@ export default function JobsClient({ jobs, searchParams, user }: any) {
                 <div style={{fontFamily:"'Syne',sans-serif",fontWeight:900,fontSize:'clamp(1.1rem, 2.5vw, 1.35rem)',color:'#fff',lineHeight:1.2,marginBottom:'0.5rem',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical' as any,overflow:'hidden'}}>{sel.title}</div>
                 <div style={{color:'rgba(255,255,255,0.7)',fontSize:'0.95rem',fontWeight:500}}>{sel.company} · {sel.location}</div>
               </div>
-              <div style={{position:'absolute',top:16,right:16,display:'flex',gap:8}}>
+              <div style={{position:'absolute',top:16,right:16,display:'flex',gap:8,alignItems:'center'}}>
                 <FavoriteButton jobId={sel.id} />
-                <Link href={`/jobs/${sel.id}`} style={{width:40,height:40,background:'rgba(255,255,255,0.15)',border:'1px solid rgba(255,255,255,0.25)',borderRadius:12,display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontSize:'1rem',textDecoration:'none',backdropFilter:'blur(10px)',transition:'all 0.2s'}}>↗</Link>
+                <Link href={`/jobs/${sel.id}`} title="Vollständiges Inserat öffnen" style={{width:44,height:44,background:'linear-gradient(135deg,var(--accent),rgba(124,104,250,0.7))',border:'1px solid rgba(124,104,250,0.4)',borderRadius:12,display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontSize:'1.2rem',textDecoration:'none',backdropFilter:'blur(10px)',transition:'all 0.3s',fontWeight:800,cursor:'pointer',boxShadow:'0 4px 16px rgba(124,104,250,0.3)'}}>↗</Link>
               </div>
             </div>
 
