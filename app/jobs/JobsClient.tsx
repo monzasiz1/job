@@ -353,6 +353,30 @@ export default function JobsClient({ jobs, searchParams, user }: any) {
                     <div style={{fontSize:'0.9rem',color:'var(--text2)',lineHeight:1.8}}>{sel.company_description}</div>
                   </div>
                 )}
+
+                {/* VIER STRUKTURIERTE ABSCHNITTE */}
+                <div style={{display:'grid',gridTemplateColumns:'1fr',gap:'1rem',marginTop:'1.5rem',paddingTop:'1.5rem',borderTop:'1px solid var(--border)'}}>
+                  {/* DEIN PROFIL */}
+                  <div style={{background:'linear-gradient(135deg,rgba(124,104,250,0.08),rgba(124,104,250,0.02))',border:'1px solid rgba(124,104,250,0.2)',borderRadius:16,padding:'1.25rem'}}>
+                    <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(124,104,250,0.15)',border:'1px solid rgba(124,104,250,0.3)',color:'#a080ff',borderRadius:999,padding:'3px 10px',fontSize:'0.65rem',fontWeight:800,letterSpacing:'0.08em',textTransform:'uppercase',marginBottom:'0.75rem'}}>👤 Profil</div>
+                    <h4 style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:'0.95rem',color:'#fff',marginBottom:'0.75rem'}}>Dein Profil</h4>
+                    <div style={{fontSize:'0.85rem',color:'var(--text2)',lineHeight:1.6,whiteSpace:'pre-wrap',minHeight:'80px'}}>{sel.requirements||'Keine spezifischen Anforderungen angegeben.'}</div>
+                  </div>
+
+                  {/* WIR BIETEN DIR */}
+                  <div style={{background:'linear-gradient(135deg,rgba(61,186,126,0.08),rgba(61,186,126,0.02))',border:'1px solid rgba(61,186,126,0.2)',borderRadius:16,padding:'1.25rem'}}>
+                    <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(61,186,126,0.15)',border:'1px solid rgba(61,186,126,0.3)',color:'var(--green)',borderRadius:999,padding:'3px 10px',fontSize:'0.65rem',fontWeight:800,letterSpacing:'0.08em',textTransform:'uppercase',marginBottom:'0.75rem'}}>🎁 Bieten</div>
+                    <h4 style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:'0.95rem',color:'#fff',marginBottom:'0.75rem'}}>Wir bieten dir</h4>
+                    <div style={{fontSize:'0.85rem',color:'var(--text2)',lineHeight:1.6,whiteSpace:'pre-wrap',minHeight:'80px'}}>{sel.offers||'Kompetitives Gehalt und attraktive Leistungen.'}</div>
+                  </div>
+
+                  {/* WAS ERWARTET DICH */}
+                  <div style={{background:'linear-gradient(135deg,rgba(212,168,67,0.08),rgba(212,168,67,0.03))',border:'1px solid rgba(212,168,67,0.2)',borderRadius:16,padding:'1.25rem'}}>
+                    <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(212,168,67,0.15)',border:'1px solid rgba(212,168,67,0.3)',color:'var(--gold)',borderRadius:999,padding:'3px 10px',fontSize:'0.65rem',fontWeight:800,letterSpacing:'0.08em',textTransform:'uppercase',marginBottom:'0.75rem'}}>🚀 Zukunft</div>
+                    <h4 style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:'0.95rem',color:'#fff',marginBottom:'0.75rem'}}>Was erwartet dich?</h4>
+                    <div style={{fontSize:'0.85rem',color:'var(--text2)',lineHeight:1.6,whiteSpace:'pre-wrap',minHeight:'80px'}}>{sel.expectations||'Spannende Herausforderungen und Wachstumspotenzial.'}</div>
+                  </div>
+                </div>
               </div>
             </div>
 
