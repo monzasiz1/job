@@ -112,49 +112,56 @@ export default function JobsClient({ jobs, searchParams, user }: any) {
 
       {/* SPLIT VIEW oder SWIPE */}
       {swipeMode ? (
-        <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'calc(100vh - 130px)',padding:'1.25rem'}}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'calc(100vh - 130px)',padding:'1.5rem',background:'linear-gradient(135deg,rgba(124,104,250,0.03),rgba(212,168,67,0.02))'}}>
           {filteredJobs.length > 0 && swipeIdx < filteredJobs.length ? (
-            <div style={{maxWidth:500,width:'100%'}}>
+            <div style={{maxWidth:520,width:'100%'}}>
               {(() => {
                 const j = filteredJobs[swipeIdx]
                 return (
-                  <div style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:24,overflow:'hidden',boxShadow:'0 20px 60px rgba(0,0,0,0.4)'}}>
-                    <div style={{height:280,background:'linear-gradient(135deg,var(--surface2),var(--surface3))',position:'relative',overflow:'hidden'}}>
-                      {j.cover_image_url && <img src={j.cover_image_url} alt="" style={{width:'100%',height:'100%',objectFit:'cover',opacity:0.65}}/>}
-                      <div style={{position:'absolute',inset:0,background:'linear-gradient(to bottom,transparent,rgba(23,23,42,0.95))'}}/>
-                      <div style={{position:'absolute',bottom:'1.25rem',left:'1.25rem',right:'1.25rem'}}>
-                        <div style={{display:'flex',gap:'0.75rem',alignItems:'flex-end',marginBottom:'0.9rem'}}>
+                  <div style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:28,overflow:'hidden',boxShadow:'0 25px 80px rgba(0,0,0,0.5)'}}>
+                    <div style={{height:320,background:'linear-gradient(135deg,var(--surface2),var(--surface3))',position:'relative',overflow:'hidden'}}>
+                      {j.cover_image_url && <img src={j.cover_image_url} alt="" style={{width:'100%',height:'100%',objectFit:'cover',opacity:0.7}}/>}
+                      <div style={{position:'absolute',inset:0,background:'linear-gradient(135deg,rgba(23,23,42,0.6),rgba(23,23,42,0.95))'}}/>
+                      <div style={{position:'absolute',bottom:0,left:0,right:0,padding:'2.5rem 1.75rem 1.75rem'}}>
+                        <div style={{display:'flex',gap:'1rem',alignItems:'flex-end',marginBottom:'1.25rem'}}>
                           {j.company_logo_url
-                            ?<img src={j.company_logo_url} style={{width:60,height:60,borderRadius:14,border:'3px solid var(--surface)',objectFit:'cover'}} alt=""/>
-                            :<div className={`jlogo ${lc(0)}`} style={{width:60,height:60,borderRadius:14,border:'3px solid var(--surface)',fontSize:'1.1rem'}}>{ll(j.company)}</div>}
+                            ?<img src={j.company_logo_url} style={{width:72,height:72,borderRadius:16,border:'3px solid var(--surface)',objectFit:'cover',boxShadow:'0 8px 24px rgba(0,0,0,0.4)'}} alt=""/>
+                            :<div className={`jlogo ${lc(0)}`} style={{width:72,height:72,borderRadius:16,border:'3px solid var(--surface)',fontSize:'1.35rem',boxShadow:'0 8px 24px rgba(0,0,0,0.4)'}}>{ll(j.company)}</div>}
+                          <div style={{flex:1,minWidth:0}}>
+                            <div style={{fontFamily:"'Syne',sans-serif",fontWeight:900,fontSize:'1.4rem',color:'#fff',marginBottom:2,lineHeight:1.2}}>{j.title}</div>
+                            <div style={{fontSize:'0.88rem',color:'rgba(255,255,255,0.75)',fontWeight:500}}>{j.company}</div>
+                          </div>
                         </div>
-                        <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:'1.35rem',color:'#fff',marginBottom:4}}>{j.title}</div>
-                        <div style={{fontSize:'0.88rem',color:'var(--text2)',fontWeight:500,marginBottom:'0.75rem'}}>{j.salary_min>0?`${j.salary_min.toLocaleString('de-DE')} – ${j.salary_max.toLocaleString('de-DE')} €`:'Gehalt n. V.'}</div>
                         <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                          {j.salary_min>0 && <span className="badge b-accent" style={{background:'rgba(212,168,67,0.2)',color:'var(--gold)',border:'1px solid rgba(212,168,67,0.4)'}}>{j.salary_min.toLocaleString('de-DE')} – {j.salary_max.toLocaleString('de-DE')} €</span>}
                           <span className={`badge ${tb(j.type)}`}>{j.type}</span>
                           <span className="badge b-office">{j.contract}</span>
                           <span className="badge b-office">📍 {j.location}</span>
                         </div>
                       </div>
                     </div>
-                    <div style={{padding:'1.5rem'}}>
-                      <p style={{fontSize:'0.88rem',color:'var(--text2)',lineHeight:1.7,marginBottom:'1.5rem',display:'-webkit-box',WebkitLineClamp:3,WebkitBoxOrient:'vertical' as any,overflow:'hidden'}}>{j.description}</p>
-                      <div style={{display:'flex',gap:8,marginBottom:'1rem'}}>
-                        <button onClick={() => handleSwipe('like')} style={{flex:1,padding:'14px',background:'rgba(61,186,126,0.15)',border:'1px solid rgba(61,186,126,0.3)',color:'var(--green)',borderRadius:14,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:'0.9rem',cursor:'pointer',transition:'all 0.18s'}}>
-                          👍 Interessiert
+                    <div style={{padding:'2rem 1.75rem'}}>
+                      <p style={{fontSize:'0.9rem',color:'var(--text2)',lineHeight:1.8,marginBottom:'2rem',display:'-webkit-box',WebkitLineClamp:4,WebkitBoxOrient:'vertical' as any,overflow:'hidden'}}>{j.description}</p>
+                      <div style={{display:'flex',flexDirection:'column',gap:10,marginBottom:'1.75rem'}}>
+                        <button onClick={() => handleSwipe('like')} style={{padding:'15px 18px',background:'linear-gradient(135deg,rgba(61,186,126,0.2),rgba(61,186,126,0.08))',border:'2px solid rgba(61,186,126,0.4)',color:'var(--green)',borderRadius:16,fontFamily:"'Syne',sans-serif",fontWeight:700,fontSize:'0.95rem',cursor:'pointer',transition:'all 0.25s'}}>
+                          Interessiert – Speichern
                         </button>
-                        <button onClick={() => handleSwipe('maybe')} style={{flex:1,padding:'14px',background:'rgba(212,168,67,0.12)',border:'1px solid rgba(212,168,67,0.25)',color:'var(--gold)',borderRadius:14,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:'0.9rem',cursor:'pointer',transition:'all 0.18s'}}>
-                          🤔 Vielleicht
+                        <button onClick={() => handleSwipe('maybe')} style={{padding:'15px 18px',background:'linear-gradient(135deg,rgba(212,168,67,0.15),rgba(212,168,67,0.05))',border:'2px solid rgba(212,168,67,0.3)',color:'var(--gold)',borderRadius:16,fontFamily:"'Syne',sans-serif",fontWeight:700,fontSize:'0.95rem',cursor:'pointer',transition:'all 0.25s'}}>
+                          Vielleicht später
                         </button>
-                        <button onClick={() => handleSwipe('nope')} style={{flex:1,padding:'14px',background:'rgba(240,96,144,0.12)',border:'1px solid rgba(240,96,144,0.25)',color:'var(--pink)',borderRadius:14,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:'0.9rem',cursor:'pointer',transition:'all 0.18s'}}>
-                          👎 Nein
+                        <button onClick={() => handleSwipe('nope')} style={{padding:'15px 18px',background:'transparent',border:'2px solid rgba(240,96,144,0.3)',color:'var(--pink)',borderRadius:16,fontFamily:"'Syne',sans-serif",fontWeight:700,fontSize:'0.95rem',cursor:'pointer',transition:'all 0.25s'}}>
+                          Nicht passend
                         </button>
                       </div>
-                      <Link href={`/jobs/${j.id}`} style={{display:'flex',alignItems:'center',justifyContent:'center',padding:'11px 18px',background:'var(--surface2)',border:'1px solid var(--border2)',color:'var(--text2)',borderRadius:12,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:'0.84rem',textDecoration:'none',transition:'all 0.18s'}}>
-                        Mehr Details →
+                      <Link href={`/jobs/${j.id}`} style={{display:'flex',alignItems:'center',justifyContent:'center',padding:'12px 18px',background:'var(--surface2)',border:'1px solid var(--border)',color:'var(--text2)',borderRadius:14,fontFamily:"'Syne',sans-serif",fontWeight:600,fontSize:'0.88rem',textDecoration:'none',transition:'all 0.2s'}}>
+                        Vollständiges Profil → 
                       </Link>
-                      <div style={{marginTop:'1.25rem',paddingTop:'1.25rem',borderTop:'1px solid var(--border)',textAlign:'center',fontSize:'0.78rem',color:'var(--text3)'}}>
-                        {swipeIdx + 1} von {filteredJobs.length}
+                      <div style={{marginTop:'1.75rem',paddingTop:'1.75rem',borderTop:'1px solid var(--border)',textAlign:'center'}}>
+                        <div style={{fontSize:'0.75rem',color:'var(--text3)',fontWeight:600,letterSpacing:'0.05em',textTransform:'uppercase',marginBottom:'0.5rem'}}>Fortschritt</div>
+                        <div style={{fontSize:'0.95rem',color:'#fff',fontWeight:800}}>{swipeIdx + 1} / {filteredJobs.length}</div>
+                        <div style={{marginTop:'0.75rem',height:4,background:'var(--surface2)',borderRadius:999,overflow:'hidden'}}>
+                          <div style={{height:'100%',background:'linear-gradient(90deg,var(--green),var(--accent))',width:`${((swipeIdx + 1) / filteredJobs.length) * 100}%`,transition:'width 0.3s ease'}}/>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -162,10 +169,13 @@ export default function JobsClient({ jobs, searchParams, user }: any) {
               })()}
             </div>
           ) : (
-            <div style={{textAlign:'center'}}>
-              <div style={{fontSize:'2.5rem',marginBottom:'0.75rem'}}>✓</div>
-              <div style={{fontFamily:"'Syne',sans-serif",fontWeight:700,color:'#fff',marginBottom:'0.4rem'}}>Fertig!</div>
-              <div style={{color:'var(--text2)',fontSize:'0.84rem'}}>Du hast alle Jobs bewertet.</div>
+            <div style={{textAlign:'center',background:'var(--surface)',border:'1px solid var(--border)',borderRadius:24,padding:'3rem 2rem',maxWidth:480}}>
+              <div style={{width:80,height:80,background:'linear-gradient(135deg,var(--accent),rgba(124,104,250,0.5))',borderRadius:20,display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 1.5rem',fontSize:'2.5rem'}}>✓</div>
+              <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:'1.3rem',color:'#fff',marginBottom:'0.6rem'}}>Alle Jobs bewertet!</div>
+              <div style={{color:'var(--text2)',fontSize:'0.9rem',marginBottom:'2rem',lineHeight:1.6}}>Nutze den KI-Filter um die besten Matches zu priorisieren, oder starte eine neue Suche mit anderen Kriterien.</div>
+              <button onClick={() => setSwipeMode(false)} style={{padding:'12px 24px',background:'var(--accent)',color:'#fff',border:'none',borderRadius:14,fontFamily:"'Syne',sans-serif",fontWeight:700,fontSize:'0.9rem',cursor:'pointer'}}>
+                Zurück zur Übersicht
+              </button>
             </div>
           )}
         </div>
