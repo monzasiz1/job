@@ -181,7 +181,7 @@ export default async function Dashboard() {
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
                 {interests.slice(0, 4).map((interest: any) => (
-                  <Link key={interest.id} href={`/arbeitgeber/${user.id}`} style={{ textDecoration: 'none' }}>
+                  <Link key={interest.id} href={`/bewerber/${interest.applicant_id}`} style={{ textDecoration: 'none' }}>
                     <div style={{ background: 'rgba(240,96,144,0.04)', border: '1px solid rgba(240,96,144,0.12)', borderRadius: 14, padding: '1rem', transition: 'all 0.18s', cursor: 'pointer' }}>
                       <div style={{ display: 'flex', gap: 10, marginBottom: '0.75rem', alignItems: 'center' }}>
                         {interest.applicant?.avatar_url
