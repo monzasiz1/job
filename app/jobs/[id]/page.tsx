@@ -216,8 +216,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
       <style>{`
         @media(max-width:860px){
           .detail-grid { grid-template-columns: 1fr !important; }
-          .mob-cta { display: flex !important; }
-          body { padding-bottom: 80px; }
+          .mob-cta { display: none !important; }
         }
       `}</style>
     </>
