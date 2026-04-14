@@ -66,6 +66,18 @@ export default function JobsClient({ jobs, searchParams, user }: any) {
     router.push(`/jobs?${p}`)
   }
 
+  const saveInterest = async (jobId: string, action: string) => {
+    try {
+      await fetch('/api/save-interest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobId, action })
+      })
+    } catch (err) {
+      console.error('Error saving interest:', err)
+    }
+  }
+
   const handleSwipe = (action: 'like'|'maybe'|'nope') => {
     const job = filteredJobs[swipeIdx]
     if (!job) return
@@ -74,6 +86,7 @@ export default function JobsClient({ jobs, searchParams, user }: any) {
       setNopingJobId(job.id)
       setTimeout(() => {
         setSwipes({...swipes, [job.id]: action})
+        saveInterest(job.id, action)
         if (swipeIdx < filteredJobs.length - 1) {
           setNopingJobId(null)
           setIsAnimatingOut(true)
@@ -93,6 +106,7 @@ export default function JobsClient({ jobs, searchParams, user }: any) {
       setIsAnimatingOut(true)
       setTimeout(() => {
         setSwipes({...swipes, [job.id]: action})
+        saveInterest(job.id, action)
         if (swipeIdx < filteredJobs.length - 1) {
           setSwipeIdx(swipeIdx + 1)
           setIsAnimatingOut(false)
