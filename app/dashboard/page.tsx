@@ -181,25 +181,26 @@ export default async function Dashboard() {
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(clamp(160px, 40vw, 220px), 1fr))', gap: 12 }}>
                 {interests.slice(0, 4).map((interest: any) => (
-                  <Link key={interest.id} href={`/bewerber/${interest.applicant_id}`} style={{ textDecoration: 'none' }}>
-                    <div style={{ background: 'rgba(240,96,144,0.04)', border: '1px solid rgba(240,96,144,0.12)', borderRadius: 14, padding: 'clamp(0.75rem, 3vw, 1rem)', transition: 'all 0.18s', cursor: 'pointer', height: '100%', display: 'flex', flexDirection: 'column' }}>
-                      <div style={{ display: 'flex', gap: 10, marginBottom: '0.75rem', alignItems: 'center' }}>
-                        {interest.applicant?.avatar_url
-                          ? <img src={interest.applicant.avatar_url} alt="" style={{ width: 'clamp(36px, 10vw, 40px)', height: 'clamp(36px, 10vw, 40px)', borderRadius: 10, objectFit: 'cover' }} />
-                          : <div style={{ width: 'clamp(36px, 10vw, 40px)', height: 'clamp(36px, 10vw, 40px)', borderRadius: 10, background: 'rgba(240,96,144,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Syne', sans-serif", fontWeight: 700, color: '#f06090', fontSize: '0.85rem' }}>
-                              {(interest.applicant?.full_name || '?').slice(0,2).toUpperCase()}
-                            </div>}
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontWeight: 700, color: '#fff', fontSize: 'clamp(0.75rem, 2vw, 0.85rem)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{interest.applicant?.full_name}</div>
-                          <div style={{ fontSize: 'clamp(0.65rem, 1.5vw, 0.72rem)', color: 'rgba(255,255,255,0.3)' }}>für {interest.job?.title}</div>
-                        </div>
+                  <div key={interest.id} style={{ background: 'rgba(240,96,144,0.04)', border: '1px solid rgba(240,96,144,0.12)', borderRadius: 14, padding: 'clamp(0.75rem, 3vw, 1rem)', transition: 'all 0.18s', cursor: 'pointer', height: '100%', display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ display: 'flex', gap: 10, marginBottom: '0.75rem', alignItems: 'center' }}>
+                      {interest.applicant?.avatar_url
+                        ? <img src={interest.applicant.avatar_url} alt="" style={{ width: 'clamp(36px, 10vw, 40px)', height: 'clamp(36px, 10vw, 40px)', borderRadius: 10, objectFit: 'cover' }} />
+                        : <div style={{ width: 'clamp(36px, 10vw, 40px)', height: 'clamp(36px, 10vw, 40px)', borderRadius: 10, background: 'rgba(240,96,144,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Syne', sans-serif", fontWeight: 700, color: '#f06090', fontSize: '0.85rem' }}>
+                          {(interest.applicant?.full_name || '?').slice(0,2).toUpperCase()}
+                        </div>}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 700, color: '#fff', fontSize: 'clamp(0.75rem, 2vw, 0.85rem)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{interest.applicant?.full_name}</div>
+                        <div style={{ fontSize: 'clamp(0.65rem, 1.5vw, 0.72rem)', color: 'rgba(255,255,255,0.3)' }}>für {interest.job?.title}</div>
                       </div>
-                      {interest.applicant?.bio && (
-                        <div style={{ fontSize: 'clamp(0.65rem, 1.5vw, 0.75rem)', color: 'rgba(255,255,255,0.25)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>"{interest.applicant.bio}"</div>
-                      )}
-                      <div style={{ marginTop: '0.75rem', color: '#f06090', fontSize: 'clamp(0.65rem, 1.5vw, 0.75rem)', fontWeight: 700 }}>→ Profil öffnen</div>
                     </div>
-                  </Link>
+                    {interest.applicant?.bio && (
+                      <div style={{ fontSize: 'clamp(0.65rem, 1.5vw, 0.75rem)', color: 'rgba(255,255,255,0.25)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: '0.75rem' }}>"{interest.applicant.bio}"</div>
+                    )}
+                    <div style={{ marginTop: 'auto', display: 'flex', gap: 6, flexDirection: 'column' as const }}>
+                      <Link href={`/chat?employer=${user.id}&applicant=${interest.applicant_id}&job=${interest.job_id}`} style={{ padding: 'clamp(6px, 1.5vw, 8px) clamp(10px, 2vw, 12px)', background: '#f06090', color: '#fff', borderRadius: 10, textAlign: 'center', fontWeight: 700, fontSize: 'clamp(0.65rem, 1.4vw, 0.75rem)', textDecoration: 'none', transition: 'all 0.18s' }}>💬 Chat</Link>
+                      <Link href={`/bewerber/${interest.applicant_id}`} style={{ padding: 'clamp(6px, 1.5vw, 8px) clamp(10px, 2vw, 12px)', background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, textAlign: 'center', fontWeight: 700, fontSize: 'clamp(0.65rem, 1.4vw, 0.75rem)', textDecoration: 'none', transition: 'all 0.18s' }}>👤 Profil</Link>
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
