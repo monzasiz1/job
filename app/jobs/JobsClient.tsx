@@ -271,31 +271,31 @@ export default function JobsClient({ jobs, searchParams, user }: any) {
             </div>
           ) : filteredJobs.map((j: any, i: number) => (
             <div key={j.id} onClick={() => { if(window.innerWidth < 1000) router.push(`/jobs/${j.id}`); else { setSelectedNewJob(true); setTimeout(() => setSelectedNewJob(false), 400); setSel(j) } }}
-              style={{position:'relative',overflow:'hidden',cursor:'pointer',transition:'all 0.25s',borderRadius:20,background:'var(--surface)',border:`2px solid ${sel?.id===j.id?'var(--accent)':'var(--border)'}`,boxShadow:sel?.id===j.id?'0 10px 40px rgba(124,104,250,0.2)':'0 4px 15px rgba(0,0,0,0.1)'}}>
+              style={{position:'relative',overflow:'hidden',cursor:'pointer',transition:'all 0.25s',borderRadius:'clamp(12px, 2vw, 20px)',background:'var(--surface)',border:`2px solid ${sel?.id===j.id?'var(--accent)':'var(--border)'}`,boxShadow:sel?.id===j.id?'0 10px 40px rgba(124,104,250,0.2)':'0 4px 15px rgba(0,0,0,0.1)'}}>
               {/* COVER */}
-              <div style={{height:140,background:'linear-gradient(135deg,var(--surface2),var(--surface3))',position:'relative',overflow:'hidden'}}>
+              <div style={{height:'clamp(100px, 20vw, 140px)',background:'linear-gradient(135deg,var(--surface2),var(--surface3))',position:'relative',overflow:'hidden'}}>
                 {j.cover_image_url && <img src={j.cover_image_url} alt="" style={{width:'100%',height:'100%',objectFit:'cover',opacity:0.6}}/>}
                 <div style={{position:'absolute',inset:0,background:'linear-gradient(to bottom,rgba(23,23,42,0.3),rgba(23,23,42,0.8))'}}/>
-                <div style={{position:'absolute',top:12,right:12}}>
+                <div style={{position:'absolute',top:'clamp(6px, 1.5vw, 12px)',right:'clamp(6px, 1.5vw, 12px)'}}>
                   <FavoriteButton jobId={j.id} />
                 </div>
               </div>
               {/* CONTENT */}
-              <div style={{padding:'1.2rem'}}>
-                <div style={{display:'flex',gap:'0.75rem',alignItems:'flex-start',marginBottom:'0.9rem',marginTop:'-2.8rem',position:'relative',zIndex:2}}>
+              <div style={{padding:'clamp(0.8rem, 2vw, 1.2rem)'}}>
+                <div style={{display:'flex',gap:'clamp(0.5rem, 1vw, 0.75rem)',alignItems:'flex-start',marginBottom:'clamp(0.5rem, 1.5vw, 0.9rem)',marginTop:'clamp(-2rem, -15vw, -2.8rem)',position:'relative',zIndex:2}}>
                   {j.company_logo_url
-                    ? <img src={j.company_logo_url} alt="" style={{width:56,height:56,borderRadius:14,border:'3px solid var(--surface)',flexShrink:0,objectFit:'cover',boxShadow:'0 8px 24px rgba(0,0,0,0.3)'}}/>
-                    : <div className={`jlogo ${lc(i)}`} style={{width:56,height:56,borderRadius:14,border:'3px solid var(--surface)',flexShrink:0,fontSize:'1.4rem',boxShadow:'0 8px 24px rgba(0,0,0,0.3)'}}>{ll(j.company)}</div>}
+                    ? <img src={j.company_logo_url} alt="" style={{width:'clamp(44px, 10vw, 56px)',height:'clamp(44px, 10vw, 56px)',borderRadius:'clamp(8px, 1.5vw, 14px)',border:'3px solid var(--surface)',flexShrink:0,objectFit:'cover',boxShadow:'0 8px 24px rgba(0,0,0,0.3)'}}/>
+                    : <div className={`jlogo ${lc(i)}`} style={{width:'clamp(44px, 10vw, 56px)',height:'clamp(44px, 10vw, 56px)',borderRadius:'clamp(8px, 1.5vw, 14px)',border:'3px solid var(--surface)',flexShrink:0,fontSize:'clamp(0.8rem, 2vw, 1.4rem)',boxShadow:'0 8px 24px rgba(0,0,0,0.3)'}}>{ll(j.company)}</div>}
                 </div>
-                <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:'clamp(0.85rem, 1.8vw, 1rem)',color:'#fff',marginBottom:'0.35rem',lineHeight:1.3,display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical' as any,overflow:'hidden'}}>{j.title}</div>
-                <div style={{fontSize:'0.78rem',color:'var(--text3)',marginBottom:'0.6rem',fontWeight:500}}>{j.company}</div>
-                {j.salary_min>0 && <div style={{fontSize:'0.88rem',fontWeight:700,color:'var(--gold)',marginBottom:'0.6rem'}}>{j.salary_min.toLocaleString('de-DE')} – {j.salary_max.toLocaleString('de-DE')} €</div>}
-                <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:'0.8rem'}}>
-                  <span className={`badge ${tb(j.type)}`}>{j.type}</span>
-                  <span className="badge b-office">{j.contract}</span>
-                  {j.level && <span className="badge b-office">{j.level}</span>}
+                <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:'clamp(0.75rem, 2vw, 1rem)',color:'#fff',marginBottom:'clamp(0.25rem, 0.8vw, 0.35rem)',lineHeight:1.3,display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical' as any,overflow:'hidden'}}>{j.title}</div>
+                <div style={{fontSize:'clamp(0.65rem, 1.5vw, 0.78rem)',color:'var(--text3)',marginBottom:'clamp(0.4rem, 1vw, 0.6rem)',fontWeight:500}}>{j.company}</div>
+                {j.salary_min>0 && <div style={{fontSize:'clamp(0.7rem, 1.5vw, 0.88rem)',fontWeight:700,color:'var(--gold)',marginBottom:'clamp(0.4rem, 1vw, 0.6rem)'}}>{j.salary_min.toLocaleString('de-DE')} – {j.salary_max.toLocaleString('de-DE')} €</div>}
+                <div style={{display:'flex',gap:'clamp(3px, 0.8vw, 5px)',flexWrap:'wrap',marginBottom:'clamp(0.5rem, 1vw, 0.8rem)'}}>
+                  <span className={`badge ${tb(j.type)}`} style={{fontSize:'clamp(0.6rem, 1.2vw, 0.75rem)',padding:'clamp(3px, 0.8vw, 5px) clamp(6px, 1.2vw, 8px)'}}>{j.type}</span>
+                  <span className="badge b-office" style={{fontSize:'clamp(0.6rem, 1.2vw, 0.75rem)',padding:'clamp(3px, 0.8vw, 5px) clamp(6px, 1.2vw, 8px)'}}>{j.contract}</span>
+                  {j.level && <span className="badge b-office" style={{fontSize:'clamp(0.6rem, 1.2vw, 0.75rem)',padding:'clamp(3px, 0.8vw, 5px) clamp(6px, 1.2vw, 8px)'}}>{j.level}</span>}
                 </div>
-                <div style={{fontSize:'0.78rem',color:'var(--text2)',display:'flex',alignItems:'center',gap:4}}>📍 {j.location}</div>
+                <div style={{fontSize:'clamp(0.65rem, 1.5vw, 0.78rem)',color:'var(--text2)',display:'flex',alignItems:'center',gap:4}}>📍 {j.location}</div>
               </div>
               {sel?.id===j.id && <div style={{position:'absolute',left:0,right:0,bottom:0,height:3,background:'linear-gradient(90deg,var(--green),var(--accent))'}}/>}
             </div>
