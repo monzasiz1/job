@@ -176,6 +176,18 @@ export default function ChatContent() {
     )
   }
 
+  if (!employer || !applicant || !job) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⚠️</div>
+          <div style={{ color: '#f06090', marginBottom: '1rem' }}>Parameter fehlen (employer/applicant/job)</div>
+          <Link href="/" style={{ color: '#a080ff', textDecoration: 'none', fontWeight: 700 }}>← Zurück</Link>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '1rem', height: 'calc(100vh - 60px)', background: 'rgba(15,15,23,0.5)' }}>
       {/* CHAT BEREICH */}
