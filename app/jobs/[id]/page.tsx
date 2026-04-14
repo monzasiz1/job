@@ -34,7 +34,8 @@ export default async function JobDetailPage({ params }: { params: { id: string }
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-end',
-        overflow: 'hidden',
+        overflow: 'visible',
+        zIndex: 10,
       }}>
         {job.cover_image_url && (
           <>
@@ -73,7 +74,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
       </div>
 
       {/* BODY */}
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: 'clamp(2rem, 4vw, 3rem)', display: 'grid', gridTemplateColumns: '1fr 380px', gap: '2rem', alignItems: 'start' }} className="detail-grid">
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: 'clamp(2rem, 4vw, 3rem)', display: 'grid', gridTemplateColumns: '1fr 380px', gap: '2rem', alignItems: 'start', position: 'relative', zIndex: 1 }} className="detail-grid">
 
         {/* LEFT */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -124,11 +125,6 @@ export default async function JobDetailPage({ params }: { params: { id: string }
 
         {/* SIDEBAR */}
         <div style={{ position: 'sticky', top: 80, display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-
-          {/* SHARE BUTTONS */}
-          <div style={{ display: 'flex', gap: 8 }}>
-            <ShareButton jobId={job.id} jobTitle={job.title} jobCompany={job.company} />
-          </div>
 
           {/* GEHALT & BEWERBEN */}
           <div style={{ background: 'linear-gradient(135deg, rgba(124,104,250,0.1), rgba(124,104,250,0.02))', border: '1px solid rgba(124,104,250,0.2)', borderRadius: 24, padding: 'clamp(1.25rem, 2vw, 1.75rem)' }}>
