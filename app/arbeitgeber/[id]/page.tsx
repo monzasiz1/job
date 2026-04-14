@@ -22,7 +22,15 @@ export default async function ArbeitgeberProfile({ params }: { params: { id: str
     .eq('is_active', true)
     .order('created_at', { ascending: false })
 
+  const { data: interests } = await supabase
+    .from('job_interests')
+    .select('*, applicant:profiles(id, full_name, avatar_url, bio), job:jobs(id, title)')
+    .eq('action', 'like')
+    .in('job_id', jobs?.map((j: any) => j.id) || [])
+    .order('created_at', { ascending: false })
+
   const activeJobs = jobs || []
+  const interestedApplicants = interests || []
   const lc = ['ja','jb','jc','jd']
   const tb = (t: string) => t === 'Remote' ? 'b-remote' : t === 'Hybrid' ? 'b-hybrid' : 'b-office'
 
@@ -119,6 +127,46 @@ export default async function ArbeitgeberProfile({ params }: { params: { id: str
                       </div>
                     </div>
                   </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* INTERESSIERTE BEWERBER */}
+          <div style={{ background: 'var(--surface, #17172a)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 20, padding: '1.75rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '1rem', color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ width: 32, height: 32, background: 'rgba(240,96,144,0.12)', border: '1px solid rgba(240,96,144,0.2)', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem' }}>💌</span>
+                Interessierte Bewerber
+                <span style={{ padding: '2px 9px', background: 'rgba(240,96,144,0.15)', border: '1px solid rgba(240,96,144,0.2)', borderRadius: 999, fontSize: '0.72rem', fontWeight: 700, color: '#f06090' }}>{interestedApplicants.length}</span>
+              </h2>
+            </div>
+
+            {interestedApplicants.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '2.5rem 1rem' }}>
+                <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem', opacity: 0.3 }}>💭</div>
+                <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.88rem' }}>Noch keine Interessenten</div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {interestedApplicants.map((interest: any) => (
+                  <div key={interest.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem 1.1rem', background: 'rgba(240,96,144,0.04)', border: '1px solid rgba(240,96,144,0.12)', borderRadius: 14, transition: 'all 0.18s' }}>
+                    {interest.applicant?.avatar_url
+                      ? <img src={interest.applicant.avatar_url} alt="" style={{ width: 52, height: 52, borderRadius: 12, objectFit: 'cover', flexShrink: 0 }} />
+                      : <div style={{ width: 52, height: 52, flexShrink: 0, borderRadius: 12, background: 'rgba(240,96,144,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Syne', sans-serif", fontWeight: 700, color: '#f06090', fontSize: '1rem' }}>
+                          {(interest.applicant?.full_name || '?').slice(0,2).toUpperCase()}
+                        </div>}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, color: '#fff', fontSize: '0.9rem', marginBottom: 4 }}>{interest.applicant?.full_name}</div>
+                      <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.35)' }}>👀 interessiert in: <strong style={{ color: '#f06090' }}>{interest.job?.title}</strong></div>
+                      {interest.applicant?.bio && (
+                        <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.25)', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>"{interest.applicant.bio}"</div>
+                      )}
+                    </div>
+                    <button style={{ padding: '8px 14px', background: 'linear-gradient(135deg, rgba(240,96,144,0.15), rgba(240,96,144,0.08))', border: '1px solid rgba(240,96,144,0.3)', color: '#f06090', borderRadius: 10, fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, transition: 'all 0.2s' }}>
+                      💬 Chat
+                    </button>
+                  </div>
                 ))}
               </div>
             )}
