@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import AppShell from '@/components/AppShell'
+import ChatsSection from './ChatsSection'
+import InterestsSection from './InterestsSection'
 
 export default async function Dashboard() {
   const supabase = createClient()
@@ -153,44 +155,7 @@ export default async function Dashboard() {
         )}
 
         {/* BEWERBER: Meine Chat-Konversationen */}
-        {!isEmp && conversations.length > 0 && (
-          <div style={{ marginTop: '2rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span>💬 Meine Chats</span>
-                <span style={{ padding: '2px 10px', background: 'rgba(124,104,250,0.15)', border: '1px solid rgba(124,104,250,0.2)', borderRadius: 999, fontSize: '0.72rem', fontWeight: 700, color: '#a080ff' }}>{conversations.length}</span>
-              </div>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 10 }}>
-              {conversations.map((conv: any) => (
-                <Link key={conv.id} href={`/chat?employer=${conv.employer_id}&applicant=${conv.applicant_id}&job=${conv.job_id}`} style={{ textDecoration: 'none' }}>
-                  <div style={{ background: 'rgba(124,104,250,0.04)', border: '1px solid rgba(124,104,250,0.12)', borderRadius: 14, padding: '1rem', transition: 'all 0.18s', cursor: 'pointer', display: 'flex', gap: 12, alignItems: 'center' }}>
-                    {conv.employer?.avatar_url
-                      ? <img src={conv.employer.avatar_url} alt="" style={{ width: 44, height: 44, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
-                      : <div style={{ width: 44, height: 44, borderRadius: 10, background: 'rgba(124,104,250,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Syne', sans-serif", fontWeight: 700, color: '#a080ff', fontSize: '0.9rem', flexShrink: 0 }}>
-                          {(conv.employer?.full_name || '?').slice(0,2).toUpperCase()}
-                        </div>}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, color: '#fff', fontSize: '0.88rem', marginBottom: 3 }}>{conv.employer?.company_name || conv.employer?.full_name}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{conv.last_message || 'Keine Nachrichten'}</div>
-                      <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.2)', marginTop: 2 }}>📌 {conv.job?.title}</div>
-                    </div>
-                    <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)', flexShrink: 0 }}>→</div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* BEWERBER: Keine Chats */}
-        {!isEmp && conversations.length === 0 && (
-          <div style={{ marginTop: '2rem', background: '#17172a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 20, padding: '2rem', textAlign: 'center' as const }}>
-            <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>💬</div>
-            <div style={{ fontWeight: 700, color: '#fff', marginBottom: '0.5rem' }}>Noch keine Chats</div>
-            <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.88rem' }}>Wenn ein Arbeitgeber an dir interessiert ist, startet er einen Chat mit dir.</div>
-          </div>
-        )}
+        {!isEmp && <ChatsSection conversations={conversations} isEmp={false} />}
 
         {/* BEWERBER: Interessierte Jobs */}
         {!isEmp && (
@@ -230,42 +195,7 @@ export default async function Dashboard() {
           </div>
         )}
         {isEmp && conversations.length > 0 && (
-          <div style={{ marginTop: '2rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span>💬 Meine Chats</span>
-                <span style={{ padding: '2px 10px', background: 'rgba(124,104,250,0.15)', border: '1px solid rgba(124,104,250,0.2)', borderRadius: 999, fontSize: '0.72rem', fontWeight: 700, color: '#a080ff' }}>{conversations.length}</span>
-              </div>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 10 }}>
-              {conversations.map((conv: any) => (
-                <Link key={conv.id} href={`/chat?employer=${conv.employer_id}&applicant=${conv.applicant_id}&job=${conv.job_id}`} style={{ textDecoration: 'none' }}>
-                  <div style={{ background: 'rgba(124,104,250,0.04)', border: '1px solid rgba(124,104,250,0.12)', borderRadius: 14, padding: '1rem', transition: 'all 0.18s', cursor: 'pointer', display: 'flex', gap: 12, alignItems: 'center' }}>
-                    {conv.applicant?.avatar_url
-                      ? <img src={conv.applicant.avatar_url} alt="" style={{ width: 44, height: 44, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
-                      : <div style={{ width: 44, height: 44, borderRadius: 10, background: 'rgba(124,104,250,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Syne', sans-serif", fontWeight: 700, color: '#a080ff', fontSize: '0.9rem', flexShrink: 0 }}>
-                          {(conv.applicant?.full_name || '?').slice(0,2).toUpperCase()}
-                        </div>}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, color: '#fff', fontSize: '0.88rem', marginBottom: 3 }}>{conv.applicant?.full_name}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{conv.last_message || 'Keine Nachrichten'}</div>
-                      <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.2)', marginTop: 2 }}>📌 {conv.job?.title}</div>
-                    </div>
-                    <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)', flexShrink: 0 }}>→</div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ARBEITGEBER: Interessierte Bewerber */}
-        {isEmp && (
-          <div style={{ marginTop: '2rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span>💌 Interessierte Bewerber</span>
-                {interests.length > 0 && <span style={{ padding: '2px 10px', background: 'rgba(240,96,144,0.15)', border: '1px solid rgba(240,96,144,0.2)', borderRadius: 999, fontSize: '0.72rem', fontWeight: 700, color: '#f06090' }}>{interests.length}</span>}
+          <div styl<InterestsSection myInterests={myInterests} />       {interests.length > 0 && <span style={{ padding: '2px 10px', background: 'rgba(240,96,144,0.15)', border: '1px solid rgba(240,96,144,0.2)', borderRadius: 999, fontSize: '0.72rem', fontWeight: 700, color: '#f06090' }}>{interests.length}</span>}
               </div>
               {interests.length > 0 && <Link href={`/arbeitgeber/${user.id}`} style={{ padding: '7px 14px', background: 'rgba(240,96,144,0.15)', border: '1px solid rgba(240,96,144,0.2)', borderRadius: 999, color: '#f06090', fontSize: '0.8rem', fontWeight: 700, textDecoration: 'none' }}>Alle ansehen →</Link>}
             </div>
@@ -301,35 +231,7 @@ export default async function Dashboard() {
             )}
           </div>
         )}
-
-        {/* BEWERBER: Schnellzugriff */}
-        {!isEmp && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 14 }}>
-            {[
-              { ic: '◈', t: 'Jobs finden', d: 'Tausende aktuelle Stellen in deiner Region.', h: '/jobs', c: 'rgba(124,104,250,0.12)', b: 'rgba(124,104,250,0.2)' },
-              { ic: '✦', t: 'KI-Assistent', d: 'Lebenslauf analysieren, matchen, Anschreiben generieren.', h: '/ki-tools', c: 'rgba(212,168,67,0.07)', b: 'rgba(212,168,67,0.18)' },
-              { ic: '⭐', t: 'Favoriten', d: 'Deine gespeicherten Stellenanzeigen.', h: '/favoriten', c: 'rgba(61,186,126,0.07)', b: 'rgba(61,186,126,0.18)' },
-            ].map(c => (
-              <Link key={c.t} href={c.h} style={{ textDecoration: 'none' }}>
-                <div style={{ background: c.c, border: `1px solid ${c.b}`, borderRadius: 20, padding: '1.5rem', cursor: 'pointer', transition: 'all 0.18s', height: '100%' }}>
-                  <div style={{ fontSize: '1.75rem', marginBottom: '0.7rem', color: '#a080ff' }}>{c.ic}</div>
-                  <div style={{ fontWeight: 700, color: '#fff', marginBottom: '0.35rem', fontSize: '0.92rem' }}>{c.t}</div>
-                  <div style={{ fontSize: '0.83rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.7 }}>{c.d}</div>
-                  <div style={{ marginTop: '1rem', color: '#a080ff', fontSize: '0.79rem', fontWeight: 700 }}>Öffnen →</div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <style>{`
-        .jlogo { display:flex;align-items:center;justify-content:center; }
-        .ja{background:rgba(30,64,175,0.2);color:#7aa2f7}
-        .jb{background:rgba(212,168,67,0.18);color:#d4a843}
-        .jc{background:rgba(240,96,144,0.18);color:#f06090}
-        .jd{background:rgba(61,186,126,0.18);color:#3dba7e}
-      `}</style>
+<ChatsSection conversations={conversations} isEmp={true} />/style>
     </AppShell>
   )
 }
