@@ -198,7 +198,7 @@ export default function JobsClient({ jobs, searchParams, user }: any) {
                             ?<img src={j.company_logo_url} style={{width:72,height:72,borderRadius:16,border:'3px solid var(--surface)',objectFit:'cover',boxShadow:'0 8px 24px rgba(0,0,0,0.4)'}} alt=""/>
                             :<div className={`jlogo ${lc(0)}`} style={{width:72,height:72,borderRadius:16,border:'3px solid var(--surface)',fontSize:'1.35rem',boxShadow:'0 8px 24px rgba(0,0,0,0.4)'}}>{ll(j.company)}</div>}
                           <div style={{flex:1,minWidth:0}}>
-                            <div style={{fontFamily:"'Syne',sans-serif",fontWeight:900,fontSize:'1.4rem',color:'#fff',marginBottom:2,lineHeight:1.2}}>{j.title}</div>
+                            <div style={{fontFamily:"'Syne',sans-serif",fontWeight:900,fontSize:'clamp(1rem, 3vw, 1.35rem)',color:'#fff',marginBottom:2,lineHeight:1.2,display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical' as any,overflow:'hidden'}}>{j.title}</div>
                             <div style={{fontSize:'0.88rem',color:'rgba(255,255,255,0.75)',fontWeight:500}}>{j.company}</div>
                           </div>
                         </div>
@@ -279,7 +279,7 @@ export default function JobsClient({ jobs, searchParams, user }: any) {
                     ? <img src={j.company_logo_url} alt="" style={{width:56,height:56,borderRadius:14,border:'3px solid var(--surface)',flexShrink:0,objectFit:'cover',boxShadow:'0 8px 24px rgba(0,0,0,0.3)'}}/>
                     : <div className={`jlogo ${lc(i)}`} style={{width:56,height:56,borderRadius:14,border:'3px solid var(--surface)',flexShrink:0,fontSize:'1.4rem',boxShadow:'0 8px 24px rgba(0,0,0,0.3)'}}>{ll(j.company)}</div>}
                 </div>
-                <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:'0.95rem',color:'#fff',marginBottom:'0.35rem',lineHeight:1.3}}>{j.title}</div>
+                <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:'clamp(0.85rem, 1.8vw, 1rem)',color:'#fff',marginBottom:'0.35rem',lineHeight:1.3,display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical' as any,overflow:'hidden'}}>{j.title}</div>
                 <div style={{fontSize:'0.78rem',color:'var(--text3)',marginBottom:'0.6rem',fontWeight:500}}>{j.company}</div>
                 {j.salary_min>0 && <div style={{fontSize:'0.88rem',fontWeight:700,color:'var(--gold)',marginBottom:'0.6rem'}}>{j.salary_min.toLocaleString('de-DE')} – {j.salary_max.toLocaleString('de-DE')} €</div>}
                 <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:'0.8rem'}}>
@@ -302,7 +302,7 @@ export default function JobsClient({ jobs, searchParams, user }: any) {
               {sel.cover_image_url && <img src={sel.cover_image_url} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>}
               <div style={{position:'absolute',inset:0,background:'linear-gradient(135deg,rgba(23,23,42,0.5),rgba(23,23,42,0.85))'}}/>
               <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',justifyContent:'flex-end',padding:'2rem 1.5rem'}}>
-                <div style={{fontFamily:"'Syne',sans-serif",fontWeight:900,fontSize:'1.5rem',color:'#fff',lineHeight:1.2,marginBottom:'0.5rem'}}>{sel.title}</div>
+                <div style={{fontFamily:"'Syne',sans-serif",fontWeight:900,fontSize:'clamp(1.1rem, 2.5vw, 1.35rem)',color:'#fff',lineHeight:1.2,marginBottom:'0.5rem',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical' as any,overflow:'hidden'}}>{sel.title}</div>
                 <div style={{color:'rgba(255,255,255,0.7)',fontSize:'0.95rem',fontWeight:500}}>{sel.company} · {sel.location}</div>
               </div>
               <div style={{position:'absolute',top:16,right:16,display:'flex',gap:8}}>
