@@ -21,7 +21,7 @@ export default function Home() {
         <div style={{position:'relative',zIndex:1,maxWidth:860,margin:'0 auto'}}>
           <div className="hero-pill anim">✦ Deutschlands smarteste Jobbörse</div>
           <h1 className="hero-h anim d1">Finde deinen Job —<br/><span className="hero-gold">mit KI-Unterstützung.</span></h1>
-          <p className="hero-sub anim d2">WorkMatch kombiniert präzise Stellensuche mit KI-Analyse, intelligentem Job-Matching und automatischen Bewerbungsschreiben.</p>
+          <p className="hero-sub anim d2">WorkMatch kombiniert präzise Stellensuche mit KI-Analyse und intelligentem Job-Matching.</p>
           <div className="hero-ctas anim d3">
             <Link href="/register" className="btn btn-gold btn-xl">Kostenlos starten →</Link>
             <Link href="/jobs" className="btn btn-ghost btn-xl">Jobs entdecken</Link>
@@ -72,7 +72,6 @@ export default function Home() {
             {[
               {icon:'🧠',title:'Lebenslauf-Analyse',desc:'KI analysiert dein Profil und gibt konkrete Verbesserungsvorschläge.',color:'rgba(124,104,250,0.12)',border:'rgba(124,104,250,0.2)'},
               {icon:'🎯',title:'Job-Matching',desc:'Präziser Match-Score — sieh sofort wie gut du zur Stelle passt.',color:'rgba(212,168,67,0.08)',border:'rgba(212,168,67,0.2)'},
-              {icon:'✍️',title:'Anschreiben-KI',desc:'Maßgeschneidertes Anschreiben per KI — in Sekunden fertig.',color:'rgba(61,186,126,0.08)',border:'rgba(61,186,126,0.2)'},
               {icon:'📍',title:'Umkreissuche',desc:'GPS-Radius — Jobs in Willich finden, die auch in Krefeld sind.',color:'rgba(240,96,144,0.08)',border:'rgba(240,96,144,0.2)'},
             ].map(f=>(
               <Link key={f.title} href="/ki-tools" style={{textDecoration:'none'}}>
@@ -94,7 +93,7 @@ export default function Home() {
           <span className="section-tag">✦ So einfach</span>
           <h2 style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:'clamp(1.6rem,3vw,2.2rem)',color:'#fff',marginBottom:'2.5rem'}}>In 3 Schritten zum Job</h2>
           <div className="step-grid" style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(210px,1fr))',gap:14}}>
-            {[['01','Profil erstellen','Kostenlos registrieren — für Bewerber immer gratis.'],['02','KI analysiert','Lebenslauf hochladen, Stellen matchen lassen.'],['03','Bewerben','Anschreiben generieren und in 2 Minuten bewerben.']].map(([n,t,d])=>(
+            {[['01','Profil erstellen','Kostenlos registrieren — für Bewerber immer gratis.'],['02','KI analysiert','Lebenslauf hochladen, Stellen matchen lassen.'],['03','Bewerben','Stellen abspeichern und in 2 Minuten bewerben.']].map(([n,t,d])=>(
               <div key={n} className="card" style={{textAlign:'left',position:'relative'}}>
                 <div style={{position:'absolute',top:'1rem',right:'1.25rem',fontFamily:"'Syne',sans-serif",fontSize:'2.5rem',fontWeight:800,color:'var(--border2)',lineHeight:1}}>{n}</div>
                 <div style={{width:34,height:34,background:'var(--accent)',borderRadius:'var(--r-md)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:'0.82rem',color:'#fff',marginBottom:'1rem'}}>{n}</div>
