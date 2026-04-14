@@ -61,7 +61,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                 <span className="badge b-office">{job.level}</span>
                 {job.field && <span className="badge b-accent">{job.field}</span>}
               </div>
-              <h1 style={{ fontFamily: "'Syne', sans-serif", fontSize: 'clamp(1.8rem, 5vw, 3rem)', fontWeight: 900, color: '#fff', lineHeight: 1.1, marginBottom: '0.6rem', textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>{job.title}</h1>
+              <h1 style={{ fontFamily: "'Syne', sans-serif", fontSize: 'clamp(1.2rem, 3.5vw, 2rem)', fontWeight: 900, color: '#fff', lineHeight: 1.2, marginBottom: '0.6rem', textShadow: '0 2px 10px rgba(0,0,0,0.3)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as any, overflow: 'hidden' }}>{job.title}</h1>
               <div style={{ color: 'rgba(255,255,255,0.75)', fontSize: 'clamp(0.95rem, 2vw, 1.05rem)', fontWeight: 600 }}>{job.company} · {job.location}</div>
               {job.salary_min > 0 && <div style={{ color: 'var(--gold)', fontSize: 'clamp(1.1rem, 3vw, 1.4rem)', fontWeight: 800, marginTop: '0.8rem' }}>{job.salary_min.toLocaleString('de-DE')}–{job.salary_max.toLocaleString('de-DE')} €</div>}
             </div>
