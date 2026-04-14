@@ -22,11 +22,13 @@ export default async function ArbeitgeberProfile({ params }: { params: { id: str
     .eq('is_active', true)
     .order('created_at', { ascending: false })
 
+  const jobIds = jobs?.map((j: any) => j.id) || []
+  
   const { data: interests } = await supabase
     .from('job_interests')
-    .select('*, applicant:profiles(id, full_name, avatar_url, bio), job:jobs(id, title)')
+    .select('*, applicant:applicant_id(full_name, avatar_url, bio), job:job_id(id, title)')
     .eq('action', 'like')
-    .in('job_id', jobs?.map((j: any) => j.id) || [])
+    .in('job_id', jobIds)
     .order('created_at', { ascending: false })
 
   const activeJobs = jobs || []
