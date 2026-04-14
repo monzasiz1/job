@@ -13,26 +13,23 @@ export default function ChatContent() {
   const [error, setError] = useState<string | null>(null)
   const [otherUser, setOtherUser] = useState<any>(null)
   const [currentUser, setCurrentUser] = useState<any>(null)
-  const [paramsReady, setParamsReady] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  const employer = searchParams?.get('employer')
-  const applicant = searchParams?.get('applicant')
-  const job = searchParams?.get('job')
+  // Sichere Parameter-Extraktion
+  const employer = searchParams?.get('employer') || ''
+  const applicant = searchParams?.get('applicant') || ''
+  const job = searchParams?.get('job') || ''
 
-  // Warte auf Parameters
   useEffect(() => {
-    if (searchParams && employer && applicant && job) {
-      setParamsReady(true)
+    // Warte bis Parameter verfügbar sind
+    if (!applicant || !job) {
+      return
     }
-  }, [searchParams, employer, applicant, job])
-
-  useEffect(() => {
-    if (!paramsReady) return
     
     const initChat = async () => {
       try {
         setError(null)
+        setLoading(true)
         
         // Hole aktuelle User
         const userRes = await fetch('/api/auth/user')
@@ -45,16 +42,21 @@ export default function ChatContent() {
 
         // Finde oder erstelle Konversation
         const convRes = await fetch(
-          `/api/chat/conversations?applicant_id=${applicant}&job_id=${job}`
+          `/api/chat/conversations?applicant_id=${applicant}&job_id=${job}`,
+          { cache: 'no-store' }
         )
         if (!convRes.ok) {
-          throw new Error('Konversation konnte nicht erstellt werden')
+          const errData = await convRes.json()
+          throw new Error(errData.error || 'Konversation konnte nicht erstellt werden')
         }
         const convData = await convRes.json()
+        if (!convData.conversation_id) {
+          throw new Error('Keine Konversations-ID erhalten')
+        }
         setConversationId(convData.conversation_id)
 
         // Hole andere Person's Profil
-        const otherRes = await fetch(`/api/user/${applicant}`)
+        const otherRes = await fetch(`/api/user/${applicant}`, { cache: 'no-store' })
         if (!otherRes.ok) {
           throw new Error('Benutzerprofil konnte nicht geladen werden')
         }
@@ -63,7 +65,8 @@ export default function ChatContent() {
 
         // Lade Nachrichten
         const msgRes = await fetch(
-          `/api/chat/messages?conversation_id=${convData.conversation_id}`
+          `/api/chat/messages?conversation_id=${convData.conversation_id}`,
+          { cache: 'no-store' }
         )
         if (!msgRes.ok) {
           throw new Error('Nachrichten konnten nicht geladen werden')
@@ -73,15 +76,14 @@ export default function ChatContent() {
 
         setLoading(false)
       } catch (err: any) {
-        console.error(err)
+        console.error('Chat Init Error:', err)
         setError(err.message || 'Ein Fehler ist aufgetreten')
         setLoading(false)
       }
     }
 
     initChat()
-  }, [paramsReady, applicant, job, router])
-
+  }, [applicant, job, router])
 
   useEffect(() => {
     // Auto-scroll zu letzter Nachricht
@@ -92,16 +94,16 @@ export default function ChatContent() {
     e.preventDefault()
     if (!msgText.trim() || !conversationId || !currentUser) return
 
+    const msgToSend = msgText
     const newMsg = {
       id: Date.now().toString(),
       conversation_id: conversationId,
       sender_id: currentUser.id,
-      content: msgText,
+      content: msgToSend,
       created_at: new Date().toISOString(),
     }
 
     setMessages([...messages, newMsg])
-    const msgToSend = msgText
     setMsgText('')
 
     try {
@@ -117,6 +119,18 @@ export default function ChatContent() {
     } catch (err) {
       console.error('Error sending message:', err)
     }
+  }
+
+  if (!applicant || !job) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⚠️</div>
+          <div style={{ color: '#f06090', marginBottom: '1rem' }}>Parameter fehlen</div>
+          <Link href="/" style={{ color: '#a080ff', textDecoration: 'none', fontWeight: 700 }}>← Zurück</Link>
+        </div>
+      </div>
+    )
   }
 
   if (loading) {
@@ -137,16 +151,6 @@ export default function ChatContent() {
           <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⚠️</div>
           <div style={{ color: '#f06090', marginBottom: '1rem' }}>{error}</div>
           <Link href="/" style={{ color: '#a080ff', textDecoration: 'none', fontWeight: 700 }}>← Zurück</Link>
-        </div>
-      </div>
-    )
-  }
-
-  if (!paramsReady) {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ color: 'rgba(255,255,255,0.4)' }}>Wird initialisiert...</div>
         </div>
       </div>
     )
