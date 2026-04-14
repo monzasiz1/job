@@ -14,7 +14,19 @@ export default function ChatContent() {
   const [otherUser, setOtherUser] = useState<any>(null)
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [deleting, setDeleting] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+  const [showSidebar, setShowSidebar] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // Mobile detection
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   // Sichere Parameter-Extraktion
   const employer = searchParams?.get('employer') || ''
@@ -177,49 +189,99 @@ export default function ChatContent() {
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '1rem', height: 'calc(100vh - 60px)', background: 'rgba(15,15,23,0.5)' }}>
+    <div style={{ 
+      display: 'grid', 
+      gridTemplateColumns: isMobile ? '1fr' : '1fr 280px', 
+      gap: isMobile ? 0 : '1rem', 
+      height: 'calc(100vh - 60px)', 
+      background: 'rgba(15,15,23,0.5)' 
+    }}>
       {/* CHAT BEREICH */}
-      <div style={{ display: 'flex', flexDirection: 'column', background: 'var(--surface, #17172a)', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', background: 'var(--surface, #17172a)', borderRight: isMobile ? 'none' : '1px solid rgba(255,255,255,0.06)' }}>
         {/* HEADER */}
-        <div style={{ padding: '1rem 1.5rem', background: 'var(--surface, #17172a)', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: '1rem', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
+        <div style={{ 
+          padding: isMobile ? '0.75rem 1rem' : '1rem 1.5rem', 
+          background: 'var(--surface, #17172a)', 
+          borderBottom: '1px solid rgba(255,255,255,0.06)', 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: isMobile ? '0.75rem' : '1rem', 
+          justifyContent: 'space-between' 
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.75rem' : '1rem', flex: 1, minWidth: 0 }}>
             {otherUser?.avatar_url ? (
               <img
                 src={otherUser.avatar_url}
                 alt=""
-                style={{ width: 44, height: 44, borderRadius: 12, objectFit: 'cover' }}
+                style={{ 
+                  width: isMobile ? 36 : 44, 
+                  height: isMobile ? 36 : 44, 
+                  borderRadius: 12, 
+                  objectFit: 'cover',
+                  flexShrink: 0
+                }}
               />
             ) : (
-              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(240,96,144,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#f06090' }}>
+              <div style={{ 
+                width: isMobile ? 36 : 44, 
+                height: isMobile ? 36 : 44, 
+                borderRadius: 12, 
+                background: 'rgba(240,96,144,0.15)', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                fontWeight: 700, 
+                color: '#f06090',
+                flexShrink: 0,
+                fontSize: isMobile ? '0.75rem' : '0.9rem'
+              }}>
                 {(otherUser?.full_name || '?').slice(0, 2).toUpperCase()}
               </div>
             )}
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 700, color: '#fff', fontSize: '0.95rem' }}>
+              <div style={{ fontWeight: 700, color: '#fff', fontSize: isMobile ? '0.85rem' : '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {otherUser?.full_name}
               </div>
-              <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>Online</div>
+              <div style={{ fontSize: isMobile ? '0.65rem' : '0.75rem', color: 'rgba(255,255,255,0.4)' }}>Online</div>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: isMobile ? 4 : 8, alignItems: 'center' }}>
             <button
               onClick={handleDeleteChat}
               disabled={deleting}
               style={{
-                padding: '6px 10px',
+                padding: isMobile ? '4px 8px' : '6px 10px',
                 background: 'rgba(240,96,144,0.15)',
                 border: '1px solid rgba(240,96,144,0.3)',
                 color: '#f06090',
                 borderRadius: 8,
                 cursor: 'pointer',
                 fontWeight: 700,
-                fontSize: '0.8rem',
+                fontSize: isMobile ? '0.65rem' : '0.8rem',
                 opacity: deleting ? 0.5 : 1,
+                whiteSpace: 'nowrap'
               }}
             >
-              ✕ Löschen
+              {isMobile ? '✕' : '✕ Löschen'}
             </button>
-            <Link href="/" style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'none', fontSize: '0.9rem' }}>
+            {isMobile && (
+              <button
+                onClick={() => setShowSidebar(!showSidebar)}
+                style={{
+                  padding: '4px 8px',
+                  background: 'rgba(160,128,255,0.15)',
+                  border: '1px solid rgba(160,128,255,0.3)',
+                  color: '#a080ff',
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  fontSize: '0.9rem',
+                  fontWeight: 700
+                }}
+              >
+                ℹ️
+              </button>
+            )}
+            <Link href="/" style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'none', fontSize: isMobile ? '0.9rem' : '0.9rem', fontWeight: 700 }}>
               ✕
             </Link>
           </div>
@@ -230,10 +292,10 @@ export default function ChatContent() {
           style={{
             flex: 1,
             overflowY: 'auto',
-            padding: '1.5rem',
+            padding: isMobile ? '1rem 1rem' : '1.5rem',
             display: 'flex',
             flexDirection: 'column',
-            gap: '1rem',
+            gap: isMobile ? '0.75rem' : '1rem',
           }}
         >
           {messages.length === 0 ? (
@@ -253,8 +315,8 @@ export default function ChatContent() {
               >
                 <div
                   style={{
-                    maxWidth: '65%',
-                    padding: '10px 14px',
+                    maxWidth: isMobile ? '85%' : '65%',
+                    padding: isMobile ? '8px 12px' : '10px 14px',
                     borderRadius: '16px',
                     background:
                       msg.sender_id === currentUser?.id
@@ -265,7 +327,7 @@ export default function ChatContent() {
                         ? '1px solid rgba(124,104,250,0.3)'
                         : '1px solid rgba(255,255,255,0.05)',
                     color: '#fff',
-                    fontSize: '0.9rem',
+                    fontSize: isMobile ? '0.85rem' : '0.9rem',
                     lineHeight: 1.5,
                     wordWrap: 'break-word',
                   }}
@@ -279,8 +341,8 @@ export default function ChatContent() {
         </div>
 
         {/* INPUT */}
-        <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.2)' }}>
-          <form onSubmit={handleSend} style={{ display: 'flex', gap: '0.75rem' }}>
+        <div style={{ padding: isMobile ? '0.75rem 1rem' : '1rem 1.5rem', borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.2)' }}>
+          <form onSubmit={handleSend} style={{ display: 'flex', gap: isMobile ? '0.5rem' : '0.75rem' }}>
             <input
               type="text"
               value={msgText}
@@ -288,59 +350,68 @@ export default function ChatContent() {
               placeholder="Nachricht..."
               style={{
                 flex: 1,
-                padding: '10px 14px',
+                padding: isMobile ? '8px 12px' : '10px 14px',
                 background: 'rgba(255,255,255,0.07)',
                 border: '1px solid rgba(255,255,255,0.1)',
                 borderRadius: 12,
                 color: '#fff',
                 fontFamily: "'DM Sans', sans-serif",
-                fontSize: '0.9rem',
+                fontSize: isMobile ? '0.85rem' : '0.9rem',
                 outline: 'none',
               }}
             />
             <button
               type="submit"
               style={{
-                padding: '10px 18px',
+                padding: isMobile ? '8px 12px' : '10px 18px',
                 background: 'var(--accent, #7c68fa)',
                 color: '#fff',
                 border: 'none',
                 borderRadius: 12,
                 fontWeight: 700,
-                fontSize: '0.85rem',
+                fontSize: isMobile ? '0.75rem' : '0.85rem',
                 cursor: 'pointer',
+                whiteSpace: 'nowrap'
               }}
             >
-              Senden
+              {isMobile ? 'Senden' : 'Senden'}
             </button>
           </form>
         </div>
       </div>
 
       {/* SIDEBAR */}
-      <div style={{ padding: '1.5rem', background: 'rgba(0,0,0,0.2)', overflowY: 'auto' }}>
-        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, color: '#fff', marginBottom: '1rem', fontSize: '0.9rem' }}>
-          Profil
-        </div>
-        <div style={{ background: 'var(--surface, #17172a)', borderRadius: 16, padding: '1rem', marginBottom: '1rem' }}>
-          {otherUser?.bio && (
-            <>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: '0.5rem' }}>
-                Über
+      {(!isMobile || showSidebar) && (
+        <div style={{ 
+          padding: isMobile ? '1rem' : '1.5rem', 
+          background: isMobile ? 'var(--surface, #17172a)' : 'rgba(0,0,0,0.2)', 
+          overflowY: 'auto',
+          borderTop: isMobile ? '1px solid rgba(255,255,255,0.06)' : 'none',
+          maxHeight: isMobile ? '50vh' : 'auto'
+        }}>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, color: '#fff', marginBottom: '1rem', fontSize: isMobile ? '0.85rem' : '0.9rem' }}>
+            Profil
+          </div>
+          <div style={{ background: isMobile ? 'rgba(0,0,0,0.3)' : 'var(--surface, #17172a)', borderRadius: 16, padding: isMobile ? '0.75rem' : '1rem', marginBottom: '1rem' }}>
+            {otherUser?.bio && (
+              <>
+                <div style={{ fontSize: isMobile ? '0.7rem' : '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: '0.5rem' }}>
+                  Über
+                </div>
+                <div style={{ fontSize: isMobile ? '0.8rem' : '0.85rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.5, marginBottom: '1rem' }}>
+                  {otherUser.bio}
+                </div>
+              </>
+            )}
+            {otherUser?.location && (
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start', fontSize: isMobile ? '0.8rem' : '0.85rem', color: 'rgba(255,255,255,0.5)' }}>
+                <span style={{ flexShrink: 0 }}>📍</span>
+                <span>{otherUser.location}</span>
               </div>
-              <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.5, marginBottom: '1rem' }}>
-                {otherUser.bio}
-              </div>
-            </>
-          )}
-          {otherUser?.location && (
-            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start', fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)' }}>
-              <span style={{ flexShrink: 0 }}>📍</span>
-              <span>{otherUser.location}</span>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
