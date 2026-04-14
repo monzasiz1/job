@@ -272,3 +272,104 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:2rem
   .split{grid-template-columns:1fr !important}
   .detail-sticky{position:static !important}
 }
+
+/* ═══════════════════════════════════
+   RESPONSIVE — MOBILE FIRST
+═══════════════════════════════════ */
+
+/* Tablet & Mobile shared */
+@media(max-width:1024px){
+  .split{grid-template-columns:1fr !important}
+  .detail-sticky{position:static !important;max-height:none !important}
+  .detail-grid{grid-template-columns:1fr !important}
+  .arbeitgeber-grid{grid-template-columns:1fr !important}
+}
+
+/* Mobile */
+@media(max-width:768px){
+  /* Shell */
+  .sidebar-wrap{display:none !important}
+  .sidebar-mobile{display:block !important}
+  .mob-bar{display:flex !important}
+  .main{margin-left:0 !important}
+
+  /* Hero */
+  .hero{padding:3rem 1.1rem 2.5rem !important}
+  .hero-h{font-size:2rem !important;letter-spacing:-0.02em !important}
+  .hero-sub{font-size:0.92rem !important}
+  .hero-ctas{gap:8px !important}
+  .hero-ctas .btn-xl{padding:11px 20px !important;font-size:0.88rem !important}
+  .hero-stats{flex-direction:column;display:flex !important;border-radius:16px !important}
+  .hstat{border-right:none !important;border-bottom:1px solid var(--border) !important;padding:0.85rem 1.5rem !important}
+  .hstat:last-child{border-bottom:none !important}
+
+  /* Search bar */
+  .search-bar{flex-direction:column !important;padding:10px !important;border-radius:16px !important}
+  .sf{width:100% !important}
+  .sf-div{display:none !important}
+
+  /* Grids */
+  .feat-grid{grid-template-columns:1fr !important}
+  .price-grid{grid-template-columns:1fr !important}
+  .step-grid{grid-template-columns:1fr !important}
+  .arb-grid{grid-template-columns:1fr !important}
+
+  /* Forms */
+  .f-row{grid-template-columns:1fr !important}
+
+  /* Page padding */
+  .pg{padding:1rem !important}
+
+  /* Job split */
+  .split{grid-template-columns:1fr !important}
+
+  /* Detail panels */
+  .detail-grid{grid-template-columns:1fr !important}
+  .mob-cta{display:flex !important}
+  body{padding-bottom:80px}
+
+  /* Profile pages */
+  .profile-grid{grid-template-columns:1fr !important}
+  .profile-sticky{position:static !important}
+
+  /* Dashboard */
+  .dash-stats{grid-template-columns:1fr 1fr !important}
+  .dash-cards{grid-template-columns:1fr !important}
+  .dash-profile{flex-direction:column !important;align-items:flex-start !important;gap:1rem !important}
+  .dash-btns{width:100% !important;flex-direction:column !important}
+  .dash-btns a{width:100% !important;justify-content:center !important;text-align:center !important}
+
+  /* Topbar */
+  .topbar{padding:0 1rem !important;height:54px !important;flex-wrap:wrap}
+  .t-search{display:none !important}
+
+  /* Job cards */
+  .jrow{padding:0.8rem !important}
+  .jtitle{font-size:0.84rem !important}
+
+  /* Nav */
+  .pub-links{display:none !important}
+  .pub-nav{padding:0 1.1rem !important}
+  .pub-ctas .btn-ghost{display:none !important}
+
+  /* Profil edit */
+  .profil-grid{grid-template-columns:1fr !important}
+  .profil-2col{grid-template-columns:1fr !important}
+
+  /* Footer */
+  .foot-in{flex-direction:column !important;gap:1rem !important;text-align:center}
+  .foot-links{justify-content:center !important}
+
+  /* Sections padding */
+  section{padding-left:1.25rem !important;padding-right:1.25rem !important}
+  .hero::before{display:none}
+}
+
+@media(max-width:480px){
+  .hero-h{font-size:1.75rem !important}
+  .dash-stats{grid-template-columns:1fr 1fr !important}
+  .stat-n{font-size:1.5rem !important}
+  .search-bar button{width:100% !important;justify-content:center}
+  .topbar form{gap:6px !important}
+  .topbar select{display:none !important}
+}
