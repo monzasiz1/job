@@ -12,6 +12,7 @@ export default async function Dashboard() {
   const isEmp = profile.role === 'employer'
   let jobs: any[] = []
   let interests: any[] = []
+  let conversations: any[] = []
   if (isEmp) {
     const { data } = await supabase.from('jobs').select('*').eq('employer_id', user.id).order('created_at', { ascending: false })
     jobs = data || []
@@ -26,6 +27,14 @@ export default async function Dashboard() {
         .order('created_at', { ascending: false })
       interests = intData || []
     }
+
+    const { data: convData } = await supabase
+      .from('conversations')
+      .select('*, applicant:applicant_id(full_name, avatar_url), job:job_id(title)')
+      .eq('employer_id', user.id)
+      .order('last_message_at', { ascending: false })
+      .limit(5)
+    conversations = convData || []
   }
   const lc = ['ja','jb','jc','jd']
   const initials = profile.full_name?.split(' ').map((n: string) => n[0]).join('').slice(0,2).toUpperCase() || '?'
@@ -116,6 +125,37 @@ export default async function Dashboard() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* ARBEITGEBER: Meine Chats */}
+        {isEmp && conversations.length > 0 && (
+          <div style={{ marginTop: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span>💬 Meine Chats</span>
+                <span style={{ padding: '2px 10px', background: 'rgba(124,104,250,0.15)', border: '1px solid rgba(124,104,250,0.2)', borderRadius: 999, fontSize: '0.72rem', fontWeight: 700, color: '#a080ff' }}>{conversations.length}</span>
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 10 }}>
+              {conversations.map((conv: any) => (
+                <Link key={conv.id} href={`/chat?employer=${conv.employer_id}&applicant=${conv.applicant_id}&job=${conv.job_id}`} style={{ textDecoration: 'none' }}>
+                  <div style={{ background: 'rgba(124,104,250,0.04)', border: '1px solid rgba(124,104,250,0.12)', borderRadius: 14, padding: '1rem', transition: 'all 0.18s', cursor: 'pointer', display: 'flex', gap: 12, alignItems: 'center' }}>
+                    {conv.applicant?.avatar_url
+                      ? <img src={conv.applicant.avatar_url} alt="" style={{ width: 44, height: 44, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
+                      : <div style={{ width: 44, height: 44, borderRadius: 10, background: 'rgba(124,104,250,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Syne', sans-serif", fontWeight: 700, color: '#a080ff', fontSize: '0.9rem', flexShrink: 0 }}>
+                          {(conv.applicant?.full_name || '?').slice(0,2).toUpperCase()}
+                        </div>}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, color: '#fff', fontSize: '0.88rem', marginBottom: 3 }}>{conv.applicant?.full_name}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{conv.last_message || 'Keine Nachrichten'}</div>
+                      <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.2)', marginTop: 2 }}>📌 {conv.job?.title}</div>
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)', flexShrink: 0 }}>→</div>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
         )}
 
