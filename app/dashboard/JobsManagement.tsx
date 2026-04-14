@@ -39,30 +39,30 @@ export default function JobsManagement({ jobs, lc }: any) {
           <Link href="/post-job" style={{ display: 'inline-flex', padding: '13px 26px', background: 'linear-gradient(135deg,var(--accent),rgba(124,104,250,0.8))', color: '#fff', borderRadius: 14, fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: 'clamp(0.88rem, 1.5vw, 0.95rem)', textDecoration: 'none' }}>Erste Stelle inserieren →</Link>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(6px, 1.5vw, 10px)' }}>
           {jobsState.map((j: any, i: number) => (
-            <div key={j.id} style={{ background: 'var(--surface)', borderRadius: 16, border: '1px solid var(--border)', padding: 'clamp(0.9rem, 2vw, 1.1rem)', display: 'flex', gap: 'clamp(0.9rem, 2vw, 1rem)', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between', transition: 'all 0.2s' }}>
-              <div style={{ display: 'flex', gap: 'clamp(0.9rem, 2vw, 1rem)', alignItems: 'center', flex: 1, minWidth: 0 }}>
+            <div key={j.id} style={{ background: 'var(--surface)', borderRadius: 'clamp(12px, 2vw, 18px)', border: '1px solid var(--border)', padding: 'clamp(0.8rem, 2vw, 1.2rem)', display: 'flex', gap: 'clamp(0.75rem, 2vw, 1rem)', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between', transition: 'all 0.2s' }}>
+              <div style={{ display: 'flex', gap: 'clamp(0.75rem, 2vw, 1rem)', alignItems: 'center', flex: 1, minWidth: 0 }}>
                 {j.company_logo_url
-                  ? <img src={j.company_logo_url} alt="" style={{ width: 44, height: 44, borderRadius: 12, objectFit: 'cover', flexShrink: 0 }} />
-                  : <div className={`jlogo ${lc[i%4]}`} style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.95rem' }}>{j.company.slice(0,2).toUpperCase()}</div>}
+                  ? <img src={j.company_logo_url} alt="" style={{ width: 'clamp(40px, 8vw, 48px)', height: 'clamp(40px, 8vw, 48px)', borderRadius: 'clamp(8px, 1.5vw, 12px)', objectFit: 'cover', flexShrink: 0 }} />
+                  : <div className={`jlogo ${lc[i%4]}`} style={{ width: 'clamp(40px, 8vw, 48px)', height: 'clamp(40px, 8vw, 48px)', flexShrink: 0, borderRadius: 'clamp(8px, 1.5vw, 12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 'clamp(0.8rem, 2vw, 1.1rem)' }}>{j.company.slice(0,2).toUpperCase()}</div>}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, color: '#fff', fontSize: 'clamp(0.82rem, 2vw, 0.9rem)', marginBottom: 4 }}>{j.title}</div>
-                  <div style={{ fontSize: 'clamp(0.72rem, 1.5vw, 0.8rem)', color: 'var(--text3)', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                  <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, color: '#fff', fontSize: 'clamp(0.8rem, 2.2vw, 0.95rem)', marginBottom: 'clamp(2px, 0.5vw, 4px)' }}>{j.title}</div>
+                  <div style={{ fontSize: 'clamp(0.7rem, 1.6vw, 0.82rem)', color: 'var(--text3)', display: 'flex', gap: 'clamp(8px, 1.5vw, 12px)', flexWrap: 'wrap' }}>
                     <span>📍 {j.location}</span>
                     <span>⏰ {j.contract}</span>
                     {j.salary_min > 0 && <span>💰 {(j.salary_min / 1000).toFixed(0)}k€</span>}
                   </div>
                 </div>
               </div>
-              <span style={{ padding: '4px 12px', borderRadius: 999, fontSize: '0.7rem', fontWeight: 700, background: j.is_active ? 'rgba(61,186,126,0.15)' : 'rgba(255,100,100,0.15)', color: j.is_active ? 'var(--green)' : '#ff6464', whiteSpace: 'nowrap', flexShrink: 0 }}>{j.is_active ? '● Aktiv' : '○ Inaktiv'}</span>
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', flexShrink: 0 }}>
-                <Link href={`/jobs/${j.id}`} style={{ padding: '7px 14px', background: 'var(--surface2)', border: '1px solid var(--border2)', borderRadius: 10, color: 'var(--text2)', fontSize: '0.78rem', fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap', transition: 'all 0.2s' }}>Ansehen</Link>
-                <Link href={`/post-job?edit=${j.id}`} style={{ padding: '7px 14px', background: 'rgba(212,168,67,0.15)', border: '1px solid rgba(212,168,67,0.25)', borderRadius: 10, color: 'var(--gold)', fontSize: '0.78rem', fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap', transition: 'all 0.2s' }}>Edit</Link>
+              <span style={{ padding: 'clamp(3px, 0.8vw, 5px) clamp(8px, 1.5vw, 12px)', borderRadius: 999, fontSize: 'clamp(0.65rem, 1.5vw, 0.75rem)', fontWeight: 700, background: j.is_active ? 'rgba(61,186,126,0.15)' : 'rgba(255,100,100,0.15)', color: j.is_active ? 'var(--green)' : '#ff6464', whiteSpace: 'nowrap', flexShrink: 0 }}>{j.is_active ? '● Aktiv' : '○ Inaktiv'}</span>
+              <div style={{ display: 'flex', gap: 'clamp(4px, 1vw, 6px)', flexWrap: 'wrap', flexShrink: 0 }}>
+                <Link href={`/jobs/${j.id}`} style={{ padding: 'clamp(6px, 1.5vw, 8px) clamp(10px, 2vw, 14px)', background: 'var(--surface2)', border: '1px solid var(--border2)', borderRadius: 'clamp(8px, 1.5vw, 10px)', color: 'var(--text2)', fontSize: 'clamp(0.7rem, 1.5vw, 0.8rem)', fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap', transition: 'all 0.2s' }}>Ansehen</Link>
+                <Link href={`/post-job?edit=${j.id}`} style={{ padding: 'clamp(6px, 1.5vw, 8px) clamp(10px, 2vw, 14px)', background: 'rgba(212,168,67,0.15)', border: '1px solid rgba(212,168,67,0.25)', borderRadius: 'clamp(8px, 1.5vw, 10px)', color: 'var(--gold)', fontSize: 'clamp(0.7rem, 1.5vw, 0.8rem)', fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap', transition: 'all 0.2s' }}>Edit</Link>
                 <button 
                   onClick={() => handleDelete(j.id)} 
                   disabled={deletingId === j.id}
-                  style={{ padding: '7px 14px', background: 'rgba(240,96,144,0.15)', border: '1px solid rgba(240,96,144,0.25)', borderRadius: 10, color: '#f06090', fontSize: '0.78rem', fontWeight: 700, textDecoration: 'none', cursor: 'pointer', opacity: deletingId === j.id ? 0.5 : 1, transition: 'all 0.2s', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+                  style={{ padding: 'clamp(6px, 1.5vw, 8px) clamp(10px, 2vw, 14px)', background: 'rgba(240,96,144,0.15)', border: '1px solid rgba(240,96,144,0.25)', borderRadius: 'clamp(8px, 1.5vw, 10px)', color: '#f06090', fontSize: 'clamp(0.7rem, 1.5vw, 0.8rem)', fontWeight: 700, textDecoration: 'none', cursor: 'pointer', opacity: deletingId === j.id ? 0.5 : 1, transition: 'all 0.2s', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
                   {deletingId === j.id ? '...' : 'Löschen'}
                 </button>
               </div>
