@@ -9,6 +9,29 @@ const ll = (n: string) => n.slice(0,2).toUpperCase()
 const lc = (i: number) => LC[i % LC.length]
 const tb = (t: string) => t==='Remote'?'b-remote':t==='Hybrid'?'b-hybrid':'b-office'
 
+const STYLES = `
+  @keyframes slideInUp {
+    from { opacity: 0; transform: scale(0.92) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  @keyframes slideOutDown {
+    from { opacity: 1; transform: scale(1) translateY(0); }
+    to { opacity: 0; transform: scale(0.88) translateY(20px); }
+  }
+  @keyframes throwLeft {
+    from { opacity: 1; transform: translateX(0) rotate(0deg); }
+    to { opacity: 0; transform: translateX(-120%) rotate(-25deg); }
+  }
+  @keyframes selectPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+  }
+  .anime-in { animation: slideInUp 0.4s ease-out; }
+  .anime-out { animation: slideOutDown 0.4s ease-out; }
+  .anime-throw { animation: throwLeft 0.45s ease-in forwards; }
+  .anime-select { animation: selectPulse 0.6s ease-out; }
+`
+
 export default function JobsClient({ jobs, searchParams, user }: any) {
   const router = useRouter()
   const [sel, setSel] = useState<any>(jobs[0] || null)
@@ -18,6 +41,9 @@ export default function JobsClient({ jobs, searchParams, user }: any) {
   const [swipes, setSwipes] = useState<Record<string,string>>({})
   const [aiFilter, setAiFilter] = useState(false)
   const [filteredJobs, setFilteredJobs] = useState(jobs)
+  const [isAnimatingOut, setIsAnimatingOut] = useState(false)
+  const [selectedNewJob, setSelectedNewJob] = useState(false)
+  const [nopingJobId, setNopingJobId] = useState<string | null>(null)
   const qR = useRef<HTMLInputElement>(null)
   const cR = useRef<HTMLInputElement>(null)
   const rR = useRef<HTMLSelectElement>(null)
@@ -43,12 +69,41 @@ export default function JobsClient({ jobs, searchParams, user }: any) {
   const handleSwipe = (action: 'like'|'maybe'|'nope') => {
     const job = filteredJobs[swipeIdx]
     if (!job) return
-    setSwipes({...swipes, [job.id]: action})
-    if (swipeIdx < filteredJobs.length - 1) {
-      setSwipeIdx(swipeIdx + 1)
+    
+    if (action === 'nope') {
+      setNopingJobId(job.id)
+      setTimeout(() => {
+        setSwipes({...swipes, [job.id]: action})
+        if (swipeIdx < filteredJobs.length - 1) {
+          setNopingJobId(null)
+          setIsAnimatingOut(true)
+          setTimeout(() => {
+            setSwipeIdx(swipeIdx + 1)
+            setIsAnimatingOut(false)
+            setSelectedNewJob(true)
+            setTimeout(() => setSelectedNewJob(false), 400)
+          }, 300)
+        } else {
+          setSwipeMode(false)
+          setSwipeIdx(0)
+          setNopingJobId(null)
+        }
+      }, 300)
     } else {
-      setSwipeMode(false)
-      setSwipeIdx(0)
+      setIsAnimatingOut(true)
+      setTimeout(() => {
+        setSwipes({...swipes, [job.id]: action})
+        if (swipeIdx < filteredJobs.length - 1) {
+          setSwipeIdx(swipeIdx + 1)
+          setIsAnimatingOut(false)
+          setSelectedNewJob(true)
+          setTimeout(() => setSelectedNewJob(false), 400)
+        } else {
+          setSwipeMode(false)
+          setSwipeIdx(0)
+          setIsAnimatingOut(false)
+        }
+      }, 150)
     }
   }
 
@@ -69,6 +124,7 @@ export default function JobsClient({ jobs, searchParams, user }: any) {
 
   return (
     <>
+      <style>{STYLES}</style>
       {/* TOPBAR */}
       <div style={{position:'sticky',top:0,zIndex:100,background:'rgba(15,15,23,0.92)',backdropFilter:'blur(20px)',borderBottom:'1px solid var(--border)',padding:'0 1.25rem',height:60,display:'flex',alignItems:'center',gap:8}}>
         <form onSubmit={search} style={{display:'flex',gap:8,flex:1,flexWrap:'wrap',alignItems:'center'}}>
@@ -118,7 +174,7 @@ export default function JobsClient({ jobs, searchParams, user }: any) {
               {(() => {
                 const j = filteredJobs[swipeIdx]
                 return (
-                  <div style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:28,overflow:'hidden',boxShadow:'0 25px 80px rgba(0,0,0,0.5)'}}>
+                  <div className={nopingJobId === j.id ? 'anime-throw' : isAnimatingOut ? 'anime-out' : selectedNewJob ? 'anime-in' : ''} style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:28,overflow:'hidden',boxShadow:'0 25px 80px rgba(0,0,0,0.5)'}}>
                     <div style={{height:320,background:'linear-gradient(135deg,var(--surface2),var(--surface3))',position:'relative',overflow:'hidden'}}>
                       {j.cover_image_url && <img src={j.cover_image_url} alt="" style={{width:'100%',height:'100%',objectFit:'cover',opacity:0.7}}/>}
                       <div style={{position:'absolute',inset:0,background:'linear-gradient(135deg,rgba(23,23,42,0.6),rgba(23,23,42,0.95))'}}/>
@@ -192,8 +248,8 @@ export default function JobsClient({ jobs, searchParams, user }: any) {
               <Link href="/jobs" style={{padding:'8px 18px',background:'var(--surface2)',border:'1px solid var(--border2)',color:'var(--text2)',borderRadius:999,fontSize:'0.8rem',fontWeight:700,textDecoration:'none'}}>Alle Jobs</Link>
             </div>
           ) : filteredJobs.map((j: any, i: number) => (
-            <div key={j.id} onClick={() => { if(window.innerWidth < 860) router.push(`/jobs/${j.id}`); else setSel(j) }}
-              style={{border:`1px solid ${sel?.id===j.id?'var(--accent)':'var(--border)'}`,borderRadius:16,padding:'0.9rem 1rem',display:'flex',alignItems:'center',gap:'0.85rem',cursor:'pointer',transition:'all 0.18s',position:'relative',overflow:'hidden',background:sel?.id===j.id?'rgba(124,104,250,0.07)':'var(--surface)'}}>
+            <div key={j.id} onClick={() => { if(window.innerWidth < 860) router.push(`/jobs/${j.id}`); else { setSelectedNewJob(true); setTimeout(() => setSelectedNewJob(false), 400); setSel(j) } }}
+              style={{border:`1px solid ${sel?.id===j.id?'var(--accent)':'var(--border)'}`,borderRadius:16,padding:'0.9rem 1rem',display:'flex',alignItems:'center',gap:'0.85rem',cursor:'pointer',transition:'all 0.18s',position:'relative',overflow:'hidden',background:sel?.id===j.id?'rgba(124,104,250,0.07)':'var(--surface)'}} className={sel?.id===j.id ? 'anime-select' : ''}>
               {sel?.id===j.id && <div style={{position:'absolute',left:0,top:0,bottom:0,width:3,background:'var(--accent)'}}/>}
               {j.company_logo_url
                 ? <div style={{width:42,height:42,borderRadius:12,overflow:'hidden',flexShrink:0}}><img src={j.company_logo_url} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/></div>
