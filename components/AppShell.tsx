@@ -55,7 +55,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const SidebarContent = () => (
     <div style={{width:240,background:'var(--surface)',borderRight:'1px solid var(--border)',display:'flex',flexDirection:'column',height:'100%',overflowY:'auto'}}>
       <Link href="/" style={{display:'flex',alignItems:'center',gap:10,padding:'1.25rem 1.1rem',borderBottom:'1px solid var(--border)',textDecoration:'none',flexShrink:0}}>
-        <Mark/><span style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:'1.05rem',color:'#fff'}}>WorkMatch</span>
+        <Mark/><span style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:'1.05rem',color:'#fff'}}>Talento</span>
       </Link>
 
       {profile && (
@@ -113,7 +113,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             {open ? '✕' : '☰'}
           </button>
           <Link href="/" style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:'1rem',color:'#fff',textDecoration:'none',display:'flex',alignItems:'center',gap:8}}>
-            <Mark/>WorkMatch
+            <Mark/>Talento
           </Link>
           <Link href="/dashboard/profil" style={{width:34,height:34,background:'var(--surface2)',border:'1px solid var(--border2)',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',color:'var(--text2)',fontSize:'0.85rem',textDecoration:'none'}}>✏️</Link>
         </div>

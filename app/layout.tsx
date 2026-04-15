@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'WorkMatch — Karriere neu gedacht',
+  title: 'Talento — Karriere neu gedacht',
   description: 'Die intelligenteste Jobbörse Deutschlands mit KI-Analyse, Job-Matching und Bewerbungsassistent.',
 }
 

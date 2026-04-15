@@ -8,7 +8,7 @@ export async function GET(request: Request) {
   try {
     const res = await fetch(
       `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city + ', Deutschland')}&format=json&limit=1`,
-      { headers: { 'User-Agent': 'WorkMatch/1.0' } }
+      { headers: { 'User-Agent': 'Talento/1.0' } }
     )
     const data = await res.json()
     if (!data.length) return NextResponse.json({ error: 'Ort nicht gefunden' }, { status: 404 })

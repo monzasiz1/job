@@ -47,7 +47,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
             <circle cx="10" cy="9" r="3" fill="#0d1b2a"/>
           </svg>
         </div>
-        <span className="sidebar-logo-text">WorkMatch</span>
+        <span className="sidebar-logo-text">Talento</span>
       </Link>
 
       {profile && (

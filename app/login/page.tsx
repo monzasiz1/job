@@ -27,7 +27,7 @@ function Form() {
             <div style={{width:36,height:36,background:'linear-gradient(135deg,#d4a843,#f0c060)',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center'}}>
               <svg viewBox="0 0 20 20" fill="none" style={{width:18,height:18}}><path d="M10 2L16 5.8V12.8L10 16.5L4 12.8V5.8L10 2Z" stroke="#1a1a00" strokeWidth="1.8" fill="none"/><circle cx="10" cy="9.5" r="2.8" fill="#1a1a00"/></svg>
             </div>
-            <span style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:'1.15rem',color:'#fff'}}>WorkMatch</span>
+            <span style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:'1.15rem',color:'#fff'}}>Talento</span>
           </Link>
           <h1 style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:'1.75rem',color:'#fff',marginBottom:'0.4rem'}}>Willkommen zurück</h1>
           <p style={{color:'var(--text2)',fontSize:'0.88rem'}}>Melde dich an, um fortzufahren.</p>

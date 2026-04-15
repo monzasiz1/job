@@ -25,7 +25,7 @@ export default function Navbar() {
     <>
       <nav style={{position:'sticky',top:0,zIndex:200,background:'rgba(15,15,23,0.97)',backdropFilter:'blur(24px)',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 1.5rem',height:60}}>
         <Link href="/" style={{display:'flex',alignItems:'center',gap:9,fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:'1.1rem',color:'#fff',textDecoration:'none'}}>
-          <Mark/>WorkMatch
+          <Mark/>Talento
         </Link>
 
         {/* Desktop links */}

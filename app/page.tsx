@@ -21,7 +21,7 @@ export default function Home() {
         <div style={{position:'relative',zIndex:1,maxWidth:860,margin:'0 auto'}}>
           <div className="hero-pill anim">✦ Deutschlands smarteste Jobbörse</div>
           <h1 className="hero-h anim d1">Finde deinen Job —<br/><span className="hero-gold">mit KI-Unterstützung.</span></h1>
-          <p className="hero-sub anim d2">WorkMatch kombiniert präzise Stellensuche mit KI-Analyse und intelligentem Job-Matching.</p>
+          <p className="hero-sub anim d2">Talento kombiniert präzise Stellensuche mit KI-Analyse und intelligentem Job-Matching.</p>
           <div className="hero-ctas anim d3">
             <Link href="/register" className="btn btn-gold btn-xl">Kostenlos starten →</Link>
             <Link href="/jobs" className="btn btn-ghost btn-xl">Jobs entdecken</Link>
@@ -111,7 +111,7 @@ export default function Home() {
           <div>
             <span className="section-tag">✦ Für Arbeitgeber</span>
             <h2 style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:'clamp(1.6rem,3vw,2.2rem)',color:'#fff',marginBottom:'1rem'}}>Bessere Talente. Niedrigere Kosten.</h2>
-            <p style={{color:'var(--text2)',lineHeight:1.8,marginBottom:'1.75rem',fontSize:'0.92rem'}}>WorkMatch kostet einen Bruchteil von StepStone oder Indeed — mit KI-gestütztem Matching.</p>
+            <p style={{color:'var(--text2)',lineHeight:1.8,marginBottom:'1.75rem',fontSize:'0.92rem'}}>Talento kostet einen Bruchteil von StepStone oder Indeed — mit KI-gestütztem Matching.</p>
             {[['🎯','KI-Matching','Beste Bewerber automatisch priorisiert'],['📊','Live-Dashboard','Bewerbungen in Echtzeit verfolgen'],['📍','Umkreis-Targeting','Regionale Bewerber gezielt ansprechen']].map(([ic,t,d])=>(
               <div key={t} style={{display:'flex',gap:'0.9rem',marginBottom:'0.9rem',alignItems:'flex-start'}}>
                 <div style={{width:38,height:38,background:'var(--surface2)',border:'1px solid var(--border2)',borderRadius:'var(--r-md)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1rem',flexShrink:0}}>{ic}</div>
@@ -150,7 +150,7 @@ export default function Home() {
           <div style={{textAlign:'center',marginBottom:'2.5rem'}}>
             <span className="section-tag">✦ Preise</span>
             <h2 style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:'clamp(1.6rem,3vw,2.2rem)',color:'#fff'}}>Bis zu 80% günstiger</h2>
-            <p style={{color:'var(--text2)',marginTop:'0.5rem',fontSize:'0.88rem'}}>StepStone ab 1.299 € · Indeed ab 5 €/Klick · WorkMatch ab 99 €</p>
+            <p style={{color:'var(--text2)',marginTop:'0.5rem',fontSize:'0.88rem'}}>StepStone ab 1.299 € · Indeed ab 5 €/Klick · Talento ab 99 €</p>
           </div>
           <div className="price-grid" style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(250px,1fr))',gap:14}}>
             {[
@@ -186,11 +186,11 @@ export default function Home() {
 
       <footer>
         <div className="foot-in">
-          <div className="foot-logo"><Mark/>WorkMatch</div>
+          <div className="foot-logo"><Mark/>Talento</div>
           <div className="foot-links">
             <a href="/jobs">Jobs</a><a href="/ki-tools">KI-Tools</a><a href="/register">Registrieren</a><a href="#">Datenschutz</a><a href="#">Impressum</a>
           </div>
-          <div style={{fontSize:'0.78rem',color:'var(--text3)'}}>© 2026 WorkMatch · Made in 🇩🇪</div>
+          <div style={{fontSize:'0.78rem',color:'var(--text3)'}}>© 2026 Talento · Made in 🇩🇪</div>
         </div>
       </footer>
     </div>

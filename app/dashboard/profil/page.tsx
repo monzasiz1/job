@@ -207,3 +207,5 @@ export default function ProfilBearbeiten() {
     </AppShell>
   )
 }
+
+// Responsive styles injected via globals.css

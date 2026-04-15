@@ -1,4 +1,4 @@
-# WorkMatch — Setup-Anleitung
+# Talento — Setup-Anleitung
 
 ## Voraussetzungen
 - Node.js 18+ installiert → https://nodejs.org
@@ -10,7 +10,7 @@
 ## Schritt 1 — Supabase einrichten (10 Minuten)
 
 1. Gehe zu https://supabase.com → „New Project"
-2. Wähle einen Namen (z.B. „workmatch") und ein starkes Passwort
+2. Wähle einen Namen (z.B. "talento") und ein starkes Passwort
 3. Region: „Central EU (Frankfurt)" wählen → „Create new project"
 4. Warte bis das Projekt bereit ist (~1 Minute)
 
@@ -99,7 +99,7 @@ Im Supabase-Dashboard unter **Authentication → URL Configuration**:
 ## Projektstruktur
 
 ```
-workmatch/
+talento/
 ├── app/
 │   ├── page.tsx          ← Startseite
 │   ├── jobs/

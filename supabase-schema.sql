@@ -1,10 +1,20 @@
 -- ============================================================
--- WorkMatch — Supabase SQL Schema
+-- Talento — Supabase SQL Schema
 -- Ausführen in: Supabase Dashboard → SQL Editor → New Query
 -- ============================================================
 
+-- OPTIONAL: Alte Tabellen löschen (wenn Sie ein Clean Slate brauchen):
+-- DROP TABLE IF EXISTS public.messages CASCADE;
+-- DROP TABLE IF EXISTS public.conversations CASCADE;
+-- DROP TABLE IF EXISTS public.job_interests CASCADE;
+-- DROP TABLE IF EXISTS public.applications CASCADE;
+-- DROP TABLE IF EXISTS public.jobs CASCADE;
+-- DROP TABLE IF EXISTS public.resumes CASCADE;
+-- DROP TABLE IF EXISTS public.job_matches CASCADE;
+-- DROP TABLE IF EXISTS public.profiles CASCADE;
+
 -- 1. PROFILES (erweitert die Supabase auth.users Tabelle)
-CREATE TABLE public.profiles (
+CREATE TABLE IF NOT EXISTS public.profiles (
   id          UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email       TEXT NOT NULL,
   full_name   TEXT NOT NULL,
@@ -18,7 +28,7 @@ CREATE TABLE public.profiles (
 );
 
 -- 2. JOBS
-CREATE TABLE public.jobs (
+CREATE TABLE IF NOT EXISTS public.jobs (
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   employer_id  UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   title        TEXT NOT NULL,
@@ -38,7 +48,7 @@ CREATE TABLE public.jobs (
 );
 
 -- 3. APPLICATIONS (Bewerbungen)
-CREATE TABLE public.applications (
+CREATE TABLE IF NOT EXISTS public.applications (
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   job_id       UUID NOT NULL REFERENCES public.jobs(id) ON DELETE CASCADE,
   applicant_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -48,13 +58,71 @@ CREATE TABLE public.applications (
   UNIQUE (job_id, applicant_id)
 );
 
+-- 4. CONVERSATIONS (Chat-Konversationen zwischen Arbeitgeber & Bewerber)
+CREATE TABLE IF NOT EXISTS public.conversations (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  employer_id   UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  applicant_id  UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  job_id        UUID REFERENCES public.jobs(id) ON DELETE SET NULL,
+  last_message  TEXT,
+  last_message_at TIMESTAMPTZ DEFAULT NOW(),
+  created_at    TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (employer_id, applicant_id, job_id)
+);
+
+-- 5. MESSAGES (Chat-Nachrichtenverlauf)
+CREATE TABLE IF NOT EXISTS public.messages (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  conversation_id UUID NOT NULL REFERENCES public.conversations(id) ON DELETE CASCADE,
+  sender_id       UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  content         TEXT NOT NULL,
+  is_read         BOOLEAN DEFAULT FALSE,
+  created_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 6. JOB_INTERESTS (Swipe-Interesse von Bewerbern)
+CREATE TABLE IF NOT EXISTS public.job_interests (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  job_id        UUID NOT NULL REFERENCES public.jobs(id) ON DELETE CASCADE,
+  applicant_id  UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  action        TEXT NOT NULL CHECK (action IN ('like', 'maybe', 'nope')),
+  created_at    TIMESTAMPTZ DEFAULT NOW(),
+  updated_at    TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (job_id, applicant_id)
+);
+
 -- ============================================================
 -- ROW LEVEL SECURITY (RLS) — WICHTIG!
 -- ============================================================
 
-ALTER TABLE public.profiles    ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.jobs        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.profiles     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.jobs         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.applications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.conversations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.messages     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.job_interests ENABLE ROW LEVEL SECURITY;
+
+-- Lösche alte Policies, bevor neue erstellt werden
+DROP POLICY IF EXISTS "profiles_select" ON public.profiles;
+DROP POLICY IF EXISTS "profiles_insert" ON public.profiles;
+DROP POLICY IF EXISTS "profiles_update" ON public.profiles;
+DROP POLICY IF EXISTS "jobs_select" ON public.jobs;
+DROP POLICY IF EXISTS "jobs_insert" ON public.jobs;
+DROP POLICY IF EXISTS "jobs_update" ON public.jobs;
+DROP POLICY IF EXISTS "jobs_delete" ON public.jobs;
+DROP POLICY IF EXISTS "applications_select" ON public.applications;
+DROP POLICY IF EXISTS "applications_insert" ON public.applications;
+DROP POLICY IF EXISTS "applications_update" ON public.applications;
+DROP POLICY IF EXISTS "conversations_select" ON public.conversations;
+DROP POLICY IF EXISTS "conversations_insert" ON public.conversations;
+DROP POLICY IF EXISTS "conversations_update" ON public.conversations;
+DROP POLICY IF EXISTS "messages_select" ON public.messages;
+DROP POLICY IF EXISTS "messages_insert" ON public.messages;
+DROP POLICY IF EXISTS "job_interests_select" ON public.job_interests;
+DROP POLICY IF EXISTS "job_interests_insert" ON public.job_interests;
+DROP POLICY IF EXISTS "job_interests_update" ON public.job_interests;
+DROP POLICY IF EXISTS "resumes_all" ON public.resumes;
+DROP POLICY IF EXISTS "job_matches_all" ON public.job_matches;
 
 -- PROFILES: jeder kann lesen, nur eigenes Profil bearbeiten
 CREATE POLICY "profiles_select" ON public.profiles FOR SELECT USING (true);
@@ -73,6 +141,41 @@ CREATE POLICY "applications_select" ON public.applications FOR SELECT
 CREATE POLICY "applications_insert" ON public.applications FOR INSERT WITH CHECK (auth.uid() = applicant_id);
 CREATE POLICY "applications_update" ON public.applications FOR UPDATE
   USING (auth.uid() = (SELECT employer_id FROM jobs WHERE id = job_id));
+
+-- CONVERSATIONS: Beide Parteien können ihre Konversationen sehen
+CREATE POLICY "conversations_select" ON public.conversations FOR SELECT
+  USING (auth.uid() = employer_id OR auth.uid() = applicant_id);
+CREATE POLICY "conversations_insert" ON public.conversations FOR INSERT
+  WITH CHECK (auth.uid() = employer_id OR auth.uid() = applicant_id);
+CREATE POLICY "conversations_update" ON public.conversations FOR UPDATE
+  USING (auth.uid() = employer_id OR auth.uid() = applicant_id);
+
+-- MESSAGES: Beide Parteien können Nachrichten in ihrer Konversation sehen/schreiben
+CREATE POLICY "messages_select" ON public.messages FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM conversations 
+      WHERE conversations.id = messages.conversation_id 
+      AND (conversations.employer_id = auth.uid() OR conversations.applicant_id = auth.uid())
+    )
+  );
+CREATE POLICY "messages_insert" ON public.messages FOR INSERT
+  WITH CHECK (
+    auth.uid() = sender_id AND
+    EXISTS (
+      SELECT 1 FROM conversations 
+      WHERE conversations.id = conversation_id 
+      AND (conversations.employer_id = auth.uid() OR conversations.applicant_id = auth.uid())
+    )
+  );
+
+-- JOB_INTERESTS: Bewerber sehen/erstellen eigene, Arbeitgeber sehen ihre Job-Interessenten
+CREATE POLICY "job_interests_select" ON public.job_interests FOR SELECT
+  USING (auth.uid() = applicant_id OR auth.uid() = (SELECT employer_id FROM jobs WHERE id = job_id));
+CREATE POLICY "job_interests_insert" ON public.job_interests FOR INSERT
+  WITH CHECK (auth.uid() = applicant_id);
+CREATE POLICY "job_interests_update" ON public.job_interests FOR UPDATE
+  USING (auth.uid() = applicant_id);
 
 -- ============================================================
 -- TRIGGER: Profil automatisch bei neuem User anlegen
@@ -94,17 +197,9 @@ Anforderungen:
 - 5+ Jahre Erfahrung mit React
 - Sehr gute TypeScript-Kenntnisse
 - Erfahrung mit REST APIs und GraphQL
-
-Benefits:
-- 30 Tage Urlaub
-- Home Office komplett möglich
-- Budget für Weiterbildung', true);
 */
 
--- ============================================================
--- KI-TOOLS TABELLEN (neu hinzufügen)
--- ============================================================
-
+-- Optional: Zusätzliche Tabellen für KI-Features
 CREATE TABLE IF NOT EXISTS public.resumes (
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id      UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -122,18 +217,8 @@ CREATE TABLE IF NOT EXISTS public.job_matches (
   created_at      TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS public.applications (
-  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id         UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  job_description TEXT NOT NULL,
-  cover_letter    TEXT NOT NULL,
-  created_at      TIMESTAMPTZ DEFAULT NOW()
-);
-
 ALTER TABLE public.resumes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.job_matches ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.applications ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "resumes_all" ON public.resumes FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "job_matches_all" ON public.job_matches FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "applications_all" ON public.applications FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
