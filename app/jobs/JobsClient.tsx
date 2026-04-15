@@ -9,37 +9,6 @@ const ll = (n: string) => n.slice(0,2).toUpperCase()
 const lc = (i: number) => LC[i % LC.length]
 const tb = (t: string) => t==='Remote'?'b-remote':t==='Hybrid'?'b-hybrid':'b-office'
 
-const STYLES = `
-  @keyframes slideInUp {
-    from { opacity: 0; transform: scale(0.92) translateY(20px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
-  }
-  @keyframes slideOutDown {
-    from { opacity: 1; transform: scale(1) translateY(0); }
-    to { opacity: 0; transform: scale(0.88) translateY(20px); }
-  }
-  @keyframes throwLeft {
-    from { opacity: 1; transform: translateX(0) rotate(0deg); }
-    to { opacity: 0; transform: translateX(-120%) rotate(-25deg); }
-  }
-  @keyframes selectPulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.02); }
-  }
-  .anime-in { animation: slideInUp 0.4s ease-out; }
-  .anime-out { animation: slideOutDown 0.4s ease-out; }
-  .anime-throw { animation: throwLeft 0.45s ease-in forwards; }
-  .anime-select { animation: selectPulse 0.6s ease-out; }
-  @media(max-width:999px){
-    .split-view { grid-template-columns: 1fr !important; padding: clamp(0.75rem, 2vw, 1.5rem) !important; }
-    .split-view > div:last-child { display: none !important; }
-  }
-  @media(min-width:1000px){
-    .split-view { grid-template-columns: minmax(380px, 420px) 1fr !important; }
-    .split-view > div:last-child { border: 2px solid var(--accent) !important; box-shadow: 0 8px 32px rgba(124,104,250,0.2) !important; }
-  }
-`
-
 export default function JobsClient({ jobs, searchParams, user }: any) {
   const router = useRouter()
   const [sel, setSel] = useState<any>(jobs[0] || null)
@@ -146,7 +115,6 @@ export default function JobsClient({ jobs, searchParams, user }: any) {
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: STYLES }} />
       {/* TOPBAR */}
       <div style={{position:'sticky',top:0,zIndex:100,background:'rgba(15,15,23,0.92)',backdropFilter:'blur(20px)',borderBottom:'1px solid var(--border)',padding:'clamp(0.5rem, 2vw, 1.25rem)',display:'flex',alignItems:'center',gap:'clamp(0.5rem, 2vw, 1rem)'}}>
         <form onSubmit={search} style={{display:'flex',gap:'clamp(0.5rem, 2vw, 1rem)',flex:1,flexWrap:'wrap',alignItems:'center'}}>
@@ -261,7 +229,7 @@ export default function JobsClient({ jobs, searchParams, user }: any) {
         <div style={{display:'grid',gridTemplateColumns:'420px 1fr',gap:'1.5rem',padding:'1.5rem',minHeight:'calc(100vh - 130px)',background:'linear-gradient(135deg,rgba(124,104,250,0.02),rgba(212,168,67,0.01))'}} className="split-view">
 
         {/* JOB LIST */}
-        <div style={{display:'flex',flexDirection:'column',gap:12,overflowY:'auto',paddingRight:'clamp(0rem, 2vw, 0.5rem)'}>
+        <div style={{display:'flex',flexDirection:'column',gap:12,overflowY:'auto',paddingRight:'clamp(0rem, 2vw, 0.5rem)'}}>
           {filteredJobs.length === 0 ? (
             <div style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:24,padding:'3rem 2rem',textAlign:'center'}}>
               <div style={{fontSize:'2.5rem',marginBottom:'0.75rem'}}>🔍</div>
