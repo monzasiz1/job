@@ -1,19 +1,83 @@
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
-import { TalentoWordmark } from '@/components/TalentoLogo'
+import { TalentoMark, TalentoWordmark } from '@/components/TalentoLogo'
 
 export default function Home() {
   return (
     <div style={{minHeight:'100vh',background:'var(--bg)'}}>
       <Navbar />
 
-      {/* HERO */}
-      <section className="hero">
+      {/* ═══════ HERO mit Netzwerk-Visualisierung ═══════ */}
+      <section className="hero" style={{position:'relative',overflow:'hidden',padding:'5rem 2rem 4rem'}}>
         <div className="hero-grid"/>
-        <div style={{position:'relative',zIndex:1,maxWidth:860,margin:'0 auto'}}>
-          <div className="hero-pill anim">✦ Deutschlands smarteste Jobbörse</div>
-          <h1 className="hero-h anim d1">Finde deinen Job —<br/><span className="hero-gold">mit KI-Unterstützung.</span></h1>
-          <p className="hero-sub anim d2">Talento kombiniert präzise Stellensuche mit KI-Analyse und intelligentem Job-Matching.</p>
+
+        {/* ── Hintergrund-Glow ── */}
+        <div style={{position:'absolute',top:'-15%',left:'50%',transform:'translateX(-50%)',width:'min(900px, 130vw)',height:'min(900px, 130vw)',background:'radial-gradient(ellipse at center, rgba(124,104,250,0.12) 0%, rgba(168,85,200,0.06) 35%, rgba(212,168,67,0.03) 55%, transparent 70%)',pointerEvents:'none',zIndex:0}}/>
+
+        {/* ── Netzwerk-Partikel (CSS animated, absolut positioniert) ── */}
+        <div className="hero-network" style={{position:'absolute',inset:0,zIndex:0,overflow:'hidden',pointerEvents:'none'}}>
+          {/* SVG Verbindungslinien */}
+          <svg style={{position:'absolute',inset:0,width:'100%',height:'100%'}} viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice">
+            {/* Linie Logo-Mitte → links-oben */}
+            <line x1="600" y1="320" x2="220" y2="140" stroke="url(#ln1)" strokeWidth="1" opacity="0.35" className="anim-line"/>
+            <line x1="600" y1="320" x2="980" y2="120" stroke="url(#ln2)" strokeWidth="1" opacity="0.3" className="anim-line d2"/>
+            <line x1="600" y1="320" x2="130" y2="420" stroke="url(#ln1)" strokeWidth="0.8" opacity="0.25" className="anim-line d3"/>
+            <line x1="600" y1="320" x2="1060" y2="460" stroke="url(#ln2)" strokeWidth="0.8" opacity="0.25" className="anim-line d1"/>
+            <line x1="600" y1="320" x2="350" y2="560" stroke="url(#ln1)" strokeWidth="0.7" opacity="0.2" className="anim-line"/>
+            <line x1="600" y1="320" x2="860" y2="580" stroke="url(#ln2)" strokeWidth="0.7" opacity="0.2" className="anim-line d2"/>
+            {/* Sekundäre Querverbindungen */}
+            <line x1="220" y1="140" x2="980" y2="120" stroke="rgba(124,104,250,0.08)" strokeWidth="0.5" strokeDasharray="6 8"/>
+            <line x1="130" y1="420" x2="350" y2="560" stroke="rgba(212,168,67,0.06)" strokeWidth="0.5" strokeDasharray="6 8"/>
+            <line x1="1060" y1="460" x2="860" y2="580" stroke="rgba(168,85,200,0.06)" strokeWidth="0.5" strokeDasharray="6 8"/>
+            <defs>
+              <linearGradient id="ln1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#7c68fa" stopOpacity="0.6"/><stop offset="100%" stopColor="#d4a843" stopOpacity="0.1"/></linearGradient>
+              <linearGradient id="ln2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#d4a843" stopOpacity="0.1"/><stop offset="100%" stopColor="#7c68fa" stopOpacity="0.6"/></linearGradient>
+            </defs>
+          </svg>
+
+          {/* Schwebende Knoten (Job-Kategorien) */}
+          {[
+            {x:'18%',y:'18%',label:'Marketing',color:'#7c68fa',delay:'0s',size:52},
+            {x:'82%',y:'15%',label:'Entwicklung',color:'#a855c8',delay:'1.5s',size:52},
+            {x:'9%',y:'58%',label:'Design',color:'#d4a843',delay:'0.8s',size:46},
+            {x:'89%',y:'62%',label:'Vertrieb',color:'#3dba7e',delay:'2.2s',size:46},
+            {x:'28%',y:'78%',label:'Handwerk',color:'#f06090',delay:'0.4s',size:42},
+            {x:'72%',y:'80%',label:'Finanzen',color:'#7aa2f7',delay:'1.8s',size:42},
+          ].map(n=>(
+            <div key={n.label} className="hero-node" style={{
+              position:'absolute',left:n.x,top:n.y,transform:'translate(-50%,-50%)',
+              animationDelay:n.delay,
+              display:'flex',flexDirection:'column',alignItems:'center',gap:4,
+            }}>
+              <div style={{
+                width:n.size,height:n.size,borderRadius:'50%',
+                background:`radial-gradient(circle at 35% 35%, ${n.color}44, ${n.color}18)`,
+                border:`1.5px solid ${n.color}55`,
+                backdropFilter:'blur(6px)',
+                display:'flex',alignItems:'center',justifyContent:'center',
+                boxShadow:`0 0 24px ${n.color}30, inset 0 0 12px ${n.color}15`,
+              }}>
+                <div style={{width:10,height:10,borderRadius:'50%',background:n.color,boxShadow:`0 0 8px ${n.color}90`}}/>
+              </div>
+              <span style={{fontSize:'0.62rem',fontWeight:700,color:`${n.color}bb`,letterSpacing:'0.05em',textTransform:'uppercase'}}>{n.label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Haupt-Content ── */}
+        <div style={{position:'relative',zIndex:1,maxWidth:860,margin:'0 auto',textAlign:'center'}}>
+
+          {/* Großes Logo als Hero-Centerpiece */}
+          <div className="anim" style={{display:'flex',justifyContent:'center',marginBottom:'1.5rem'}}>
+            <div style={{position:'relative'}}>
+              <div style={{position:'absolute',inset:-18,borderRadius:32,background:'radial-gradient(circle, rgba(124,104,250,0.2) 0%, rgba(212,168,67,0.08) 50%, transparent 70%)',filter:'blur(16px)',pointerEvents:'none'}}/>
+              <TalentoMark size={88} radius={22} />
+            </div>
+          </div>
+
+          <div className="hero-pill anim d1">✦ Deutschlands smarteste Jobbörse</div>
+          <h1 className="hero-h anim d1" style={{marginTop:'0.5rem'}}>Finde deinen Job —<br/><span className="hero-gold">mit KI-Unterstützung.</span></h1>
+          <p className="hero-sub anim d2">Talento kombiniert präzise Stellensuche mit KI-Analyse und intelligentem Job-Matching — dein ganzes Karriere-Netzwerk, eine Plattform.</p>
           <div className="hero-ctas anim d3">
             <Link href="/register" className="btn btn-gold btn-xl">Kostenlos starten →</Link>
             <Link href="/jobs" className="btn btn-ghost btn-xl">Jobs entdecken</Link>
