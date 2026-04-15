@@ -2,15 +2,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase-browser'
-
-const Mark = () => (
-  <div style={{width:30,height:30,background:'linear-gradient(135deg,#d4a843,#f0c060)',borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-    <svg viewBox="0 0 20 20" fill="none" style={{width:15,height:15}}>
-      <path d="M10 2L16 5.8V12.8L10 16.5L4 12.8V5.8L10 2Z" stroke="#1a1a00" strokeWidth="1.8" fill="none"/>
-      <circle cx="10" cy="9.5" r="2.8" fill="#1a1a00"/>
-    </svg>
-  </div>
-)
+import { TalentoWordmark } from '@/components/TalentoLogo'
 
 export default function Navbar() {
   const [user, setUser] = useState<any>(null)
@@ -24,8 +16,8 @@ export default function Navbar() {
   return (
     <>
       <nav style={{position:'sticky',top:0,zIndex:200,background:'rgba(15,15,23,0.97)',backdropFilter:'blur(24px)',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 1.5rem',height:60}}>
-        <Link href="/" style={{display:'flex',alignItems:'center',gap:9,fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:'1.1rem',color:'#fff',textDecoration:'none'}}>
-          <Mark/>Talento
+        <Link href="/" style={{display:'flex',alignItems:'center',textDecoration:'none'}}>
+          <TalentoWordmark size="md" />
         </Link>
 
         {/* Desktop links */}

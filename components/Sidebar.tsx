@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase-browser'
+import { TalentoWordmark } from '@/components/TalentoLogo'
 
 export default function Sidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname()
@@ -41,13 +42,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
   return (
     <aside className="sidebar">
       <Link href="/" className="sidebar-logo" onClick={onClose}>
-        <div className="sidebar-logo-mark">
-          <svg viewBox="0 0 20 20" fill="none" style={{ width: 18, height: 18 }}>
-            <path d="M10 2L16 5.5V13L10 16.5L4 13V5.5L10 2Z" stroke="#0d1b2a" strokeWidth="1.5"/>
-            <circle cx="10" cy="9" r="3" fill="#0d1b2a"/>
-          </svg>
-        </div>
-        <span className="sidebar-logo-text">Talento</span>
+        <TalentoWordmark size="sm" />
       </Link>
 
       {profile && (

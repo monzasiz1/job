@@ -3,15 +3,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
-
-const Mark = () => (
-  <div style={{width:32,height:32,background:'linear-gradient(135deg,#d4a843,#f0c060)',borderRadius:9,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-    <svg viewBox="0 0 20 20" fill="none" style={{width:16,height:16}}>
-      <path d="M10 2L16 5.8V12.8L10 16.5L4 12.8V5.8L10 2Z" stroke="#1a1a00" strokeWidth="1.8" fill="none"/>
-      <circle cx="10" cy="9.5" r="2.8" fill="#1a1a00"/>
-    </svg>
-  </div>
-)
+import { TalentoWordmark } from '@/components/TalentoLogo'
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -55,7 +47,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const SidebarContent = () => (
     <div style={{width:240,background:'var(--surface)',borderRight:'1px solid var(--border)',display:'flex',flexDirection:'column',height:'100%',overflowY:'auto'}}>
       <Link href="/" style={{display:'flex',alignItems:'center',gap:10,padding:'1.25rem 1.1rem',borderBottom:'1px solid var(--border)',textDecoration:'none',flexShrink:0}}>
-        <Mark/><span style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:'1.05rem',color:'#fff'}}>Talento</span>
+        <TalentoWordmark size="sm" />
       </Link>
 
       {profile && (
@@ -113,7 +105,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             {open ? '✕' : '☰'}
           </button>
           <Link href="/" style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:'1rem',color:'#fff',textDecoration:'none',display:'flex',alignItems:'center',gap:8}}>
-            <Mark/>Talento
+            <TalentoWordmark size="sm" />
           </Link>
           <Link href="/dashboard/profil" style={{width:34,height:34,background:'var(--surface2)',border:'1px solid var(--border2)',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',color:'var(--text2)',fontSize:'0.85rem',textDecoration:'none'}}>✏️</Link>
         </div>
