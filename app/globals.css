@@ -246,6 +246,36 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:2rem
 .anim{animation:up 0.4s ease both}
 .d1{animation-delay:.1s}.d2{animation-delay:.2s}.d3{animation-delay:.32s}
 
+/* ── HERO NETWORK ANIMATIONS ── */
+@keyframes nodeFloat {
+  0%, 100% { transform: translate(-50%, -50%) translateY(0px); opacity: 0.7; }
+  50% { transform: translate(-50%, -50%) translateY(-14px); opacity: 1; }
+}
+@keyframes nodePulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.3); }
+}
+@keyframes lineGrow {
+  from { stroke-dasharray: 0 2000; opacity: 0; }
+  to { stroke-dasharray: 2000 0; opacity: 1; }
+}
+.hero-node {
+  animation: nodeFloat 5s ease-in-out infinite, nodePulse 4s ease-in-out infinite;
+}
+.anim-line {
+  stroke-dasharray: 2000;
+  stroke-dashoffset: 2000;
+  animation: lineGrow 2.5s ease forwards;
+}
+.anim-line.d1 { animation-delay: 0.3s; }
+.anim-line.d2 { animation-delay: 0.6s; }
+.anim-line.d3 { animation-delay: 0.9s; }
+
+@media(max-width:860px) {
+  .hero-node { display: none !important; }
+  .hero-network svg { opacity: 0.5; }
+}
+
 /* ── MOBILE ── */
 .mob-bar{display:none;position:sticky;top:0;z-index:250;background:rgba(23,23,42,0.97);border-bottom:1px solid var(--border);padding:0 1rem;height:54px;align-items:center;justify-content:space-between}
 .mob-btn{background:none;border:none;color:var(--text);font-size:1.2rem;cursor:pointer;padding:8px;border-radius:var(--r-sm)}
