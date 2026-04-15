@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-browser'
+import { TalentoWordmark } from '@/components/TalentoLogo'
 
 type Tab = 'analyse' | 'matching' | 'history'
 
@@ -102,10 +103,7 @@ export default function KIToolsPage() {
         transition: 'transform 0.28s ease',
       }} className="sidebar">
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '1.25rem', borderBottom: '1px solid var(--border)', textDecoration: 'none' }}>
-          <div style={{ width: 32, height: 32, background: 'linear-gradient(135deg,#d4a843,#f0c060)', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <svg viewBox="0 0 20 20" fill="none" style={{ width: 16, height: 16 }}><path d="M10 2L16 5.8V12.8L10 16.5L4 12.8V5.8L10 2Z" stroke="#1a1a00" strokeWidth="1.8" fill="none" /><circle cx="10" cy="9.5" r="2.8" fill="#1a1a00" /></svg>
-          </div>
-          <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '1.05rem', color: '#fff' }}>Talento</span>
+          <TalentoWordmark size="sm" />
         </Link>
 
         {profile && (

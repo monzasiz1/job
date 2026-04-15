@@ -1,14 +1,6 @@
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
-
-const Mark = () => (
-  <div style={{width:28,height:28,background:'linear-gradient(135deg,#d4a843,#f0c060)',borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-    <svg viewBox="0 0 20 20" fill="none" style={{width:14,height:14}}>
-      <path d="M10 2L16 5.8V12.8L10 16.5L4 12.8V5.8L10 2Z" stroke="#1a1a00" strokeWidth="1.8" fill="none"/>
-      <circle cx="10" cy="9.5" r="2.8" fill="#1a1a00"/>
-    </svg>
-  </div>
-)
+import { TalentoWordmark } from '@/components/TalentoLogo'
 
 export default function Home() {
   return (
@@ -186,7 +178,7 @@ export default function Home() {
 
       <footer>
         <div className="foot-in">
-          <div className="foot-logo"><Mark/>Talento</div>
+          <div className="foot-logo"><TalentoWordmark size="sm" /></div>
           <div className="foot-links">
             <a href="/jobs">Jobs</a><a href="/ki-tools">KI-Tools</a><a href="/register">Registrieren</a><a href="#">Datenschutz</a><a href="#">Impressum</a>
           </div>
