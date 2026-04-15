@@ -373,3 +373,33 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:2rem
   .topbar form{gap:6px !important}
   .topbar select{display:none !important}
 }
+
+/* ── JOBS PAGE ANIMATIONS ── */
+@keyframes slideInUp {
+  from { opacity: 0; transform: scale(0.92) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes slideOutDown {
+  from { opacity: 1; transform: scale(1) translateY(0); }
+  to { opacity: 0; transform: scale(0.88) translateY(20px); }
+}
+@keyframes throwLeft {
+  from { opacity: 1; transform: translateX(0) rotate(0deg); }
+  to { opacity: 0; transform: translateX(-120%) rotate(-25deg); }
+}
+@keyframes selectPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+.anime-in { animation: slideInUp 0.4s ease-out; }
+.anime-out { animation: slideOutDown 0.4s ease-out; }
+.anime-throw { animation: throwLeft 0.45s ease-in forwards; }
+.anime-select { animation: selectPulse 0.6s ease-out; }
+@media(max-width:999px){
+  .split-view { grid-template-columns: 1fr !important; padding: clamp(0.75rem, 2vw, 1.5rem) !important; }
+  .split-view > div:last-child { display: none !important; }
+}
+@media(min-width:1000px){
+  .split-view { grid-template-columns: minmax(380px, 420px) 1fr !important; }
+  .split-view > div:last-child { border: 2px solid var(--accent) !important; box-shadow: 0 8px 32px rgba(124,104,250,0.2) !important; }
+}
