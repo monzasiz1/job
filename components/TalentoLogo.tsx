@@ -1,15 +1,13 @@
 /**
- * Talento Brand Logo — "Network T"
+ * Talento Brand Logo — "Faceted Diamond T"
  *
- * Konzept: Die T-Form wird als Talent-Netzwerk-Graph gezeichnet —
- * drei weiße Knoten (Jobs / Menschen) verbunden durch
- * einen goldenen Hub in der Mitte + Sparkle-Stern oben.
+ * Konzept: Geometrischer Diamant-Schnitt mit eingebettetem "T" —
+ * repräsentiert das Schleifen/Entdecken von Talenten.
+ * Premium glassmorphism-Stil, purple-gold Farbwelt.
  *
  * TalentoMark     – Icon-only Badge
  * TalentoWordmark – Badge + "Talento" Text  (size="sm"|"md"|"lg")
  */
-
-// ─── Mark ─────────────────────────────────────────────────────────────────────
 
 export const TalentoMark = ({
   size = 32,
@@ -18,8 +16,8 @@ export const TalentoMark = ({
   size?: number
   radius?: number
 }) => {
-  const r = radius ?? Math.round(size * 0.27)
-  const inner = Math.round(size * 0.64)
+  const r = radius ?? Math.round(size * 0.25)
+  const inner = Math.round(size * 0.7)
 
   return (
     <div
@@ -27,59 +25,64 @@ export const TalentoMark = ({
         width: size,
         height: size,
         borderRadius: r,
-        background: 'linear-gradient(145deg, #4a3de0 0%, #8a38cc 48%, #c07a20 100%)',
+        background: 'linear-gradient(135deg, #1a1040 0%, #2d1865 50%, #1a1040 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         flexShrink: 0,
-        boxShadow: '0 2px 14px rgba(124,104,250,0.45), inset 0 1px 0 rgba(255,255,255,0.18)',
+        boxShadow: '0 0 0 1px rgba(124,104,250,0.3), 0 4px 20px rgba(124,104,250,0.25), 0 0 40px rgba(212,168,67,0.08)',
         position: 'relative',
         overflow: 'hidden',
       }}
     >
-      {/* Top shine */}
+      {/* Glass-Shine */}
       <div style={{
-        position: 'absolute',
-        top: 0, left: 0, right: 0,
-        height: '48%',
-        background: 'linear-gradient(180deg, rgba(255,255,255,0.22) 0%, transparent 100%)',
-        borderRadius: `${r}px ${r}px 0 0`,
-        pointerEvents: 'none',
-      }} />
+        position: 'absolute', top: 0, left: 0, right: 0, height: '50%',
+        background: 'linear-gradient(180deg, rgba(255,255,255,0.12) 0%, transparent 100%)',
+        borderRadius: `${r}px ${r}px 0 0`, pointerEvents: 'none',
+      }}/>
 
-      <svg viewBox="0 0 24 24" fill="none" style={{ width: inner, height: inner, display: 'block' }}>
+      <svg viewBox="0 0 32 32" fill="none" style={{ width: inner, height: inner, display: 'block', position: 'relative' }}>
+        <defs>
+          <linearGradient id="tg1" x1="0" y1="0" x2="32" y2="32">
+            <stop offset="0%" stopColor="#a78bfa"/>
+            <stop offset="50%" stopColor="#c084fc"/>
+            <stop offset="100%" stopColor="#e0b340"/>
+          </linearGradient>
+          <linearGradient id="tg2" x1="16" y1="4" x2="16" y2="28">
+            <stop offset="0%" stopColor="#fff" stopOpacity="1"/>
+            <stop offset="100%" stopColor="#e8d5ff" stopOpacity="0.85"/>
+          </linearGradient>
+          <filter id="tglow">
+            <feGaussianBlur stdDeviation="1.2" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
 
-        {/* ── T-Linien (zuerst, damit Knoten darüber liegen) ── */}
-        <line x1="3.5" y1="10" x2="20.5" y2="10"
-          stroke="white" strokeWidth="3.5" strokeLinecap="round" />
-        <line x1="12" y1="10" x2="12" y2="21"
-          stroke="white" strokeWidth="3.5" strokeLinecap="round" />
+        {/* Diamant-Rahmen (äußerer Facetten-Cut) */}
+        <path d="M16 2 L28 10 L28 22 L16 30 L4 22 L4 10 Z"
+          stroke="url(#tg1)" strokeWidth="1.4" fill="none" opacity="0.7"/>
 
-        {/* ── Drei End-Knoten (Jobs / Menschen) ── */}
-        <circle cx="3.5"  cy="10" r="1.55" fill="white" opacity="0.88" />
-        <circle cx="20.5" cy="10" r="1.55" fill="white" opacity="0.88" />
-        <circle cx="12"   cy="21" r="1.55" fill="white" opacity="0.88" />
+        {/* Innere Facetten-Linien — Diamant-Cut-Effekt */}
+        <line x1="16" y1="2" x2="16" y2="30" stroke="url(#tg1)" strokeWidth="0.4" opacity="0.2"/>
+        <line x1="4" y1="10" x2="28" y2="10" stroke="url(#tg1)" strokeWidth="0.4" opacity="0.15"/>
+        <line x1="4" y1="22" x2="28" y2="22" stroke="url(#tg1)" strokeWidth="0.4" opacity="0.15"/>
+        <line x1="4" y1="10" x2="28" y2="22" stroke="url(#tg1)" strokeWidth="0.3" opacity="0.08"/>
+        <line x1="28" y1="10" x2="4" y2="22" stroke="url(#tg1)" strokeWidth="0.3" opacity="0.08"/>
 
-        {/* ── Goldener Hub in der Mitte (Triple-Ring für Tiefe) ── */}
-        <circle cx="12" cy="10" r="2.7"  fill="rgba(212,168,67,0.28)" />
-        <circle cx="12" cy="10" r="1.85" fill="#d4a843" />
-        <circle cx="12" cy="10" r="0.95" fill="#ffe070" />
+        {/* Großes T — Hauptform */}
+        <g filter="url(#tglow)">
+          {/* Querbalken */}
+          <rect x="7" y="9" width="18" height="3.6" rx="1.8" fill="url(#tg2)"/>
+          {/* Vertikaler Balken */}
+          <rect x="13.2" y="9" width="5.6" height="16" rx="2.8" fill="url(#tg2)"/>
+        </g>
 
-        {/* ── 4-Punkt-Stern (Talent-Spark) ── */}
-        <path
-          d="M12 2.2 L12.52 3.85 L14.3 4.32 L12.52 4.79 L12 6.44 L11.48 4.79 L9.7 4.32 L11.48 3.85 Z"
-          fill="#ffd060"
-        />
-        {/* Diagonale Mikro-Strahlen des Sterns */}
-        <line x1="10.5" y1="2.9" x2="9.2"  y2="1.9"  stroke="#ffd060" strokeWidth="0.55" strokeLinecap="round" opacity="0.6" />
-        <line x1="13.5" y1="2.9" x2="14.8" y2="1.9"  stroke="#ffd060" strokeWidth="0.55" strokeLinecap="round" opacity="0.6" />
-        <line x1="10.5" y1="5.7" x2="9.2"  y2="6.7"  stroke="#ffd060" strokeWidth="0.55" strokeLinecap="round" opacity="0.4" />
-        <line x1="13.5" y1="5.7" x2="14.8" y2="6.7"  stroke="#ffd060" strokeWidth="0.55" strokeLinecap="round" opacity="0.4" />
-
-        {/* ── Zwei Akzent-Punkte neben dem Stern ── */}
-        <circle cx="7.8"  cy="3.9" r="0.52" fill="rgba(255,210,80,0.6)" />
-        <circle cx="16.2" cy="3.9" r="0.52" fill="rgba(255,210,80,0.6)" />
-
+        {/* Gold-Spark oben-links am T */}
+        <circle cx="8.5" cy="8" r="1.1" fill="#e0b340" opacity="0.9"/>
+        <circle cx="8.5" cy="8" r="2" fill="#e0b340" opacity="0.15"/>
+        {/* Mikro-Spark oben-rechts */}
+        <circle cx="23.5" cy="8" r="0.7" fill="#c084fc" opacity="0.6"/>
       </svg>
     </div>
   )
@@ -88,9 +91,9 @@ export const TalentoMark = ({
 // ─── Wordmark ─────────────────────────────────────────────────────────────────
 
 const SIZES = {
-  sm: { iconSize: 28, iconRadius: 8,  fontSize: '1rem',    gap: 8  },
-  md: { iconSize: 32, iconRadius: 9,  fontSize: '1.08rem', gap: 9  },
-  lg: { iconSize: 38, iconRadius: 11, fontSize: '1.25rem', gap: 10 },
+  sm: { iconSize: 28, iconRadius: 7,  fontSize: '1rem',    gap: 8 },
+  md: { iconSize: 32, iconRadius: 8,  fontSize: '1.08rem', gap: 9 },
+  lg: { iconSize: 38, iconRadius: 10, fontSize: '1.25rem', gap: 10 },
 }
 
 export const TalentoWordmark = ({
