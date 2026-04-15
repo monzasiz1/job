@@ -7,87 +7,89 @@ export default function Home() {
     <div style={{minHeight:'100vh',background:'var(--bg)'}}>
       <Navbar />
 
-      {/* ═══════ HERO mit Netzwerk-Visualisierung ═══════ */}
-      <section className="hero" style={{position:'relative',overflow:'hidden',padding:'5rem 2rem 4rem'}}>
+      {/* ═══════ HERO — Premium Glassmorphism mit Orbital-Ringen ═══════ */}
+      <section className="hero" style={{position:'relative',overflow:'hidden',padding:'6rem 2rem 4.5rem'}}>
         <div className="hero-grid"/>
 
-        {/* ── Hintergrund-Glow ── */}
-        <div style={{position:'absolute',top:'-15%',left:'50%',transform:'translateX(-50%)',width:'min(900px, 130vw)',height:'min(900px, 130vw)',background:'radial-gradient(ellipse at center, rgba(124,104,250,0.12) 0%, rgba(168,85,200,0.06) 35%, rgba(212,168,67,0.03) 55%, transparent 70%)',pointerEvents:'none',zIndex:0}}/>
+        {/* ── Animated Mesh Gradient Background ── */}
+        <div className="hero-mesh-bg"/>
+        <div className="hero-aurora"/>
 
-        {/* ── Netzwerk-Partikel (CSS animated, absolut positioniert) ── */}
-        <div className="hero-network" style={{position:'absolute',inset:0,zIndex:0,overflow:'hidden',pointerEvents:'none'}}>
-          {/* SVG Verbindungslinien */}
-          <svg style={{position:'absolute',inset:0,width:'100%',height:'100%'}} viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice">
-            {/* Linie Logo-Mitte → links-oben */}
-            <line x1="600" y1="320" x2="220" y2="140" stroke="url(#ln1)" strokeWidth="1" opacity="0.35" className="anim-line"/>
-            <line x1="600" y1="320" x2="980" y2="120" stroke="url(#ln2)" strokeWidth="1" opacity="0.3" className="anim-line d2"/>
-            <line x1="600" y1="320" x2="130" y2="420" stroke="url(#ln1)" strokeWidth="0.8" opacity="0.25" className="anim-line d3"/>
-            <line x1="600" y1="320" x2="1060" y2="460" stroke="url(#ln2)" strokeWidth="0.8" opacity="0.25" className="anim-line d1"/>
-            <line x1="600" y1="320" x2="350" y2="560" stroke="url(#ln1)" strokeWidth="0.7" opacity="0.2" className="anim-line"/>
-            <line x1="600" y1="320" x2="860" y2="580" stroke="url(#ln2)" strokeWidth="0.7" opacity="0.2" className="anim-line d2"/>
-            {/* Sekundäre Querverbindungen */}
-            <line x1="220" y1="140" x2="980" y2="120" stroke="rgba(124,104,250,0.08)" strokeWidth="0.5" strokeDasharray="6 8"/>
-            <line x1="130" y1="420" x2="350" y2="560" stroke="rgba(212,168,67,0.06)" strokeWidth="0.5" strokeDasharray="6 8"/>
-            <line x1="1060" y1="460" x2="860" y2="580" stroke="rgba(168,85,200,0.06)" strokeWidth="0.5" strokeDasharray="6 8"/>
-            <defs>
-              <linearGradient id="ln1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#7c68fa" stopOpacity="0.6"/><stop offset="100%" stopColor="#d4a843" stopOpacity="0.1"/></linearGradient>
-              <linearGradient id="ln2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#d4a843" stopOpacity="0.1"/><stop offset="100%" stopColor="#7c68fa" stopOpacity="0.6"/></linearGradient>
-            </defs>
-          </svg>
+        {/* ── Orbital Ringe um Logo ── */}
+        <div className="hero-orbital" style={{position:'absolute',left:'50%',top:'240px',transform:'translate(-50%,-50%)',width:520,height:520,pointerEvents:'none',zIndex:0}}>
+          <div className="orbital-ring ring-1"/>
+          <div className="orbital-ring ring-2"/>
+          <div className="orbital-ring ring-3"/>
+          {/* Fliegende Dots auf den Orbits */}
+          <div className="orbital-dot dot-1"/>
+          <div className="orbital-dot dot-2"/>
+          <div className="orbital-dot dot-3"/>
+          <div className="orbital-dot dot-4"/>
+        </div>
 
-          {/* Schwebende Knoten (Job-Kategorien) */}
+        {/* ── Floating Glass Cards (Categories) ── */}
+        <div className="hero-glass-cards" style={{position:'absolute',inset:0,zIndex:0,overflow:'hidden',pointerEvents:'none'}}>
           {[
-            {x:'18%',y:'18%',label:'Marketing',color:'#7c68fa',delay:'0s',size:52},
-            {x:'82%',y:'15%',label:'Entwicklung',color:'#a855c8',delay:'1.5s',size:52},
-            {x:'9%',y:'58%',label:'Design',color:'#d4a843',delay:'0.8s',size:46},
-            {x:'89%',y:'62%',label:'Vertrieb',color:'#3dba7e',delay:'2.2s',size:46},
-            {x:'28%',y:'78%',label:'Handwerk',color:'#f06090',delay:'0.4s',size:42},
-            {x:'72%',y:'80%',label:'Finanzen',color:'#7aa2f7',delay:'1.8s',size:42},
-          ].map(n=>(
-            <div key={n.label} className="hero-node" style={{
-              position:'absolute',left:n.x,top:n.y,transform:'translate(-50%,-50%)',
-              animationDelay:n.delay,
-              display:'flex',flexDirection:'column',alignItems:'center',gap:4,
+            {x:'8%', y:'20%',icon:'💻',label:'Entwicklung',delay:'0s'},
+            {x:'88%',y:'18%',icon:'📊',label:'Marketing',delay:'1.2s'},
+            {x:'5%', y:'65%',icon:'🎨',label:'Design',delay:'0.6s'},
+            {x:'92%',y:'60%',icon:'🏗️',label:'Handwerk',delay:'1.8s'},
+            {x:'15%',y:'82%',icon:'💼',label:'Vertrieb',delay:'0.3s'},
+            {x:'82%',y:'84%',icon:'📈',label:'Finanzen',delay:'2.1s'},
+          ].map(c=>(
+            <div key={c.label} className="hero-float-card" style={{
+              position:'absolute',left:c.x,top:c.y,
+              animationDelay:c.delay,
             }}>
-              <div style={{
-                width:n.size,height:n.size,borderRadius:'50%',
-                background:`radial-gradient(circle at 35% 35%, ${n.color}44, ${n.color}18)`,
-                border:`1.5px solid ${n.color}55`,
-                backdropFilter:'blur(6px)',
-                display:'flex',alignItems:'center',justifyContent:'center',
-                boxShadow:`0 0 24px ${n.color}30, inset 0 0 12px ${n.color}15`,
-              }}>
-                <div style={{width:10,height:10,borderRadius:'50%',background:n.color,boxShadow:`0 0 8px ${n.color}90`}}/>
-              </div>
-              <span style={{fontSize:'0.62rem',fontWeight:700,color:`${n.color}bb`,letterSpacing:'0.05em',textTransform:'uppercase'}}>{n.label}</span>
+              <span style={{fontSize:'1.15rem'}}>{c.icon}</span>
+              <span style={{fontSize:'0.65rem',fontWeight:700,letterSpacing:'0.06em',textTransform:'uppercase',color:'rgba(255,255,255,0.7)'}}>{c.label}</span>
             </div>
           ))}
         </div>
 
         {/* ── Haupt-Content ── */}
-        <div style={{position:'relative',zIndex:1,maxWidth:860,margin:'0 auto',textAlign:'center'}}>
+        <div style={{position:'relative',zIndex:2,maxWidth:900,margin:'0 auto',textAlign:'center'}}>
 
-          {/* Großes Logo als Hero-Centerpiece */}
-          <div className="anim" style={{display:'flex',justifyContent:'center',marginBottom:'1.5rem'}}>
-            <div style={{position:'relative'}}>
-              <div style={{position:'absolute',inset:-18,borderRadius:32,background:'radial-gradient(circle, rgba(124,104,250,0.2) 0%, rgba(212,168,67,0.08) 50%, transparent 70%)',filter:'blur(16px)',pointerEvents:'none'}}/>
-              <TalentoMark size={88} radius={22} />
+          {/* Logo mit Glow-Ring */}
+          <div className="anim" style={{display:'flex',justifyContent:'center',marginBottom:'2rem'}}>
+            <div className="hero-logo-wrap">
+              <div className="hero-logo-glow"/>
+              <TalentoMark size={96} radius={24} />
             </div>
           </div>
 
-          <div className="hero-pill anim d1">✦ Deutschlands smarteste Jobbörse</div>
-          <h1 className="hero-h anim d1" style={{marginTop:'0.5rem'}}>Finde deinen Job —<br/><span className="hero-gold">mit KI-Unterstützung.</span></h1>
-          <p className="hero-sub anim d2">Talento kombiniert präzise Stellensuche mit KI-Analyse und intelligentem Job-Matching — dein ganzes Karriere-Netzwerk, eine Plattform.</p>
+          <div className="hero-pill anim d1">
+            <span className="hero-pill-dot"/>
+            Deutschlands smarteste Jobbörse
+          </div>
+
+          <h1 className="hero-h anim d1" style={{marginTop:'0.75rem'}}>
+            Finde deinen Job —<br/>
+            <span className="hero-gradient-text">mit KI-Unterstützung.</span>
+          </h1>
+
+          <p className="hero-sub anim d2">
+            Talento kombiniert präzise Stellensuche mit KI-Analyse und intelligentem Job-Matching — dein ganzes Karriere-Netzwerk, eine Plattform.
+          </p>
+
           <div className="hero-ctas anim d3">
-            <Link href="/register" className="btn btn-gold btn-xl">Kostenlos starten →</Link>
+            <Link href="/register" className="btn btn-gold btn-xl hero-btn-glow">Kostenlos starten →</Link>
             <Link href="/jobs" className="btn btn-ghost btn-xl">Jobs entdecken</Link>
           </div>
-          <div style={{marginTop:'2.5rem'}} className="anim d3">
-            <div className="hero-stats">
-              {[['12.400+','Aktive Jobs'],['4.200+','Firmen'],['89%','Erfolgsrate'],['KI','Assistent']].map(([n,l])=>(
-                <div key={l} className="hstat">
-                  <div className="hstat-n">{n}</div>
-                  <div className="hstat-l">{l}</div>
+
+          {/* Stats mit Glassmorphism-Karten */}
+          <div style={{marginTop:'3rem'}} className="anim d3">
+            <div className="hero-stats-premium">
+              {[
+                {n:'12.400+',l:'Aktive Jobs',icon:'🔥'},
+                {n:'4.200+',l:'Firmen',icon:'🏢'},
+                {n:'89%',l:'Erfolgsrate',icon:'🎯'},
+                {n:'KI',l:'Assistent',icon:'🧠'},
+              ].map(s=>(
+                <div key={s.l} className="hstat-glass">
+                  <span style={{fontSize:'1rem'}}>{s.icon}</span>
+                  <div className="hstat-n">{s.n}</div>
+                  <div className="hstat-l">{s.l}</div>
                 </div>
               ))}
             </div>

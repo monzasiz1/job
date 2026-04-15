@@ -246,34 +246,176 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:2rem
 .anim{animation:up 0.4s ease both}
 .d1{animation-delay:.1s}.d2{animation-delay:.2s}.d3{animation-delay:.32s}
 
-/* ── HERO NETWORK ANIMATIONS ── */
-@keyframes nodeFloat {
-  0%, 100% { transform: translate(-50%, -50%) translateY(0px); opacity: 0.7; }
-  50% { transform: translate(-50%, -50%) translateY(-14px); opacity: 1; }
+/* ── HERO PREMIUM ANIMATIONS ── */
+
+/* Animated mesh gradient background */
+.hero-mesh-bg {
+  position: absolute; inset: 0; z-index: 0; opacity: 0.5;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 40%, rgba(124,104,250,0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 60% at 80% 20%, rgba(168,85,200,0.12) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 70% at 60% 80%, rgba(212,168,67,0.08) 0%, transparent 50%);
+  animation: meshShift 12s ease-in-out infinite alternate;
+  pointer-events: none;
 }
-@keyframes nodePulse {
-  0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(1.3); }
+@keyframes meshShift {
+  0%   { transform: scale(1) translate(0, 0); }
+  33%  { transform: scale(1.05) translate(2%, -3%); }
+  66%  { transform: scale(0.97) translate(-2%, 2%); }
+  100% { transform: scale(1.03) translate(1%, -1%); }
 }
-@keyframes lineGrow {
-  from { stroke-dasharray: 0 2000; opacity: 0; }
-  to { stroke-dasharray: 2000 0; opacity: 1; }
+
+/* Aurora shimmer */
+.hero-aurora {
+  position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+  z-index: 0; pointer-events: none; opacity: 0.12;
+  background: conic-gradient(from 0deg at 50% 50%,
+    transparent 0deg, #7c68fa 60deg, transparent 120deg,
+    #d4a843 180deg, transparent 240deg,
+    #a855c8 300deg, transparent 360deg);
+  animation: auroraRotate 20s linear infinite;
 }
-.hero-node {
-  animation: nodeFloat 5s ease-in-out infinite, nodePulse 4s ease-in-out infinite;
+@keyframes auroraRotate {
+  to { transform: rotate(360deg); }
 }
-.anim-line {
-  stroke-dasharray: 2000;
-  stroke-dashoffset: 2000;
-  animation: lineGrow 2.5s ease forwards;
+
+/* ── Orbital Rings ── */
+.orbital-ring {
+  position: absolute; border-radius: 50%;
+  border: 1px solid rgba(124,104,250,0.12);
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
 }
-.anim-line.d1 { animation-delay: 0.3s; }
-.anim-line.d2 { animation-delay: 0.6s; }
-.anim-line.d3 { animation-delay: 0.9s; }
+.ring-1 { width: 260px; height: 260px; border-color: rgba(124,104,250,0.12); animation: orbitalPulse 4s ease-in-out infinite; }
+.ring-2 { width: 380px; height: 380px; border-color: rgba(168,85,200,0.08); animation: orbitalPulse 5s ease-in-out infinite 0.8s; border-style: dashed; }
+.ring-3 { width: 500px; height: 500px; border-color: rgba(212,168,67,0.06); animation: orbitalPulse 6s ease-in-out infinite 1.6s; }
+
+@keyframes orbitalPulse {
+  0%, 100% { opacity: 0.4; transform: translate(-50%, -50%) scale(1); }
+  50%      { opacity: 1;   transform: translate(-50%, -50%) scale(1.04); }
+}
+
+/* ── Orbital Dots ── */
+.orbital-dot {
+  position: absolute; width: 8px; height: 8px; border-radius: 50%;
+  top: 50%; left: 50%;
+}
+.dot-1 {
+  background: #7c68fa; box-shadow: 0 0 12px #7c68fa80;
+  animation: orbitDot1 8s linear infinite;
+}
+.dot-2 {
+  background: #d4a843; box-shadow: 0 0 12px #d4a84380;
+  width: 6px; height: 6px;
+  animation: orbitDot2 12s linear infinite;
+}
+.dot-3 {
+  background: #a855c8; box-shadow: 0 0 10px #a855c880;
+  width: 5px; height: 5px;
+  animation: orbitDot3 10s linear infinite reverse;
+}
+.dot-4 {
+  background: #3dba7e; box-shadow: 0 0 10px #3dba7e80;
+  width: 7px; height: 7px;
+  animation: orbitDot4 14s linear infinite;
+}
+
+@keyframes orbitDot1 { to { transform: rotate(360deg) translateX(130px) rotate(-360deg); } }
+@keyframes orbitDot2 { to { transform: rotate(360deg) translateX(190px) rotate(-360deg); } }
+@keyframes orbitDot3 { to { transform: rotate(360deg) translateX(250px) rotate(-360deg); } }
+@keyframes orbitDot4 { to { transform: rotate(360deg) translateX(160px) rotate(-360deg); } }
+
+/* ── Floating Glass Cards ── */
+.hero-float-card {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border-radius: 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06);
+  animation: cardFloat 6s ease-in-out infinite;
+  transform: translate(-50%, -50%);
+}
+@keyframes cardFloat {
+  0%, 100% { transform: translate(-50%, -50%) translateY(0); opacity: 0.6; }
+  50%      { transform: translate(-50%, -50%) translateY(-12px); opacity: 1; }
+}
+
+/* ── Logo Glow Wrap ── */
+.hero-logo-wrap { position: relative; }
+.hero-logo-glow {
+  position: absolute; inset: -24px; border-radius: 36px;
+  background: radial-gradient(circle,
+    rgba(124,104,250,0.25) 0%,
+    rgba(168,85,200,0.12) 40%,
+    rgba(212,168,67,0.06) 65%,
+    transparent 80%);
+  filter: blur(18px);
+  pointer-events: none;
+  animation: logoGlowPulse 3s ease-in-out infinite;
+}
+@keyframes logoGlowPulse {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.12); }
+}
+
+/* ── Hero Pill Redesign ── */
+.hero-pill-dot {
+  display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--gold); margin-right: 6px;
+  box-shadow: 0 0 8px rgba(212,168,67,0.6);
+  animation: pillDotPulse 2s ease-in-out infinite;
+}
+@keyframes pillDotPulse {
+  0%, 100% { opacity: 0.6; }
+  50%      { opacity: 1; }
+}
+
+/* ── Gradient Text ── */
+.hero-gradient-text {
+  background: linear-gradient(135deg, var(--gold) 0%, #f0c060 30%, #c084fc 70%, var(--accent) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  background-size: 200% 200%;
+  animation: gradientText 5s ease infinite;
+}
+@keyframes gradientText {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ── Gold Button Glow ── */
+.hero-btn-glow {
+  box-shadow: 0 0 24px rgba(212,168,67,0.3), 0 4px 12px rgba(212,168,67,0.15);
+}
+.hero-btn-glow:hover {
+  box-shadow: 0 0 36px rgba(212,168,67,0.45), 0 6px 20px rgba(212,168,67,0.25) !important;
+}
+
+/* ── Premium Stats Row ── */
+.hero-stats-premium {
+  display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;
+}
+.hstat-glass {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 14px 20px; border-radius: 16px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  backdrop-filter: blur(10px);
+  min-width: 100px;
+  transition: all 0.25s;
+}
+.hstat-glass:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(124,104,250,0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
 
 @media(max-width:860px) {
-  .hero-node { display: none !important; }
-  .hero-network svg { opacity: 0.5; }
+  .hero-float-card { display: none !important; }
+  .hero-orbital { display: none !important; }
+  .hero-aurora { opacity: 0.06; }
 }
 
 /* ── MOBILE ── */
