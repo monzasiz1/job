@@ -31,7 +31,7 @@ export async function POST(request: Request) {
   // Kurze Zusammenfassung der Items für KI
   const itemSummary: string[] = []
   if (offerings?.length) {
-    offerings.slice(0, 15).forEach((o: any, i: number) => {A
+    offerings.slice(0, 15).forEach((o: any, i: number) => {
       itemSummary.push(`A${i + 1}: "${o.title}" (${o.category}, ${o.location_name})${o.price_info ? ` - ${o.price_info}` : ''}`)
     })
   }
