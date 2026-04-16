@@ -127,7 +127,7 @@ export default function MapClient() {
       attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
       maxZoom: 19,
     }).addTo(map)
-    markersRef.current = L.layerGroup().addTo(map)
+    markersRef.current = L.featureGroup().addTo(map)
     setTimeout(() => { map.invalidateSize(); }, 200)
     setTimeout(() => { map.invalidateSize(); }, 800)
     if ('geolocation' in navigator) {
@@ -205,11 +205,13 @@ export default function MapClient() {
       markersRef.current.addLayer(marker)
     })
     // Karte auf Marker zentrieren (wenn es welche gibt)
-    if (filtered.length > 0 && mapRef.current) {
-      const bounds = markersRef.current.getBounds()
-      if (bounds.isValid()) {
-        mapRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 13 })
-      }
+    if (filtered.length > 0 && mapRef.current && markersRef.current.getLayers().length > 0) {
+      try {
+        const bounds = markersRef.current.getBounds()
+        if (bounds.isValid()) {
+          mapRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 13 })
+        }
+      } catch {}
     }
   }, [filteredOfferings, searchQuery, leafletReady])
 
