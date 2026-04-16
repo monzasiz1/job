@@ -98,8 +98,42 @@ export async function POST(request: Request) {
     .select()
     .single()
 
+// PUT — eigenes Angebot bearbeiten
+export async function PUT(request: Request) {
+  const supabase = createClient()
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return NextResponse.json({ error: 'Nicht eingeloggt' }, { status: 401 })
+  }
+
+  const body = await request.json()
+  const { id, title, description, category, price_info, location_name, lat, lng, radius_km } = body
+
+  if (!id || !title || !category || !location_name || lat == null || lng == null) {
+    return NextResponse.json({ error: 'Pflichtfelder fehlen' }, { status: 400 })
+  }
+
+  const { data, error } = await supabase
+    .from('skill_offerings')
+    .update({
+      title: String(title).slice(0, 200),
+      description: description ? String(description).slice(0, 2000) : null,
+      category: String(category),
+      price_info: price_info ? String(price_info).slice(0, 100) : null,
+      location_name: String(location_name).slice(0, 200),
+      lat: parseFloat(lat),
+      lng: parseFloat(lng),
+      radius_km: radius_km ? parseFloat(radius_km) : 10,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .eq('user_id', user.id)
+    .select()
+    .single()
+
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json(data, { status: 201 })
+  return NextResponse.json(data)
 }
 
 // DELETE — eigenes Angebot löschen
