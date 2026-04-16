@@ -151,6 +151,12 @@ export default function MapClient() {
   const [bookingLoading, setBookingLoading] = useState(false)
   const [bookingSent, setBookingSent] = useState(false)
 
+  // ── Refs für globale Popup-Bridge ──
+  const offeringsRef = useRef<SkillOffering[]>([])
+  const requestsRef = useRef<SkillRequest[]>([])
+  useEffect(() => { offeringsRef.current = offerings }, [offerings])
+  useEffect(() => { requestsRef.current = requests }, [requests])
+
   // ── Init ──
   useEffect(() => {
     loadLeaflet().then(() => setLeafletReady(true))
@@ -278,6 +284,8 @@ export default function MapClient() {
       })
       filtered.forEach(o => {
         const { emoji } = getCatMeta(o.category)
+        const isOwn = user && o.user_id === user.id
+        const showBtn = user && !isOwn
         const marker = L.marker([o.lat, o.lng], { icon: createMarkerIcon(o.category) })
         marker.bindPopup(`
           <div style="font-family:'DM Sans',sans-serif;min-width:200px;color:#e0e0e0">
@@ -286,6 +294,7 @@ export default function MapClient() {
             ${o.price_info ? `<div style="color:#d4a843;font-size:0.82rem;font-weight:600">💰 ${escapeHtml(o.price_info)}</div>` : ''}
             ${o.user_name ? `<div style="color:#999;font-size:0.75rem;margin-top:6px">von ${escapeHtml(o.user_name)}</div>` : ''}
             ${o.distance_km != null ? `<div style="color:#7c68fa;font-size:0.73rem">📍 ${o.distance_km.toFixed(1)} km entfernt</div>` : ''}
+            ${showBtn ? `<button onclick="window.__openMarktplatzDetail('${o.id}','offering')" class="popup-action-btn popup-btn-anfragen">📩 Anfragen</button>` : ''}
           </div>
         `, { className: 'dark-popup' })
         marker.on('click', () => setSelectedOffering(o))
@@ -306,6 +315,8 @@ export default function MapClient() {
       filtered.forEach(r => {
         const { emoji } = getCatMeta(r.category)
         const urgMeta = URGENCY_META[r.urgency] || URGENCY_META.flexibel
+        const isOwn = user && r.user_id === user.id
+        const showBtn = user && !isOwn
         const marker = L.marker([r.lat, r.lng], { icon: createRequestMarkerIcon(r.category, r.urgency) })
         marker.bindPopup(`
           <div style="font-family:'DM Sans',sans-serif;min-width:200px;color:#e0e0e0">
@@ -318,6 +329,7 @@ export default function MapClient() {
             ${r.budget ? `<div style="color:#d4a843;font-size:0.82rem;font-weight:600">💰 Budget: ${escapeHtml(r.budget)}</div>` : ''}
             ${r.user_name ? `<div style="color:#999;font-size:0.75rem;margin-top:6px">von ${escapeHtml(r.user_name)}</div>` : ''}
             ${r.distance_km != null ? `<div style="color:#7c68fa;font-size:0.73rem">📍 ${r.distance_km.toFixed(1)} km entfernt</div>` : ''}
+            ${showBtn ? `<button onclick="window.__openMarktplatzDetail('${r.id}','request')" class="popup-action-btn popup-btn-anbieten">🤝 Anbieten</button>` : ''}
           </div>
         `, { className: 'dark-popup' })
         marker.on('click', () => setSelectedRequest(r))
@@ -334,7 +346,7 @@ export default function MapClient() {
         }
       } catch(e) {}
     }
-  }, [filteredOfferings, filteredRequests, mapMode, searchQuery, leafletReady])
+  }, [filteredOfferings, filteredRequests, mapMode, searchQuery, leafletReady, user])
 
   // ── Radius-Kreis ──
   useEffect(() => {
@@ -503,6 +515,20 @@ export default function MapClient() {
     setBookingNote('')
     setBookingSent(false)
   }
+
+  // ── Globale Bridge für Leaflet Popup-Buttons ──
+  useEffect(() => {
+    (window as any).__openMarktplatzDetail = (id: string, type: string) => {
+      if (type === 'offering') {
+        const item = offeringsRef.current.find(o => o.id === id)
+        if (item) openDetail('offering', item)
+      } else {
+        const item = requestsRef.current.find(r => r.id === id)
+        if (item) openDetail('request', item)
+      }
+    }
+    return () => { delete (window as any).__openMarktplatzDetail }
+  })
 
   // ── Anfrage senden ──
   const sendBookingRequest = async () => {
