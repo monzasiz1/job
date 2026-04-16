@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase-browser'
 import { SkillOffering, OFFERING_CATEGORIES } from '@/lib/types'
 
@@ -60,6 +60,16 @@ function createMarkerIcon(cat: string) {
     iconAnchor: [19, 19],
     popupAnchor: [0, -22],
   })
+}
+
+// ─── Haversine-Distanz in km ───
+function haversine(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const toRad = (d: number) => d * Math.PI / 180
+  const dLat = toRad(lat2 - lat1)
+  const dLng = toRad(lng2 - lng1)
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2
+  return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -137,17 +147,11 @@ export default function MapClient() {
   useEffect(() => { userPosRef.current = userPos }, [userPos])
   useEffect(() => { searchRadiusRef.current = searchRadius }, [searchRadius])
 
-  // ── Angebote laden ──
+  // ── Angebote laden (immer ALLE, Radius-Filter passiert client-seitig) ──
   const fetchOfferings = useCallback(async (cat?: string) => {
     setLoading(true)
     try {
       const params = new URLSearchParams()
-      const pos = userPosRef.current
-      if (pos) {
-        params.set('lat', String(pos.lat))
-        params.set('lng', String(pos.lng))
-        params.set('radius', String(searchRadiusRef.current))
-      }
       if (cat) params.set('category', cat)
       const res = await fetch(`/api/offerings?${params}`)
       const data = await res.json()
@@ -158,11 +162,23 @@ export default function MapClient() {
     setLoading(false)
   }, [])
 
+  // ── Client-seitiger Radius-Filter + Distanz ──
+  const filteredOfferings = useMemo(() => {
+    if (!userPos) return offerings.map((o: SkillOffering) => ({ ...o, distance_km: null as number | null }))
+    return offerings
+      .map((o: SkillOffering) => ({
+        ...o,
+        distance_km: Math.round(haversine(userPos.lat, userPos.lng, o.lat, o.lng) * 10) / 10,
+      }))
+      .filter((o: SkillOffering) => (o.distance_km ?? Infinity) <= searchRadius)
+      .sort((a: SkillOffering, b: SkillOffering) => (a.distance_km ?? 0) - (b.distance_km ?? 0))
+  }, [offerings, userPos, searchRadius])
+
   // ── Marker setzen ──
   useEffect(() => {
     if (!markersRef.current || !leafletReady) return
     markersRef.current.clearLayers()
-    const filtered = offerings.filter(o => {
+    const filtered = filteredOfferings.filter(o => {
       if (searchQuery) {
         const q = searchQuery.toLowerCase()
         return o.title.toLowerCase().includes(q) ||
@@ -187,7 +203,7 @@ export default function MapClient() {
       marker.on('click', () => setSelectedOffering(o))
       markersRef.current.addLayer(marker)
     })
-  }, [offerings, searchQuery, leafletReady])
+  }, [filteredOfferings, searchQuery, leafletReady])
 
   // ── Radius-Kreis ──
   useEffect(() => {
@@ -216,10 +232,10 @@ export default function MapClient() {
     } catch {}
   }
 
-  // ── Daten laden bei Änderung ──
+  // ── Daten laden bei Kategorie-Wechsel (Radius-Filter ist client-seitig) ──
   useEffect(() => {
     fetchOfferings(selectedCat || undefined)
-  }, [selectedCat, userPos, searchRadius])
+  }, [selectedCat])
 
   // ── KI-Empfehlung ──
   const getAiRecommendation = async () => {
@@ -230,7 +246,7 @@ export default function MapClient() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          offerings: offerings.slice(0, 15).map(o => ({
+          offerings: filteredOfferings.slice(0, 15).map(o => ({
             title: o.title, category: o.category,
             location_name: o.location_name, price_info: o.price_info,
           })),
@@ -364,13 +380,18 @@ export default function MapClient() {
         <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 16px' }}>
           {loading ? (
             <div style={{ textAlign: 'center', color: 'var(--text3)', padding: '2rem 0' }}>Lade Angebote...</div>
-          ) : offerings.length === 0 ? (
+          ) : filteredOfferings.length === 0 ? (
             <div style={{ textAlign: 'center', color: 'var(--text3)', padding: '2rem 0' }}>
               <div style={{ fontSize: '2rem', marginBottom: 8 }}>📍</div>
-              <div>Keine Angebote in der Nähe.</div>
+              <div>Keine Angebote {userPos ? `im Umkreis von ${searchRadius} km` : 'gefunden'}.</div>
+              {userPos && offerings.length > 0 && (
+                <div style={{ fontSize: '0.75rem', marginTop: 8, color: 'var(--accent)' }}>
+                  {offerings.length} Angebote insgesamt — versuche einen größeren Radius
+                </div>
+              )}
             </div>
           ) : (
-            offerings
+            filteredOfferings
               .filter(o => {
                 if (!searchQuery) return true
                 const q = searchQuery.toLowerCase()
@@ -422,7 +443,7 @@ export default function MapClient() {
 
         {/* ── Bottom-Buttons ── */}
         <div style={{ padding: '8px 16px 12px', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {user && offerings.length > 0 && (
+          {user && filteredOfferings.length > 0 && (
             <button onClick={getAiRecommendation} disabled={aiLoading} style={{
               width: '100%', padding: '9px', border: '1px solid rgba(124,104,250,0.3)', borderRadius: 'var(--r-md)',
               background: 'rgba(124,104,250,0.08)', color: 'var(--accent)',
@@ -464,7 +485,7 @@ export default function MapClient() {
           {aiLoading ? (
             <div style={{ textAlign: 'center', color: 'var(--text3)', padding: '1rem 0' }}>
               <div style={{ fontSize: '1.5rem', marginBottom: 6 }}>🧠</div>
-              Analysiere dein Profil und {offerings.length} Angebote...
+              Analysiere dein Profil und {filteredOfferings.length} Angebote...
             </div>
           ) : aiTips ? (
             <>
