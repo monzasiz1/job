@@ -162,24 +162,40 @@ export default function MapClient() {
     setLoading(false)
   }, [])
 
-  // ── Client-seitiger Distanz-Berechnung (kein harter Filter, nur Sortierung) ──
+  // ── Client-seitiger Distanz-Berechnung + Radius-Filter ──
   const filteredOfferings = useMemo(() => {
-    if (!userPos) return offerings.map((o: SkillOffering) => ({ ...o, distance_km: undefined as number | undefined }))
+    // Kein Standort → keine Angebote anzeigen
+    if (!userPos) return []
     return offerings
+      .filter((o: SkillOffering) => o.lat !== 0 || o.lng !== 0) // Ungültige Koordinaten raus
       .map((o: SkillOffering) => ({
         ...o,
         distance_km: Math.round(haversine(userPos.lat, userPos.lng, o.lat, o.lng) * 10) / 10,
       }))
+      .filter((o: SkillOffering) => (o.distance_km ?? Infinity) <= searchRadius) // NUR im Radius
       .sort((a: SkillOffering, b: SkillOffering) => (a.distance_km ?? 0) - (b.distance_km ?? 0))
   }, [offerings, userPos, searchRadius])
+
+  // ── Zusammenfassung für den Standort ──
+  const areaSummary = useMemo(() => {
+    if (!userPos || filteredOfferings.length === 0) return null
+    const cats = new Map<string, number>()
+    filteredOfferings.forEach(o => {
+      cats.set(o.category, (cats.get(o.category) || 0) + 1)
+    })
+    const topCats = [...cats.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3)
+    return {
+      total: filteredOfferings.length,
+      topCategories: topCats.map(([cat, count]) => ({ cat, count })),
+      nearest: filteredOfferings[0],
+    }
+  }, [filteredOfferings, userPos])
 
   // ── Marker setzen ──
   useEffect(() => {
     if (!markersRef.current || !leafletReady) return
     markersRef.current.clearLayers()
     const filtered = filteredOfferings.filter(o => {
-      // Ungültige Koordinaten (0,0) überspringen
-      if (o.lat === 0 && o.lng === 0) return false
       if (searchQuery) {
         const q = searchQuery.toLowerCase()
         return o.title.toLowerCase().includes(q) ||
@@ -401,15 +417,69 @@ export default function MapClient() {
 
         {/* ── Angebote-Liste ── */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 16px' }}>
-          {loading ? (
+          {!userPos ? (
+            <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--text3)' }}>
+              <div style={{ fontSize: '2.5rem', marginBottom: 10 }}>📍</div>
+              <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: '0.95rem', color: '#fff', marginBottom: 6 }}>
+                Wo suchst du?
+              </div>
+              <div style={{ fontSize: '0.82rem', lineHeight: 1.6, marginBottom: 14 }}>
+                Gib oben einen Ort ein oder erlaube die Standorterkennung, um Angebote in deiner Nähe zu sehen.
+              </div>
+              <button
+                onClick={() => {
+                  if ('geolocation' in navigator) {
+                    navigator.geolocation.getCurrentPosition(
+                      (pos) => {
+                        const latlng = { lat: pos.coords.latitude, lng: pos.coords.longitude }
+                        setUserPos(latlng)
+                        if (mapRef.current) mapRef.current.setView([latlng.lat, latlng.lng], 12)
+                      },
+                      () => alert('Standorterkennung wurde abgelehnt. Bitte gib einen Ort ein.')
+                    )
+                  }
+                }}
+                style={{
+                  padding: '10px 20px', border: '1px solid rgba(124,104,250,0.3)',
+                  borderRadius: 'var(--r-full)', background: 'rgba(124,104,250,0.08)',
+                  color: 'var(--accent)', fontFamily: 'inherit', fontWeight: 700,
+                  fontSize: '0.82rem', cursor: 'pointer', display: 'inline-flex',
+                  alignItems: 'center', gap: 6,
+                }}
+              >
+                📍 Standort erkennen
+              </button>
+            </div>
+          ) : loading ? (
             <div style={{ textAlign: 'center', color: 'var(--text3)', padding: '2rem 0' }}>Lade Angebote...</div>
           ) : filteredOfferings.length === 0 ? (
             <div style={{ textAlign: 'center', color: 'var(--text3)', padding: '2rem 0' }}>
-              <div style={{ fontSize: '2rem', marginBottom: 8 }}>📍</div>
-              <div>Keine Angebote gefunden.</div>
+              <div style={{ fontSize: '2rem', marginBottom: 8 }}>🔍</div>
+              <div style={{ fontWeight: 600, marginBottom: 4 }}>Keine Angebote im Umkreis von {searchRadius} km</div>
+              <div style={{ fontSize: '0.78rem' }}>Versuche einen größeren Radius oder einen anderen Ort.</div>
             </div>
           ) : (
-            filteredOfferings
+            <>
+            {/* Zusammenfassung der Umgebung */}
+            {areaSummary && (
+              <div style={{
+                padding: '10px 12px', borderRadius: 'var(--r-md)', marginBottom: 10,
+                background: 'rgba(124,104,250,0.06)', border: '1px solid rgba(124,104,250,0.12)',
+              }}>
+                <div style={{ fontSize: '0.78rem', color: 'var(--accent)', fontWeight: 700, marginBottom: 3 }}>
+                  📍 {areaSummary.total} Angebot{areaSummary.total !== 1 ? 'e' : ''} im Umkreis von {searchRadius} km
+                </div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text3)' }}>
+                  {areaSummary.topCategories.map(tc => `${getCatMeta(tc.cat).emoji} ${tc.cat} (${tc.count})`).join(' · ')}
+                </div>
+                {areaSummary.nearest && (
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text2)', marginTop: 2 }}>
+                    Nächstes: <strong>{areaSummary.nearest.title}</strong> — {areaSummary.nearest.distance_km?.toFixed(1)} km
+                  </div>
+                )}
+              </div>
+            )}
+            {filteredOfferings
               .filter(o => {
                 if (!searchQuery) return true
                 const q = searchQuery.toLowerCase()
@@ -417,7 +487,7 @@ export default function MapClient() {
                   o.category.toLowerCase().includes(q) ||
                   (o.description || '').toLowerCase().includes(q)
               })
-              .map(o => (
+              .map((o: SkillOffering) => (
                 <div
                   key={o.id}
                   className={`map-offer-card ${selectedOffering?.id === o.id ? 'selected' : ''}`}
@@ -455,7 +525,8 @@ export default function MapClient() {
                     )}
                   </div>
                 </div>
-              ))
+              ))}
+          </>
           )}
         </div>
 
