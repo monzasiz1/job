@@ -31,7 +31,7 @@ export async function POST(request: Request) {
   // Kurze Zusammenfassung der Items für KI
   const itemSummary: string[] = []
   if (offerings?.length) {
-    offerings.slice(0, 15).forEach((o: any, i: number) => {
+    offerings.slice(0, 15).forEach((o: any, i: number) => {A
       itemSummary.push(`A${i + 1}: "${o.title}" (${o.category}, ${o.location_name})${o.price_info ? ` - ${o.price_info}` : ''}`)
     })
   }
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
   }
 
   if (!itemSummary.length) {
-    return NextResponse.json({ recommendations: [], summary: 'Keine Angebote oder Jobs in der Nähe gefunden.' })
+    return NextResponse.json({ recommendations: [], suggestions: [], summary: 'Keine Angebote oder Jobs in der Nähe gefunden.' })
   }
 
   try {
@@ -51,11 +51,11 @@ export async function POST(request: Request) {
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
       body: JSON.stringify({
         model: 'mistral-small-latest',
-        max_tokens: 600,
-        temperature: 0.3,
+        max_tokens: 800,
+        temperature: 0.4,
         messages: [{
           role: 'system',
-          content: 'Du bist ein Karriere-Assistent. Antworte NUR mit validem JSON, kein Markdown.'
+          content: 'Du bist ein Karriere- und Marktplatz-Assistent. Antworte NUR mit validem JSON, kein Markdown.'
         }, {
           role: 'user',
           content: `Nutzer-Profil:
@@ -68,8 +68,12 @@ export async function POST(request: Request) {
 Verfügbare Angebote/Jobs in der Nähe:
 ${itemSummary.join('\n')}
 
-Wähle die 3-5 besten Matches und erkläre kurz warum. Antworte NUR mit diesem JSON:
-{"summary":"1-2 Sätze Gesamteinschätzung auf Deutsch","recommendations":[{"id":"A1 oder J3 etc","reason":"Kurzer Grund auf Deutsch"}]}`
+Aufgaben:
+1. Wähle die 3-5 besten Matches aus den Angeboten/Jobs und erkläre kurz warum.
+2. Schlage dem Nutzer 2-4 Fähigkeiten/Dienstleistungen vor, die er basierend auf seinen Skills selbst auf dem Marktplatz ANBIETEN könnte (z.B. Nachhilfe, Beratung, Reparatur). Sei kreativ und konkret!
+
+Antworte NUR mit diesem JSON:
+{"summary":"1-2 Sätze Gesamteinschätzung auf Deutsch","recommendations":[{"id":"A1 oder J3 etc","reason":"Kurzer Grund auf Deutsch"}],"suggestions":[{"title":"Konkreter Angebotstitel","category":"Passende Kategorie","reason":"Warum das zu den Skills passt"}]}`
         }]
       })
     })
