@@ -95,7 +95,7 @@ export default function MapClient() {
   const radiusCircleRef = useRef<any>(null)
 
   // ── KI-Empfehlung ──
-  const [aiTips, setAiTips] = useState<{ summary: string; recommendations: { id: string; reason: string }[] } | null>(null)
+  const [aiTips, setAiTips] = useState<{ summary: string; recommendations: { id: string; reason: string }[]; suggestions?: { title: string; category: string; reason: string }[] } | null>(null)
   const [aiLoading, setAiLoading] = useState(false)
   const [showAiPanel, setShowAiPanel] = useState(false)
 
@@ -508,17 +508,41 @@ export default function MapClient() {
           ) : aiTips ? (
             <>
               <p style={{ fontSize: '0.82rem', color: 'var(--text2)', lineHeight: 1.6, marginBottom: 10 }}>{aiTips.summary}</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {aiTips.recommendations?.map((r, i) => (
-                  <div key={i} style={{
-                    padding: '8px 10px', borderRadius: 'var(--r-sm)',
-                    background: 'rgba(124,104,250,0.08)', border: '1px solid rgba(124,104,250,0.15)',
-                  }}>
-                    <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--accent)' }}>{r.id}</span>
-                    <span style={{ fontSize: '0.78rem', color: 'var(--text2)', marginLeft: 6 }}>{r.reason}</span>
+              {aiTips.recommendations?.length > 0 && (
+                <>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>🎯 Passende Angebote für dich</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
+                    {aiTips.recommendations.map((r, i) => (
+                      <div key={i} style={{
+                        padding: '8px 10px', borderRadius: 'var(--r-sm)',
+                        background: 'rgba(124,104,250,0.08)', border: '1px solid rgba(124,104,250,0.15)',
+                      }}>
+                        <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--accent)' }}>{r.id}</span>
+                        <span style={{ fontSize: '0.78rem', color: 'var(--text2)', marginLeft: 6 }}>{r.reason}</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </>
+              )}
+              {aiTips.suggestions && aiTips.suggestions.length > 0 && (
+                <>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>💡 Das könntest du anbieten</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {aiTips.suggestions.map((s, i) => (
+                      <div key={i} style={{
+                        padding: '8px 10px', borderRadius: 'var(--r-sm)',
+                        background: 'rgba(212,168,67,0.08)', border: '1px solid rgba(212,168,67,0.15)',
+                      }}>
+                        <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#d4a843', marginBottom: 2 }}>
+                          {getCatMeta(s.category).emoji} {s.title}
+                        </div>
+                        <div style={{ fontSize: '0.73rem', color: 'var(--text3)' }}>{s.category}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text2)', marginTop: 3 }}>{s.reason}</div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
             </>
           ) : (
             <div style={{ color: 'var(--text3)', fontSize: '0.82rem' }}>Keine Empfehlung verfügbar.</div>
