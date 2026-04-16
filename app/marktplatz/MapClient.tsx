@@ -183,7 +183,7 @@ export default function MapClient() {
     filteredOfferings.forEach(o => {
       cats.set(o.category, (cats.get(o.category) || 0) + 1)
     })
-    const topCats = [...cats.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3)
+    const topCats = Array.from(cats.entries()).sort((a, b) => b[1] - a[1]).slice(0, 3)
     return {
       total: filteredOfferings.length,
       topCategories: topCats.map(([cat, count]) => ({ cat, count })),
