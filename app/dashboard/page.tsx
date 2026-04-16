@@ -6,6 +6,7 @@ import ChatsSection from './ChatsSection'
 import InterestsSection from './InterestsSection'
 import JobsManagement from './JobsManagement'
 import OfferingsManagement from './OfferingsManagement'
+import RequestsManagement from './RequestsManagement'
 
 export default async function Dashboard() {
   const supabase = createClient()
@@ -19,6 +20,7 @@ export default async function Dashboard() {
   let conversations: any[] = []
   let myInterests: any[] = []
   let myOfferings: any[] = []
+  let myRequests: any[] = []
 
   // Eigene Marktplatz-Angebote laden (für alle Nutzer)
   const { data: offeringsData } = await supabase
@@ -27,6 +29,14 @@ export default async function Dashboard() {
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
   myOfferings = offeringsData || []
+
+  // Eigene Gesuche laden
+  const { data: requestsData } = await supabase
+    .from('skill_requests')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+  myRequests = requestsData || []
 
   if (isEmp) {
     // ARBEITGEBER: Meine Stellen
@@ -130,6 +140,9 @@ export default async function Dashboard() {
 
         {/* MEINE MARKTPLATZ-ANGEBOTE */}
         <OfferingsManagement offerings={myOfferings} />
+
+        {/* MEINE GESUCHE */}
+        <RequestsManagement requests={myRequests} />
 
         {/* ARBEITGEBER: Stellen */}
         {isEmp && (
