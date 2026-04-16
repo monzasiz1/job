@@ -144,6 +144,13 @@ export default function MapClient() {
   const [reqFormMsg, setReqFormMsg] = useState('')
   const [selectedRequest, setSelectedRequest] = useState<SkillRequest | null>(null)
 
+  // ── Detail-Modal & Buchung ──
+  const [detailItem, setDetailItem] = useState<{ type: 'offering' | 'request'; item: SkillOffering | SkillRequest } | null>(null)
+  const [bookingMsg, setBookingMsg] = useState('')
+  const [bookingNote, setBookingNote] = useState('')
+  const [bookingLoading, setBookingLoading] = useState(false)
+  const [bookingSent, setBookingSent] = useState(false)
+
   // ── Init ──
   useEffect(() => {
     loadLeaflet().then(() => setLeafletReady(true))
@@ -489,6 +496,48 @@ export default function MapClient() {
     setReqFormLoading(false)
   }
 
+  // ── Detail-Modal öffnen ──
+  const openDetail = (type: 'offering' | 'request', item: SkillOffering | SkillRequest) => {
+    setDetailItem({ type, item })
+    setBookingMsg('')
+    setBookingNote('')
+    setBookingSent(false)
+  }
+
+  // ── Anfrage senden ──
+  const sendBookingRequest = async () => {
+    if (!detailItem || !user) return
+    setBookingLoading(true)
+    setBookingMsg('')
+    try {
+      const item = detailItem.item
+      const isOffering = detailItem.type === 'offering'
+      // Offering: current user = client, item owner = provider
+      // Request: current user = provider, item owner = client
+      const res = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          provider_id: isOffering ? item.user_id : user.id,
+          client_id: isOffering ? user.id : item.user_id,
+          offering_id: isOffering ? item.id : null,
+          request_id: !isOffering ? item.id : null,
+          title: item.title,
+          message: bookingNote || null,
+          price: isOffering ? (item as SkillOffering).price_info : (item as SkillRequest).budget,
+        }),
+      })
+      if (res.ok) {
+        setBookingSent(true)
+        setBookingMsg('Anfrage gesendet!')
+      } else {
+        const err = await res.json()
+        setBookingMsg(err.error || 'Fehler beim Senden')
+      }
+    } catch { setBookingMsg('Netzwerkfehler') }
+    setBookingLoading(false)
+  }
+
   return (
     <div style={{ display: 'flex', height: '100%', position: 'relative' }}>
       {/* ── Sidebar ── */}
@@ -659,6 +708,7 @@ export default function MapClient() {
                     setSelectedOffering(o)
                     if (mapRef.current) mapRef.current.setView([o.lat, o.lng], 14)
                   }}
+                  onDoubleClick={() => openDetail('offering', o)}}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{
@@ -684,9 +734,18 @@ export default function MapClient() {
                   )}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
                     <span style={{ fontSize: '0.72rem', color: 'var(--text3)' }}>{o.user_name || 'Anonym'}</span>
-                    {o.distance_km != null && (
-                      <span style={{ fontSize: '0.7rem', color: 'var(--accent)' }}>{o.distance_km.toFixed(1)} km</span>
-                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {o.distance_km != null && (
+                        <span style={{ fontSize: '0.7rem', color: 'var(--accent)' }}>{o.distance_km.toFixed(1)} km</span>
+                      )}
+                      {user && o.user_id !== user.id && (
+                        <button onClick={(e) => { e.stopPropagation(); openDetail('offering', o) }} style={{
+                          padding: '3px 8px', border: '1px solid rgba(61,186,126,0.3)', borderRadius: 6,
+                          background: 'rgba(61,186,126,0.1)', color: '#3dba7e', fontSize: '0.65rem',
+                          fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                        }}>Anfragen →</button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -712,6 +771,7 @@ export default function MapClient() {
                     setSelectedRequest(r)
                     if (mapRef.current) mapRef.current.setView([r.lat, r.lng], 14)
                   }}
+                  onDoubleClick={() => openDetail('request', r)}}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{
@@ -738,9 +798,18 @@ export default function MapClient() {
                   )}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
                     <span style={{ fontSize: '0.72rem', color: 'var(--text3)' }}>{r.user_name || 'Anonym'}</span>
-                    {r.distance_km != null && (
-                      <span style={{ fontSize: '0.7rem', color: 'var(--accent)' }}>{r.distance_km.toFixed(1)} km</span>
-                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {r.distance_km != null && (
+                        <span style={{ fontSize: '0.7rem', color: 'var(--accent)' }}>{r.distance_km.toFixed(1)} km</span>
+                      )}
+                      {user && r.user_id !== user.id && (
+                        <button onClick={(e) => { e.stopPropagation(); openDetail('request', r) }} style={{
+                          padding: '3px 8px', border: '1px solid rgba(61,186,126,0.3)', borderRadius: 6,
+                          background: 'rgba(61,186,126,0.1)', color: '#3dba7e', fontSize: '0.65rem',
+                          fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                        }}>Anbieten →</button>
+                      )}
+                    </div>
                   </div>
                 </div>
                 )
@@ -1001,6 +1070,164 @@ export default function MapClient() {
           </form>
         </div>
       )}
+
+      {/* ── Detail-Modal & Buchungsanfrage ── */}
+      {detailItem && (() => {
+        const isOff = detailItem.type === 'offering'
+        const item = detailItem.item
+        const cat = getCatMeta(item.category)
+        const urg = !isOff ? URGENCY_META[(item as SkillRequest).urgency] : null
+        const isOwn = user?.id === item.user_id
+        return (
+          <div style={{
+            position: 'fixed', inset: 0, zIndex: 1100,
+            background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(10px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
+          }} onClick={() => setDetailItem(null)}>
+            <div className="booking-detail-card" onClick={e => e.stopPropagation()} style={{
+              background: 'var(--surface)', border: `1px solid ${isOff ? 'rgba(124,104,250,0.2)' : 'rgba(240,96,144,0.2)'}`,
+              borderRadius: 'var(--r-xl)', padding: '2rem',
+              maxWidth: 480, width: '100%', maxHeight: '85vh', overflowY: 'auto',
+            }}>
+              {/* Header */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                <span style={{
+                  width: 44, height: 44, borderRadius: isOff ? '50%' : 10,
+                  background: cat.color + '22', border: `2px solid ${cat.color}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22,
+                }}>{cat.emoji}</span>
+                <div style={{ flex: 1 }}>
+                  <h3 style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: '1.1rem', color: '#fff', margin: 0 }}>
+                    {item.title}
+                  </h3>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text3)', marginTop: 2 }}>
+                    {isOff ? '🛠️ Angebot' : '🔍 Gesuch'} · {item.category}
+                    {urg && <span style={{ marginLeft: 8, color: urg.color }}>{urg.emoji} {urg.label}</span>}
+                  </div>
+                </div>
+                <button onClick={() => setDetailItem(null)} style={{
+                  width: 32, height: 32, borderRadius: '50%', border: '1px solid var(--border2)',
+                  background: 'transparent', color: 'var(--text3)', fontSize: 16, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>✕</button>
+              </div>
+
+              {/* Anbieter / Suchender */}
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
+                background: 'rgba(255,255,255,0.03)', borderRadius: 'var(--r-md)', marginBottom: 14,
+              }}>
+                <div style={{
+                  width: 32, height: 32, borderRadius: '50%',
+                  background: 'var(--accent)', color: '#fff', fontSize: '0.8rem',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700,
+                }}>
+                  {(item.user_name || '?')[0].toUpperCase()}
+                </div>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#fff' }}>{item.user_name || 'Unbekannt'}</div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text3)' }}>
+                    📍 {item.location_name}
+                    {item.distance_km != null && <span> · {item.distance_km.toFixed(1)} km entfernt</span>}
+                  </div>
+                </div>
+              </div>
+
+              {/* Beschreibung */}
+              {item.description && (
+                <p style={{ fontSize: '0.85rem', color: 'var(--text2)', lineHeight: 1.6, marginBottom: 14 }}>
+                  {item.description}
+                </p>
+              )}
+
+              {/* Preis / Budget */}
+              {(isOff ? (item as SkillOffering).price_info : (item as SkillRequest).budget) && (
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '6px 14px', borderRadius: 20,
+                  background: 'var(--gold)18', border: '1px solid var(--gold)40',
+                  color: 'var(--gold)', fontWeight: 700, fontSize: '0.82rem', marginBottom: 16,
+                }}>
+                  💰 {isOff ? (item as SkillOffering).price_info : (item as SkillRequest).budget}
+                </div>
+              )}
+
+              {/* Buchungsbereich */}
+              {!isOwn && user && (
+                <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+                  {bookingSent ? (
+                    <div style={{
+                      padding: '14px 16px', borderRadius: 'var(--r-md)',
+                      background: 'var(--green-soft)', color: 'var(--green)',
+                      fontWeight: 700, fontSize: '0.85rem', textAlign: 'center',
+                    }}>
+                      ✅ {bookingMsg || 'Anfrage gesendet!'}
+                    </div>
+                  ) : (
+                    <>
+                      <label style={{ fontWeight: 700, fontSize: '0.78rem', color: 'var(--text3)', letterSpacing: '0.05em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>
+                        {isOff ? 'Nachricht an den Anbieter' : 'Nachricht an den Suchenden'}
+                      </label>
+                      <textarea
+                        className="map-input"
+                        rows={3}
+                        maxLength={1000}
+                        placeholder={isOff ? 'Hallo, ich hätte Interesse an deinem Angebot...' : 'Hallo, ich kann dir dabei helfen...'}
+                        value={bookingNote}
+                        onChange={e => setBookingNote(e.target.value)}
+                        style={{ resize: 'vertical', marginBottom: 10 }}
+                      />
+                      {bookingMsg && !bookingSent && (
+                        <div style={{
+                          padding: '8px 12px', borderRadius: 'var(--r-sm)', marginBottom: 10,
+                          background: 'var(--pink-soft)', color: 'var(--pink)',
+                          fontSize: '0.82rem', fontWeight: 600,
+                        }}>{bookingMsg}</div>
+                      )}
+                      <button
+                        onClick={sendBookingRequest}
+                        disabled={bookingLoading}
+                        style={{
+                          width: '100%', padding: '12px 0', border: 'none',
+                          borderRadius: 'var(--r-md)',
+                          background: bookingLoading ? 'var(--surface3)' : isOff ? 'var(--accent)' : '#f06090',
+                          color: '#fff', fontFamily: 'inherit', fontWeight: 700, fontSize: '0.9rem',
+                          cursor: bookingLoading ? 'not-allowed' : 'pointer',
+                          transition: 'all 0.2s',
+                        }}
+                      >
+                        {bookingLoading ? '⏳ Wird gesendet...' : isOff ? '📩 Anfrage senden' : '🤝 Hilfe anbieten'}
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Eigenes Angebot/Gesuch Hinweis */}
+              {isOwn && (
+                <div style={{
+                  marginTop: 16, padding: '12px 14px', borderRadius: 'var(--r-md)',
+                  background: 'rgba(255,255,255,0.03)', color: 'var(--text3)',
+                  fontSize: '0.82rem', textAlign: 'center',
+                }}>
+                  Das ist dein eigenes {isOff ? 'Angebot' : 'Gesuch'}.
+                </div>
+              )}
+
+              {/* Nicht eingeloggt */}
+              {!user && (
+                <div style={{
+                  marginTop: 16, padding: '12px 14px', borderRadius: 'var(--r-md)',
+                  background: 'rgba(255,255,255,0.03)', color: 'var(--text3)',
+                  fontSize: '0.82rem', textAlign: 'center',
+                }}>
+                  <a href="/login" style={{ color: 'var(--accent)', fontWeight: 700 }}>Einloggen</a> um Anfrage zu senden.
+                </div>
+              )}
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }
