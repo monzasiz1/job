@@ -2,7 +2,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-const PROTECTED = ['/ki-tools', '/dashboard', '/post-job']
+const PROTECTED = ['/ki-tools', '/dashboard', '/post-job', '/marktplatz']
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -38,5 +38,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/ki-tools/:path*', '/dashboard/:path*', '/post-job/:path*'],
+  matcher: ['/ki-tools/:path*', '/dashboard/:path*', '/post-job/:path*', '/marktplatz/:path*'],
 }
