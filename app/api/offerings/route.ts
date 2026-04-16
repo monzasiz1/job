@@ -11,15 +11,57 @@ export async function GET(request: Request) {
 
   const supabase = createClient()
 
-  // Wenn Koordinaten vorhanden → RPC Umkreissuche
+  // Wenn Koordinaten vorhanden → RPC Umkreissuche (mit Haversine-Fallback)
   if (lat && lng) {
+    const centerLat = parseFloat(lat)
+    const centerLng = parseFloat(lng)
+    const radiusKm = parseFloat(radius)
+
     const { data, error } = await supabase.rpc('offerings_within_radius', {
-      center_lat: parseFloat(lat),
-      center_lng: parseFloat(lng),
-      radius_km: parseFloat(radius),
+      center_lat: centerLat,
+      center_lng: centerLng,
+      search_radius_km: radiusKm,
       search_category: category,
     })
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+    // Fallback: Wenn RPC fehlschlägt → alle laden und manuell Haversine-filtern
+    if (error) {
+      console.error('RPC Fehler, nutze Haversine-Fallback:', error.message)
+      let query = supabase
+        .from('skill_offerings')
+        .select('*, profiles!skill_offerings_user_id_fkey(full_name, avatar_url)')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(500)
+
+      if (category) query = query.eq('category', category)
+
+      const { data: allData, error: fallbackErr } = await query
+      if (fallbackErr) return NextResponse.json({ error: fallbackErr.message }, { status: 500 })
+
+      // Haversine-Filter + Distanz berechnen
+      const toRad = (d: number) => d * Math.PI / 180
+      const filtered = (allData || [])
+        .map((o: any) => {
+          const dLat = toRad(o.lat - centerLat)
+          const dLng = toRad(o.lng - centerLng)
+          const a = Math.sin(dLat / 2) ** 2 +
+            Math.cos(toRad(centerLat)) * Math.cos(toRad(o.lat)) * Math.sin(dLng / 2) ** 2
+          const distance_km = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+          return {
+            ...o,
+            distance_km: Math.round(distance_km * 10) / 10,
+            user_name: o.profiles?.full_name || 'Anonym',
+            user_avatar: o.profiles?.avatar_url || null,
+            profiles: undefined,
+          }
+        })
+        .filter((o: any) => o.distance_km <= radiusKm)
+        .sort((a: any, b: any) => a.distance_km - b.distance_km)
+
+      return NextResponse.json(filtered)
+    }
+
     return NextResponse.json(data || [])
   }
 
