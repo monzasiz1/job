@@ -1,0 +1,169 @@
+import { NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase-server'
+
+// Haversine-Distanz in km
+function haversine(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const toRad = (d: number) => d * Math.PI / 180
+  const dLat = toRad(lat2 - lat1)
+  const dLng = toRad(lng2 - lng1)
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2
+  return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+// GET — Gesuche laden (optional mit Umkreis-Filter)
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const lat = searchParams.get('lat')
+  const lng = searchParams.get('lng')
+  const radius = searchParams.get('radius') || '25'
+  const category = searchParams.get('category') || null
+
+  const supabase = createClient()
+
+  let query = supabase
+    .from('skill_requests')
+    .select('*, profiles(full_name, avatar_url)')
+    .eq('is_active', true)
+    .order('created_at', { ascending: false })
+    .limit(500)
+
+  if (category) {
+    query = query.eq('category', category)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    console.error('Requests query error:', error.message)
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  let requests = (data || []).map((r: any) => ({
+    ...r,
+    user_name: r.profiles?.full_name || 'Anonym',
+    user_avatar: r.profiles?.avatar_url || null,
+    profiles: undefined,
+  }))
+
+  if (lat && lng) {
+    const centerLat = parseFloat(lat)
+    const centerLng = parseFloat(lng)
+    const radiusKm = parseFloat(radius)
+
+    requests = requests
+      .map((r: any) => ({
+        ...r,
+        distance_km: Math.round(haversine(centerLat, centerLng, r.lat, r.lng) * 10) / 10,
+      }))
+      .filter((r: any) => r.distance_km <= radiusKm)
+      .sort((a: any, b: any) => a.distance_km - b.distance_km)
+  }
+
+  return NextResponse.json(requests)
+}
+
+// POST — Neues Gesuch erstellen
+export async function POST(request: Request) {
+  const supabase = createClient()
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return NextResponse.json({ error: 'Nicht eingeloggt' }, { status: 401 })
+  }
+
+  const body = await request.json()
+  const { title, description, category, budget, urgency, location_name, lat, lng, radius_km } = body
+
+  if (!title || !category || !location_name || lat == null || lng == null) {
+    return NextResponse.json({ error: 'Pflichtfelder fehlen (title, category, location_name, lat, lng)' }, { status: 400 })
+  }
+
+  const validUrgency = ['sofort', 'diese_woche', 'flexibel']
+  const safeUrgency = validUrgency.includes(urgency) ? urgency : 'flexibel'
+
+  const { data, error } = await supabase
+    .from('skill_requests')
+    .insert({
+      user_id: user.id,
+      title: String(title).slice(0, 200),
+      description: description ? String(description).slice(0, 2000) : null,
+      category: String(category),
+      budget: budget ? String(budget).slice(0, 100) : null,
+      urgency: safeUrgency,
+      location_name: String(location_name).slice(0, 200),
+      lat: parseFloat(lat),
+      lng: parseFloat(lng),
+      radius_km: radius_km ? parseFloat(radius_km) : 15,
+    })
+    .select()
+    .single()
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json(data, { status: 201 })
+}
+
+// PUT — Eigenes Gesuch bearbeiten
+export async function PUT(request: Request) {
+  const supabase = createClient()
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return NextResponse.json({ error: 'Nicht eingeloggt' }, { status: 401 })
+  }
+
+  const body = await request.json()
+  const { id, title, description, category, budget, urgency, location_name, lat, lng, radius_km } = body
+
+  if (!id || !title || !category || !location_name || lat == null || lng == null) {
+    return NextResponse.json({ error: 'Pflichtfelder fehlen' }, { status: 400 })
+  }
+
+  const validUrgency = ['sofort', 'diese_woche', 'flexibel']
+  const safeUrgency = validUrgency.includes(urgency) ? urgency : 'flexibel'
+
+  const { data, error } = await supabase
+    .from('skill_requests')
+    .update({
+      title: String(title).slice(0, 200),
+      description: description ? String(description).slice(0, 2000) : null,
+      category: String(category),
+      budget: budget ? String(budget).slice(0, 100) : null,
+      urgency: safeUrgency,
+      location_name: String(location_name).slice(0, 200),
+      lat: parseFloat(lat),
+      lng: parseFloat(lng),
+      radius_km: radius_km ? parseFloat(radius_km) : 15,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .eq('user_id', user.id)
+    .select()
+    .single()
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json(data)
+}
+
+// DELETE — Eigenes Gesuch löschen
+export async function DELETE(request: Request) {
+  const supabase = createClient()
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return NextResponse.json({ error: 'Nicht eingeloggt' }, { status: 401 })
+  }
+
+  const { searchParams } = new URL(request.url)
+  const id = searchParams.get('id')
+  if (!id) return NextResponse.json({ error: 'Keine ID angegeben' }, { status: 400 })
+
+  const { error } = await supabase
+    .from('skill_requests')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', user.id)
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ success: true })
+}
