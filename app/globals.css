@@ -418,6 +418,67 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:2rem
   .hero-aurora { opacity: 0.06; }
 }
 
+/* ═══════════════════════════════════════════════════
+   MARKTPLATZ / MAP
+   ═══════════════════════════════════════════════════ */
+
+.map-sidebar {
+  width: 360px; background: var(--surface); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; height: 100%; overflow: hidden;
+}
+.map-search-box {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 14px; border-radius: var(--r-md);
+  background: var(--surface2); border: 1px solid var(--border2);
+}
+.map-cat-btn {
+  padding: 4px 10px; border-radius: var(--r-full); font-size: 0.7rem; font-weight: 600;
+  border: 1px solid var(--border2); background: transparent; color: var(--text2);
+  cursor: pointer; font-family: inherit; white-space: nowrap; transition: all 0.15s;
+}
+.map-cat-btn:hover { background: var(--surface2); color: var(--text); }
+.map-cat-btn.active {
+  background: var(--accent-soft); color: var(--accent); border-color: rgba(124,104,250,0.35);
+}
+.map-offer-card {
+  padding: 12px; border-radius: var(--r-md); border: 1px solid var(--border);
+  background: var(--surface2); margin-bottom: 8px; cursor: pointer; transition: all 0.18s;
+}
+.map-offer-card:hover { background: var(--surface3); border-color: var(--border2); }
+.map-offer-card.selected { border-color: var(--accent); background: var(--accent-soft); }
+
+.map-label {
+  display: block; font-size: 0.78rem; font-weight: 600; color: var(--text2);
+  margin: 12px 0 4px;
+}
+.map-input {
+  width: 100%; padding: 9px 12px; border-radius: var(--r-sm);
+  border: 1px solid var(--border2); background: var(--surface2);
+  color: var(--text); font-family: inherit; font-size: 0.85rem;
+  outline: none; transition: border-color 0.15s;
+}
+.map-input:focus { border-color: var(--accent); }
+
+/* Leaflet custom marker reset */
+.custom-map-marker { background: none !important; border: none !important; }
+
+/* Leaflet dark popup override */
+.dark-popup .leaflet-popup-content-wrapper {
+  background: var(--surface) !important; color: #e0e0e0 !important;
+  border: 1px solid var(--border2) !important; border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
+}
+.dark-popup .leaflet-popup-tip { background: var(--surface) !important; }
+.leaflet-control-zoom a {
+  background: var(--surface) !important; color: var(--text) !important;
+  border-color: var(--border2) !important;
+}
+.leaflet-control-attribution { opacity: 0.4; font-size: 0.6rem !important; }
+
+@media(max-width:768px) {
+  .map-sidebar { width: 100%; height: 45%; border-right: none; border-bottom: 1px solid var(--border); }
+}
+
 /* ── MOBILE ── */
 .mob-bar{display:none;position:sticky;top:0;z-index:250;background:rgba(23,23,42,0.97);border-bottom:1px solid var(--border);padding:0 1rem;height:54px;align-items:center;justify-content:space-between}
 .mob-btn{background:none;border:none;color:var(--text);font-size:1.2rem;cursor:pointer;padding:8px;border-radius:var(--r-sm)}
