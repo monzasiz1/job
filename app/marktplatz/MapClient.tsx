@@ -151,6 +151,9 @@ export default function MapClient() {
   const [bookingLoading, setBookingLoading] = useState(false)
   const [bookingSent, setBookingSent] = useState(false)
 
+  // ── Mobile: Karte / Liste Toggle ──
+  const [mobileView, setMobileView] = useState<'map' | 'list'>('map')
+
   // ── Refs für globale Popup-Bridge ──
   const offeringsRef = useRef<SkillOffering[]>([])
   const requestsRef = useRef<SkillRequest[]>([])
@@ -572,9 +575,9 @@ export default function MapClient() {
   const detailIsOwn = detailItemData ? user?.id === detailItemData.user_id : false
 
   return (
-    <div style={{ display: 'flex', height: '100%', position: 'relative' }}>
+    <div className="map-layout" style={{ display: 'flex', height: '100%', position: 'relative' }}>
       {/* ── Sidebar ── */}
-      <div className="map-sidebar">
+      <div className={`map-sidebar ${mobileView === 'list' ? 'mob-active' : ''}`}>
         {/* Header + Toggle */}
         <div style={{ padding: '14px 16px 10px', borderBottom: '1px solid var(--border)' }}>
           <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: '1rem', color: '#fff', marginBottom: 8 }}>🎯 Marktplatz</div>
@@ -740,8 +743,8 @@ export default function MapClient() {
                   onClick={() => {
                     setSelectedOffering(o)
                     if (mapRef.current) mapRef.current.setView([o.lat, o.lng], 14)
-                    openDetail('offering', o)
                   }}
+                  onDoubleClick={() => openDetail('offering', o)}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{
@@ -803,8 +806,8 @@ export default function MapClient() {
                   onClick={() => {
                     setSelectedRequest(r)
                     if (mapRef.current) mapRef.current.setView([r.lat, r.lng], 14)
-                    openDetail('request', r)
                   }}
+                  onDoubleClick={() => openDetail('request', r)}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{
@@ -882,7 +885,7 @@ export default function MapClient() {
       </div>
 
       {/* ── Karte ── */}
-      <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
+      <div className={`map-main ${mobileView === 'map' ? 'mob-active' : ''}`} style={{ flex: 1, position: 'relative', minHeight: 0 }}>
         <div ref={mapContainerRef} style={{ position: 'absolute', inset: 0, background: '#0f0f17' }} />
         {!leafletReady && (
           <div style={{
@@ -1254,6 +1257,14 @@ export default function MapClient() {
             </div>
           </div>
       )}
+
+      {/* ── Mobile Toggle Button ── */}
+      <button
+        className="map-mobile-toggle"
+        onClick={() => setMobileView(mobileView === 'map' ? 'list' : 'map')}
+      >
+        {mobileView === 'map' ? '📋 Liste' : '🗺️ Karte'}
+      </button>
     </div>
   )
 }
