@@ -28,11 +28,11 @@ export default function BookingsSection() {
       ])
       if (incRes.ok) {
         const d = await incRes.json()
-        setIncoming(d.bookings || [])
+        setIncoming(Array.isArray(d) ? d : d.bookings || [])
       }
       if (outRes.ok) {
         const d = await outRes.json()
-        setOutgoing(d.bookings || [])
+        setOutgoing(Array.isArray(d) ? d : d.bookings || [])
       }
     } catch { }
     setLoading(false)
