@@ -538,6 +538,13 @@ export default function MapClient() {
     setBookingLoading(false)
   }
 
+  // Detail-Modal Variablen (vor return berechnet, damit kein IIFE im JSX nötig)
+  const detailIsOff = detailItem ? detailItem.type === 'offering' : false
+  const detailItemData = detailItem?.item ?? null
+  const detailCat = detailItemData ? getCatMeta(detailItemData.category) : null
+  const detailUrg = detailItem && !detailIsOff ? URGENCY_META[(detailItemData as SkillRequest).urgency] : null
+  const detailIsOwn = detailItemData ? user?.id === detailItemData.user_id : false
+
   return (
     <div style={{ display: 'flex', height: '100%', position: 'relative' }}>
       {/* ── Sidebar ── */}
@@ -1072,37 +1079,31 @@ export default function MapClient() {
       )}
 
       {/* ── Detail-Modal & Buchungsanfrage ── */}
-      {detailItem && (() => {
-        const isOff = detailItem.type === 'offering'
-        const item = detailItem.item
-        const cat = getCatMeta(item.category)
-        const urg = !isOff ? URGENCY_META[(item as SkillRequest).urgency] : null
-        const isOwn = user?.id === item.user_id
-        return (
+      {detailItem && detailItemData && detailCat && (
           <div style={{
             position: 'fixed', inset: 0, zIndex: 1100,
             background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(10px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
           }} onClick={() => setDetailItem(null)}>
             <div className="booking-detail-card" onClick={e => e.stopPropagation()} style={{
-              background: 'var(--surface)', border: `1px solid ${isOff ? 'rgba(124,104,250,0.2)' : 'rgba(240,96,144,0.2)'}`,
+              background: 'var(--surface)', border: `1px solid ${detailIsOff ? 'rgba(124,104,250,0.2)' : 'rgba(240,96,144,0.2)'}`,
               borderRadius: 'var(--r-xl)', padding: '2rem',
               maxWidth: 480, width: '100%', maxHeight: '85vh', overflowY: 'auto',
             }}>
               {/* Header */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
                 <span style={{
-                  width: 44, height: 44, borderRadius: isOff ? '50%' : 10,
-                  background: cat.color + '22', border: `2px solid ${cat.color}`,
+                  width: 44, height: 44, borderRadius: detailIsOff ? '50%' : 10,
+                  background: detailCat.color + '22', border: `2px solid ${detailCat.color}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22,
-                }}>{cat.emoji}</span>
+                }}>{detailCat.emoji}</span>
                 <div style={{ flex: 1 }}>
                   <h3 style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: '1.1rem', color: '#fff', margin: 0 }}>
-                    {item.title}
+                    {detailItemData.title}
                   </h3>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text3)', marginTop: 2 }}>
-                    {isOff ? '🛠️ Angebot' : '🔍 Gesuch'} · {item.category}
-                    {urg && <span style={{ marginLeft: 8, color: urg.color }}>{urg.emoji} {urg.label}</span>}
+                    {detailIsOff ? '🛠️ Angebot' : '🔍 Gesuch'} · {detailItemData.category}
+                    {detailUrg && <span style={{ marginLeft: 8, color: detailUrg.color }}>{detailUrg.emoji} {detailUrg.label}</span>}
                   </div>
                 </div>
                 <button onClick={() => setDetailItem(null)} style={{
@@ -1122,38 +1123,38 @@ export default function MapClient() {
                   background: 'var(--accent)', color: '#fff', fontSize: '0.8rem',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700,
                 }}>
-                  {(item.user_name || '?')[0].toUpperCase()}
+                  {(detailItemData.user_name || '?')[0].toUpperCase()}
                 </div>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#fff' }}>{item.user_name || 'Unbekannt'}</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#fff' }}>{detailItemData.user_name || 'Unbekannt'}</div>
                   <div style={{ fontSize: '0.72rem', color: 'var(--text3)' }}>
-                    📍 {item.location_name}
-                    {item.distance_km != null && <span> · {item.distance_km.toFixed(1)} km entfernt</span>}
+                    📍 {detailItemData.location_name}
+                    {detailItemData.distance_km != null && <span> · {detailItemData.distance_km.toFixed(1)} km entfernt</span>}
                   </div>
                 </div>
               </div>
 
               {/* Beschreibung */}
-              {item.description && (
+              {detailItemData.description && (
                 <p style={{ fontSize: '0.85rem', color: 'var(--text2)', lineHeight: 1.6, marginBottom: 14 }}>
-                  {item.description}
+                  {detailItemData.description}
                 </p>
               )}
 
               {/* Preis / Budget */}
-              {(isOff ? (item as SkillOffering).price_info : (item as SkillRequest).budget) && (
+              {(detailIsOff ? (detailItemData as SkillOffering).price_info : (detailItemData as SkillRequest).budget) && (
                 <div style={{
                   display: 'inline-flex', alignItems: 'center', gap: 6,
                   padding: '6px 14px', borderRadius: 20,
                   background: 'var(--gold)18', border: '1px solid var(--gold)40',
                   color: 'var(--gold)', fontWeight: 700, fontSize: '0.82rem', marginBottom: 16,
                 }}>
-                  💰 {isOff ? (item as SkillOffering).price_info : (item as SkillRequest).budget}
+                  💰 {detailIsOff ? (detailItemData as SkillOffering).price_info : (detailItemData as SkillRequest).budget}
                 </div>
               )}
 
               {/* Buchungsbereich */}
-              {!isOwn && user && (
+              {!detailIsOwn && user && (
                 <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
                   {bookingSent ? (
                     <div style={{
@@ -1166,13 +1167,13 @@ export default function MapClient() {
                   ) : (
                     <>
                       <label style={{ fontWeight: 700, fontSize: '0.78rem', color: 'var(--text3)', letterSpacing: '0.05em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>
-                        {isOff ? 'Nachricht an den Anbieter' : 'Nachricht an den Suchenden'}
+                        {detailIsOff ? 'Nachricht an den Anbieter' : 'Nachricht an den Suchenden'}
                       </label>
                       <textarea
                         className="map-input"
                         rows={3}
                         maxLength={1000}
-                        placeholder={isOff ? 'Hallo, ich hätte Interesse an deinem Angebot...' : 'Hallo, ich kann dir dabei helfen...'}
+                        placeholder={detailIsOff ? 'Hallo, ich hätte Interesse an deinem Angebot...' : 'Hallo, ich kann dir dabei helfen...'}
                         value={bookingNote}
                         onChange={e => setBookingNote(e.target.value)}
                         style={{ resize: 'vertical', marginBottom: 10 }}
@@ -1190,13 +1191,13 @@ export default function MapClient() {
                         style={{
                           width: '100%', padding: '12px 0', border: 'none',
                           borderRadius: 'var(--r-md)',
-                          background: bookingLoading ? 'var(--surface3)' : isOff ? 'var(--accent)' : '#f06090',
+                          background: bookingLoading ? 'var(--surface3)' : detailIsOff ? 'var(--accent)' : '#f06090',
                           color: '#fff', fontFamily: 'inherit', fontWeight: 700, fontSize: '0.9rem',
                           cursor: bookingLoading ? 'not-allowed' : 'pointer',
                           transition: 'all 0.2s',
                         }}
                       >
-                        {bookingLoading ? '⏳ Wird gesendet...' : isOff ? '📩 Anfrage senden' : '🤝 Hilfe anbieten'}
+                        {bookingLoading ? '⏳ Wird gesendet...' : detailIsOff ? '📩 Anfrage senden' : '🤝 Hilfe anbieten'}
                       </button>
                     </>
                   )}
@@ -1204,13 +1205,13 @@ export default function MapClient() {
               )}
 
               {/* Eigenes Angebot/Gesuch Hinweis */}
-              {isOwn && (
+              {detailIsOwn && (
                 <div style={{
                   marginTop: 16, padding: '12px 14px', borderRadius: 'var(--r-md)',
                   background: 'rgba(255,255,255,0.03)', color: 'var(--text3)',
                   fontSize: '0.82rem', textAlign: 'center',
                 }}>
-                  Das ist dein eigenes {isOff ? 'Angebot' : 'Gesuch'}.
+                  Das ist dein eigenes {detailIsOff ? 'Angebot' : 'Gesuch'}.
                 </div>
               )}
 
@@ -1226,8 +1227,7 @@ export default function MapClient() {
               )}
             </div>
           </div>
-        )
-      })()}
+      )}
     </div>
   )
 }
