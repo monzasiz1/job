@@ -1496,3 +1496,54 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:2rem
   .lp-bento-card { padding: 1.5rem; }
   .lp-section-h2 { font-size: 1.6rem !important; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   MARKTPLATZ – Mode Toggle (Angebote / Gesuche)
+   ═══════════════════════════════════════════════════════════ */
+.map-mode-toggle {
+  display: flex;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 3px;
+}
+.map-mode-btn {
+  flex: 1;
+  padding: 7px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(255,255,255,0.4);
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.map-mode-btn:hover {
+  color: rgba(255,255,255,0.7);
+}
+.map-mode-btn.active-offer {
+  background: rgba(124,104,250,0.15);
+  color: #a080ff;
+  box-shadow: 0 0 12px rgba(124,104,250,0.15);
+}
+.map-mode-btn.active-request {
+  background: rgba(240,96,144,0.15);
+  color: #f06090;
+  box-shadow: 0 0 12px rgba(240,96,144,0.15);
+}
+
+/* Request cards in sidebar */
+.map-request-card {
+  border-left: 3px solid rgba(240,96,144,0.3) !important;
+}
+.map-request-card:hover {
+  border-left-color: #f06090 !important;
+}
+.map-request-card.selected {
+  border-left-color: #f06090 !important;
+  background: rgba(240,96,144,0.08) !important;
+}
