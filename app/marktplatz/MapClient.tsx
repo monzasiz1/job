@@ -178,6 +178,8 @@ export default function MapClient() {
     if (!markersRef.current || !leafletReady) return
     markersRef.current.clearLayers()
     const filtered = filteredOfferings.filter(o => {
+      // Ungültige Koordinaten (0,0) überspringen
+      if (o.lat === 0 && o.lng === 0) return false
       if (searchQuery) {
         const q = searchQuery.toLowerCase()
         return o.title.toLowerCase().includes(q) ||
@@ -202,6 +204,13 @@ export default function MapClient() {
       marker.on('click', () => setSelectedOffering(o))
       markersRef.current.addLayer(marker)
     })
+    // Karte auf Marker zentrieren (wenn es welche gibt)
+    if (filtered.length > 0 && mapRef.current) {
+      const bounds = markersRef.current.getBounds()
+      if (bounds.isValid()) {
+        mapRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 13 })
+      }
+    }
   }, [filteredOfferings, searchQuery, leafletReady])
 
   // ── Radius-Kreis ──
@@ -278,15 +287,28 @@ export default function MapClient() {
     e.preventDefault()
     setFormLoading(true)
     setFormMsg('')
-    if (formData.lat === 0 && formData.lng === 0) {
-      const ok = await geocodeLocation(formData.location_name)
-      if (!ok) { setFormMsg('Standort konnte nicht gefunden werden.'); setFormLoading(false); return }
+
+    // Koordinaten sicherstellen (nicht auf State warten!)
+    let submitData = { ...formData }
+    if (submitData.lat === 0 && submitData.lng === 0) {
+      try {
+        const geoRes = await fetch(`/api/geocode?city=${encodeURIComponent(submitData.location_name)}`)
+        const geoData = await geoRes.json()
+        if (geoData.lat && geoData.lng) {
+          submitData = { ...submitData, lat: geoData.lat, lng: geoData.lng }
+          setFormData(f => ({ ...f, lat: geoData.lat, lng: geoData.lng }))
+        } else {
+          setFormMsg('Standort konnte nicht gefunden werden.'); setFormLoading(false); return
+        }
+      } catch {
+        setFormMsg('Standort konnte nicht gefunden werden.'); setFormLoading(false); return
+      }
     }
     try {
       const res = await fetch('/api/offerings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submitData),
       })
       if (res.ok) {
         setFormMsg('Angebot erstellt!')
