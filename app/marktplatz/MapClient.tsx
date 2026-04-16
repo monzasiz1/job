@@ -162,7 +162,7 @@ export default function MapClient() {
     setLoading(false)
   }, [])
 
-  // ── Client-seitiger Radius-Filter + Distanz ──
+  // ── Client-seitiger Distanz-Berechnung (kein harter Filter, nur Sortierung) ──
   const filteredOfferings = useMemo(() => {
     if (!userPos) return offerings.map((o: SkillOffering) => ({ ...o, distance_km: undefined as number | undefined }))
     return offerings
@@ -170,7 +170,6 @@ export default function MapClient() {
         ...o,
         distance_km: Math.round(haversine(userPos.lat, userPos.lng, o.lat, o.lng) * 10) / 10,
       }))
-      .filter((o: SkillOffering) => (o.distance_km ?? Infinity) <= searchRadius)
       .sort((a: SkillOffering, b: SkillOffering) => (a.distance_km ?? 0) - (b.distance_km ?? 0))
   }, [offerings, userPos, searchRadius])
 
@@ -383,12 +382,7 @@ export default function MapClient() {
           ) : filteredOfferings.length === 0 ? (
             <div style={{ textAlign: 'center', color: 'var(--text3)', padding: '2rem 0' }}>
               <div style={{ fontSize: '2rem', marginBottom: 8 }}>📍</div>
-              <div>Keine Angebote {userPos ? `im Umkreis von ${searchRadius} km` : 'gefunden'}.</div>
-              {userPos && offerings.length > 0 && (
-                <div style={{ fontSize: '0.75rem', marginTop: 8, color: 'var(--accent)' }}>
-                  {offerings.length} Angebote insgesamt — versuche einen größeren Radius
-                </div>
-              )}
+              <div>Keine Angebote gefunden.</div>
             </div>
           ) : (
             filteredOfferings
