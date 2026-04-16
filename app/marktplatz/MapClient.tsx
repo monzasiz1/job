@@ -95,6 +95,8 @@ export default function MapClient() {
   const mapRef = useRef<any>(null)
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const markersRef = useRef<any>(null)
+  const userPosRef = useRef<{ lat: number; lng: number } | null>(null)
+  const searchRadiusRef = useRef(25)
 
   const [offerings, setOfferings] = useState<SkillOffering[]>([])
   const [jobs, setJobs] = useState<Job[]>([])
@@ -168,41 +170,48 @@ export default function MapClient() {
       )
     }
 
-    fetchOfferings()
+    // Initial-Fetch passiert im useEffect für [userPos, searchRadius, ...]
   }, [leafletReady])
 
-  // ── Angebote laden ──
-  const fetchOfferings = useCallback(async (cat?: string, radius?: number) => {
+  // ── Refs synchron halten ──
+  useEffect(() => { userPosRef.current = userPos }, [userPos])
+  useEffect(() => { searchRadiusRef.current = searchRadius }, [searchRadius])
+
+  // ── Angebote laden (nutzt Refs statt Closure für aktuelle Werte) ──
+  const fetchOfferings = useCallback(async (cat?: string) => {
     setLoading(true)
     try {
       const params = new URLSearchParams()
-      if (userPos) {
-        params.set('lat', String(userPos.lat))
-        params.set('lng', String(userPos.lng))
-        params.set('radius', String(radius ?? searchRadius))
+      const pos = userPosRef.current
+      if (pos) {
+        params.set('lat', String(pos.lat))
+        params.set('lng', String(pos.lng))
+        params.set('radius', String(searchRadiusRef.current))
       }
       if (cat) params.set('category', cat)
       const res = await fetch(`/api/offerings?${params}`)
       const data = await res.json()
       if (Array.isArray(data)) setOfferings(data)
+      else console.warn('Offerings API Antwort:', data)
     } catch (e) {
       console.error('Fehler beim Laden:', e)
     }
     setLoading(false)
-  }, [userPos, searchRadius])
+  }, [])
 
-  // ── Jobs laden ──
-  const fetchJobs = useCallback(async () => {
+  // ── Jobs laden (nutzt Refs für Position/Radius) ──
+  const fetchJobs = useCallback(async (query?: string, location?: string) => {
     setLoading(true)
     try {
       const params = new URLSearchParams()
-      if (userPos) {
-        params.set('lat', String(userPos.lat))
-        params.set('lng', String(userPos.lng))
-        params.set('radius', String(searchRadius))
-        if (searchLocation) params.set('city', searchLocation)
+      const pos = userPosRef.current
+      if (pos) {
+        params.set('lat', String(pos.lat))
+        params.set('lng', String(pos.lng))
+        params.set('radius', String(searchRadiusRef.current))
       }
-      if (searchQuery) params.set('q', searchQuery)
+      if (location) params.set('city', location)
+      if (query) params.set('q', query)
       const res = await fetch(`/api/jobs?${params}`)
       const data = await res.json()
       if (data.jobs) setJobs(data.jobs)
@@ -210,7 +219,7 @@ export default function MapClient() {
       console.error('Fehler beim Laden der Jobs:', e)
     }
     setLoading(false)
-  }, [userPos, searchRadius, searchLocation, searchQuery])
+  }, [])
 
   // ── Marker setzen (Offerings + Jobs) ──
   useEffect(() => {
@@ -295,13 +304,11 @@ export default function MapClient() {
     } catch {}
   }
 
-  // ── Kategorie / Radius / Tab wechseln ──
+  // ── Daten laden wenn Standort/Radius/Tab/Kategorie sich ändern ──
+  // Beide Tabs werden geladen damit KI-Empfehlung immer vollständige Daten hat
   useEffect(() => {
-    if (activeTab === 'offerings') {
-      fetchOfferings(selectedCat || undefined)
-    } else {
-      fetchJobs()
-    }
+    fetchOfferings(selectedCat || undefined)
+    fetchJobs(searchQuery || undefined, searchLocation || undefined)
   }, [selectedCat, userPos, searchRadius, activeTab])
 
   // ── KI-Empfehlung holen ──
@@ -411,7 +418,7 @@ export default function MapClient() {
               placeholder={activeTab === 'offerings' ? 'Angebote durchsuchen...' : 'Jobs suchen (Titel, Firma)...'}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && activeTab === 'jobs') fetchJobs() }}
+              onKeyDown={e => { if (e.key === 'Enter' && activeTab === 'jobs') fetchJobs(searchQuery, searchLocation) }}
               style={{
                 flex: 1, border: 'none', outline: 'none', background: 'transparent',
                 color: '#fff', fontFamily: 'inherit', fontSize: '0.85rem',
