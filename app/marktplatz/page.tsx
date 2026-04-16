@@ -10,19 +10,20 @@ export default async function MarktplatzPage() {
 
   return (
     <AppShell>
-      <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 62px)' }}>
+      <div className="marktplatz-page" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 62px)' }}>
         {/* Topbar */}
-        <div style={{
+        <div className="marktplatz-topbar" style={{
           padding: '14px 24px', borderBottom: '1px solid var(--border)',
           display: 'flex', alignItems: 'center', gap: 12,
           background: 'rgba(15,15,23,0.88)', backdropFilter: 'blur(20px)',
+          flexShrink: 0,
         }}>
           <span style={{ fontSize: '1.2rem' }}>🗺️</span>
           <div>
             <h1 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '1.05rem', color: '#fff' }}>
               Marktplatz
             </h1>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text3)', marginTop: 1 }}>
+            <p className="marktplatz-subtitle" style={{ fontSize: '0.75rem', color: 'var(--text3)', marginTop: 1 }}>
               Finde Fähigkeiten & Dienstleistungen in deiner Umgebung
             </p>
           </div>
