@@ -164,7 +164,7 @@ export default function MapClient() {
 
   // ── Client-seitiger Radius-Filter + Distanz ──
   const filteredOfferings = useMemo(() => {
-    if (!userPos) return offerings.map((o: SkillOffering) => ({ ...o, distance_km: null as number | null }))
+    if (!userPos) return offerings.map((o: SkillOffering) => ({ ...o, distance_km: undefined as number | undefined }))
     return offerings
       .map((o: SkillOffering) => ({
         ...o,
