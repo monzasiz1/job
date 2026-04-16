@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   const { data: { user }, error: authErr } = await supabase.auth.getUser()
   if (authErr || !user) return NextResponse.json({ error: 'Nicht eingeloggt' }, { status: 401 })
 
-  const { offerings, jobs } = await request.json()
+  const { offerings, jobs, requests } = await request.json()
 
   // Profil laden
   const { data: profile } = await supabase
@@ -38,6 +38,12 @@ export async function POST(request: Request) {
   if (jobs?.length) {
     jobs.slice(0, 15).forEach((j: any, i: number) => {
       itemSummary.push(`J${i + 1}: "${j.title}" bei ${j.company} (${j.location}, ${j.type})`)
+    })
+  }
+  if (requests?.length) {
+    requests.slice(0, 15).forEach((r: any, i: number) => {
+      const urg = r.urgency === 'sofort' ? '🔴 Sofort' : r.urgency === 'diese_woche' ? '🟡 Diese Woche' : '🟢 Flexibel'
+      itemSummary.push(`G${i + 1}: GESUCH "${r.title}" (${r.category}, ${r.location_name}, ${urg})${r.budget ? ` - Budget: ${r.budget}` : ''}`)
     })
   }
 
@@ -65,15 +71,15 @@ export async function POST(request: Request) {
 - Erfahrung: ${profile.experience_years || 0} Jahre
 - Bio: ${bio.substring(0, 300)}
 
-Verfügbare Angebote/Jobs in der Nähe:
+Verfügbare Angebote/Jobs/Gesuche in der Nähe:
 ${itemSummary.join('\n')}
 
 Aufgaben:
-1. Wähle die 3-5 besten Matches aus den Angeboten/Jobs und erkläre kurz warum.
+1. Wähle die 3-5 besten Matches aus den Angeboten/Jobs/Gesuchen und erkläre kurz warum. Bei Gesuchen (G1, G2...): matche den Nutzer als potenziellen Helfer, wenn seine Skills zum Gesuch passen.
 2. Schlage dem Nutzer 2-4 Fähigkeiten/Dienstleistungen vor, die er basierend auf seinen Skills selbst auf dem Marktplatz ANBIETEN könnte (z.B. Nachhilfe, Beratung, Reparatur). Sei kreativ und konkret!
 
 Antworte NUR mit diesem JSON:
-{"summary":"1-2 Sätze Gesamteinschätzung auf Deutsch","recommendations":[{"id":"A1 oder J3 etc","reason":"Kurzer Grund auf Deutsch"}],"suggestions":[{"title":"Konkreter Angebotstitel","category":"Passende Kategorie","reason":"Warum das zu den Skills passt"}]}`
+{"summary":"1-2 Sätze Gesamteinschätzung auf Deutsch","recommendations":[{"id":"A1 oder J3 oder G2 etc","reason":"Kurzer Grund auf Deutsch"}],"suggestions":[{"title":"Konkreter Angebotstitel","category":"Passende Kategorie","reason":"Warum das zu den Skills passt"}]}`
         }]
       })
     })
