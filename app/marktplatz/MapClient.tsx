@@ -715,7 +715,7 @@ export default function MapClient() {
                     setSelectedOffering(o)
                     if (mapRef.current) mapRef.current.setView([o.lat, o.lng], 14)
                   }}
-                  onDoubleClick={() => openDetail('offering', o)}}
+                  onDoubleClick={() => openDetail('offering', o)}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{
@@ -778,7 +778,7 @@ export default function MapClient() {
                     setSelectedRequest(r)
                     if (mapRef.current) mapRef.current.setView([r.lat, r.lng], 14)
                   }}
-                  onDoubleClick={() => openDetail('request', r)}}
+                  onDoubleClick={() => openDetail('request', r)}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{
