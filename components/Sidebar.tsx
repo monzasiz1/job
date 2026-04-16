@@ -30,11 +30,13 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
         { href: '/dashboard', icon: '▣', label: 'Dashboard' },
         { href: '/jobs', icon: '◈', label: 'Jobs anzeigen' },
         { href: '/post-job', icon: '+', label: 'Stelle inserieren' },
+        { href: '/marktplatz', icon: '🗺', label: 'Marktplatz' },
         { href: '/ki-tools', icon: '✦', label: 'KI-Tools' },
       ]
     : [
         { href: '/dashboard', icon: '▣', label: 'Dashboard' },
         { href: '/jobs', icon: '◈', label: 'Jobs finden' },
+        { href: '/marktplatz', icon: '🗺', label: 'Marktplatz' },
         { href: '/ki-tools', icon: '✦', label: 'KI-Assistent' },
         { href: `/bewerber/${user?.id || ''}`, icon: '◉', label: 'Mein Profil' },
       ]
