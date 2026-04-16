@@ -4,6 +4,48 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import FavoriteButton from '@/components/FavoriteButton'
 
+declare const L: any
+
+function loadLeaflet(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (typeof window !== 'undefined' && (window as any).L) { resolve(); return }
+    if (!document.querySelector('link[href*="leaflet"]')) {
+      const css = document.createElement('link')
+      css.rel = 'stylesheet'
+      css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
+      document.head.appendChild(css)
+    }
+    const scr = document.createElement('script')
+    scr.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+    scr.onload = () => resolve()
+    scr.onerror = () => reject(new Error('Leaflet konnte nicht geladen werden'))
+    document.head.appendChild(scr)
+  })
+}
+
+function escapeHtml(s: string): string {
+  const map: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }
+  return s.replace(/[&<>"']/g, c => map[c] || c)
+}
+
+function createJobMarkerIcon(type: string) {
+  const colors: Record<string, string> = { 'Remote': '#3dba7e', 'Hybrid': '#d4a843', 'Vor Ort': '#7c68fa' }
+  const color = colors[type] || '#7c68fa'
+  return L.divIcon({
+    className: 'custom-map-marker',
+    html: `<div style="
+      width:36px;height:36px;border-radius:10px;
+      background:${color}20;border:2px solid ${color};
+      display:flex;align-items:center;justify-content:center;
+      font-size:16px;box-shadow:0 2px 12px ${color}40;
+      backdrop-filter:blur(4px);
+    ">💼</div>`,
+    iconSize: [36, 36],
+    iconAnchor: [18, 18],
+    popupAnchor: [0, -20],
+  })
+}
+
 const LC = ['ja','jb','jc','jd','je','jf']
 const ll = (n: string) => n.slice(0,2).toUpperCase()
 const lc = (i: number) => LC[i % LC.length]
@@ -14,6 +56,7 @@ export default function JobsClient({ jobs, searchParams, user }: any) {
   const [sel, setSel] = useState<any>(jobs[0] || null)
   const [geo, setGeo] = useState(false)
   const [swipeMode, setSwipeMode] = useState(false)
+  const [mapMode, setMapMode] = useState(false)
   const [swipeIdx, setSwipeIdx] = useState(0)
   const [swipes, setSwipes] = useState<Record<string,string>>({})
   const [aiFilter, setAiFilter] = useState(false)
@@ -142,8 +185,11 @@ export default function JobsClient({ jobs, searchParams, user }: any) {
           <button onClick={toggleAiFilter} style={{padding:'clamp(7px, 1.5vw, 10px) clamp(12px, 2vw, 18px)',background:aiFilter?'var(--accent)':'var(--surface2)',color:aiFilter?'#fff':'var(--text2)',border:`1px solid ${aiFilter?'transparent':'var(--border2)'}`,borderRadius:999,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:'clamp(0.65rem, 1.6vw, 0.82rem)',cursor:'pointer',flexShrink:0,whiteSpace:'nowrap'}}>
             {aiFilter?'✓ KI':'KI-Filter'}
           </button>
-          <button onClick={() => {setSwipeMode(!swipeMode); setSwipeIdx(0)}} style={{padding:'clamp(7px, 1.5vw, 10px) clamp(12px, 2vw, 18px)',background:swipeMode?'var(--accent)':'var(--surface2)',color:swipeMode?'#fff':'var(--text2)',border:`1px solid ${swipeMode?'transparent':'var(--border2)'}`,borderRadius:999,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:'clamp(0.65rem, 1.6vw, 0.82rem)',cursor:'pointer',flexShrink:0,whiteSpace:'nowrap'}}>
+          <button onClick={() => {setSwipeMode(!swipeMode); setSwipeIdx(0); setMapMode(false)}} style={{padding:'clamp(7px, 1.5vw, 10px) clamp(12px, 2vw, 18px)',background:swipeMode?'var(--accent)':'var(--surface2)',color:swipeMode?'#fff':'var(--text2)',border:`1px solid ${swipeMode?'transparent':'var(--border2)'}`,borderRadius:999,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:'clamp(0.65rem, 1.6vw, 0.82rem)',cursor:'pointer',flexShrink:0,whiteSpace:'nowrap'}}>
             {swipeMode?'Liste':'💫 Swipe'}
+          </button>
+          <button onClick={() => {setMapMode(!mapMode); setSwipeMode(false)}} style={{padding:'clamp(7px, 1.5vw, 10px) clamp(12px, 2vw, 18px)',background:mapMode?'var(--accent)':'var(--surface2)',color:mapMode?'#fff':'var(--text2)',border:`1px solid ${mapMode?'transparent':'var(--border2)'}`,borderRadius:999,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:'clamp(0.65rem, 1.6vw, 0.82rem)',cursor:'pointer',flexShrink:0,whiteSpace:'nowrap'}}>
+            {mapMode?'Liste':'🗺️ Karte'}
           </button>
         </form>
       </div>
@@ -156,8 +202,10 @@ export default function JobsClient({ jobs, searchParams, user }: any) {
         <span style={{marginLeft:'auto',fontSize:'clamp(0.65rem, 1.5vw, 0.76rem)',color:'var(--text3)',fontWeight:600,whiteSpace:'nowrap'}}>{filteredJobs.length} {filteredJobs.length === 1 ? 'Job' : 'Jobs'} {aiFilter && '(KI)'}</span>
       </div>
 
-      {/* SPLIT VIEW oder SWIPE */}
-      {swipeMode ? (
+      {/* MAP VIEW */}
+      {mapMode ? (
+        <JobsMapView jobs={filteredJobs} />
+      ) : swipeMode ? (
         <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'calc(100vh - 130px)',padding:'1.5rem',background:'linear-gradient(135deg,rgba(124,104,250,0.03),rgba(212,168,67,0.02))'}}>
           {filteredJobs.length > 0 && swipeIdx < filteredJobs.length ? (
             <div style={{maxWidth:520,width:'100%'}}>
@@ -376,5 +424,118 @@ export default function JobsClient({ jobs, searchParams, user }: any) {
       </div>
       )}
     </>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Jobs-Kartenansicht
+// ═══════════════════════════════════════════════════════════════
+function JobsMapView({ jobs }: { jobs: any[] }) {
+  const mapRef = useRef<any>(null)
+  const mapContainerRef = useRef<HTMLDivElement>(null)
+  const markersRef = useRef<any>(null)
+  const [leafletReady, setLeafletReady] = useState(false)
+
+  useEffect(() => {
+    loadLeaflet().then(() => setLeafletReady(true))
+  }, [])
+
+  // Karte erstellen
+  useEffect(() => {
+    if (!leafletReady || !mapContainerRef.current || mapRef.current) return
+
+    // Mittelpunkt: Durchschnitt aller Jobs mit Koordinaten, oder Krefeld als Fallback
+    const withCoords = jobs.filter(j => j.lat && j.lng)
+    let center: [number, number] = [51.23, 6.78]
+    if (withCoords.length > 0) {
+      const avgLat = withCoords.reduce((s, j) => s + j.lat, 0) / withCoords.length
+      const avgLng = withCoords.reduce((s, j) => s + j.lng, 0) / withCoords.length
+      center = [avgLat, avgLng]
+    }
+
+    const map = L.map(mapContainerRef.current, { zoomControl: false }).setView(center, withCoords.length > 5 ? 10 : 12)
+    mapRef.current = map
+    L.control.zoom({ position: 'bottomright' }).addTo(map)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+      maxZoom: 19,
+    }).addTo(map)
+    markersRef.current = L.layerGroup().addTo(map)
+    setTimeout(() => map.invalidateSize(), 200)
+    setTimeout(() => map.invalidateSize(), 800)
+
+    return () => {
+      map.remove()
+      mapRef.current = null
+    }
+  }, [leafletReady])
+
+  // Marker setzen wenn Jobs oder Leaflet sich ändern
+  useEffect(() => {
+    if (!markersRef.current || !leafletReady) return
+    markersRef.current.clearLayers()
+
+    const bounds: [number, number][] = []
+
+    jobs.forEach(j => {
+      if (!j.lat || !j.lng) return
+      bounds.push([j.lat, j.lng])
+      const marker = L.marker([j.lat, j.lng], { icon: createJobMarkerIcon(j.type) })
+      const salary = j.salary_min && j.salary_max ? `${(j.salary_min/1000).toFixed(0)}k - ${(j.salary_max/1000).toFixed(0)}k €` : ''
+      marker.bindPopup(`
+        <div style="font-family:'DM Sans',sans-serif;min-width:220px;color:#e0e0e0">
+          <div style="font-weight:700;font-size:0.95rem;margin-bottom:4px">💼 ${escapeHtml(j.title)}</div>
+          <div style="color:#aaa;font-size:0.78rem;margin-bottom:2px">${escapeHtml(j.company)} · ${escapeHtml(j.location)}</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0">
+            <span style="padding:2px 8px;border-radius:99px;background:rgba(124,104,250,0.15);color:#a78bfa;font-size:0.7rem;font-weight:600">${escapeHtml(j.type)}</span>
+            <span style="padding:2px 8px;border-radius:99px;background:rgba(61,186,126,0.12);color:#3dba7e;font-size:0.7rem;font-weight:600">${escapeHtml(j.contract)}</span>
+            <span style="padding:2px 8px;border-radius:99px;background:rgba(212,168,67,0.12);color:#d4a843;font-size:0.7rem;font-weight:600">${escapeHtml(j.level)}</span>
+          </div>
+          ${salary ? `<div style="color:#d4a843;font-size:0.82rem;font-weight:600;margin-top:4px">💰 ${salary}</div>` : ''}
+          <a href="/jobs/${j.id}" target="_blank" style="display:block;margin-top:8px;padding:6px 12px;background:#7c68fa;color:#fff;border-radius:8px;text-align:center;font-size:0.78rem;font-weight:700;text-decoration:none">Details ansehen →</a>
+        </div>
+      `, { className: 'dark-popup' })
+      markersRef.current.addLayer(marker)
+    })
+
+    // Auto-fit Karte auf alle Marker
+    if (bounds.length > 1 && mapRef.current) {
+      mapRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 })
+    }
+  }, [jobs, leafletReady])
+
+  const jobsWithCoords = jobs.filter(j => j.lat && j.lng).length
+
+  return (
+    <div style={{ position: 'relative', height: 'calc(100vh - 130px)', background: '#0f0f17' }}>
+      <div ref={mapContainerRef} style={{ position: 'absolute', inset: 0 }} />
+
+      {/* Info-Badge oben links */}
+      <div style={{
+        position: 'absolute', top: 16, left: 16, zIndex: 1000,
+        background: 'rgba(15,15,23,0.85)', backdropFilter: 'blur(12px)',
+        border: '1px solid var(--border)', borderRadius: 14, padding: '10px 16px',
+        display: 'flex', alignItems: 'center', gap: 10,
+      }}>
+        <span style={{ fontSize: '1.2rem' }}>📍</span>
+        <div>
+          <div style={{ fontWeight: 700, fontSize: '0.82rem', color: '#fff' }}>
+            {jobsWithCoords} von {jobs.length} Jobs auf der Karte
+          </div>
+          {jobs.length - jobsWithCoords > 0 && (
+            <div style={{ fontSize: '0.7rem', color: 'var(--text3)', marginTop: 1 }}>
+              {jobs.length - jobsWithCoords} Jobs ohne Koordinaten
+            </div>
+          )}
+        </div>
+      </div>
+
+      {!leafletReady && (
+        <div style={{
+          position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: 'var(--text3)', fontSize: '0.9rem',
+        }}>Karte wird geladen...</div>
+      )}
+    </div>
   )
 }
