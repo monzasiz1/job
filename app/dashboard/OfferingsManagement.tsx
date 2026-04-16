@@ -1,0 +1,245 @@
+'use client'
+import { useState } from 'react'
+import { SkillOffering, OFFERING_CATEGORIES } from '@/lib/types'
+
+const CAT_META: Record<string, { emoji: string; color: string }> = {
+  'Handwerk':           { emoji: '🔨', color: '#f06090' },
+  'Garten & Haushalt':  { emoji: '🌱', color: '#3dba7e' },
+  'Nachhilfe':          { emoji: '📚', color: '#7c68fa' },
+  'IT & Technik':       { emoji: '💻', color: '#7aa2f7' },
+  'Transport':          { emoji: '🚚', color: '#d4a843' },
+  'Pflege & Betreuung': { emoji: '❤️', color: '#f06090' },
+  'Kreativ & Design':   { emoji: '🎨', color: '#a855c8' },
+  'Fitness & Sport':    { emoji: '💪', color: '#3dba7e' },
+  'Musik & Kunst':      { emoji: '🎵', color: '#c084fc' },
+  'Kochen & Catering':  { emoji: '🍳', color: '#f0c060' },
+  'Reinigung':          { emoji: '✨', color: '#7aa2f7' },
+  'Reparatur':          { emoji: '🔧', color: '#d4a843' },
+  'Sonstiges':          { emoji: '📌', color: '#888' },
+}
+function getCatMeta(cat: string) { return CAT_META[cat] || CAT_META['Sonstiges'] }
+
+export default function OfferingsManagement({ offerings: initial }: { offerings: SkillOffering[] }) {
+  const [items, setItems] = useState<SkillOffering[]>(initial)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [editItem, setEditItem] = useState<SkillOffering | null>(null)
+  const [editForm, setEditForm] = useState({ title: '', description: '', category: 'Sonstiges', price_info: '', location_name: '', lat: 0, lng: 0, radius_km: 10 })
+  const [editLoading, setEditLoading] = useState(false)
+  const [editMsg, setEditMsg] = useState('')
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Angebot wirklich löschen?')) return
+    setDeletingId(id)
+    try {
+      const res = await fetch(`/api/offerings?id=${id}`, { method: 'DELETE' })
+      if (res.ok) setItems(prev => prev.filter(o => o.id !== id))
+      else alert('Fehler beim Löschen')
+    } catch { alert('Netzwerkfehler') }
+    setDeletingId(null)
+  }
+
+  const openEdit = (o: SkillOffering) => {
+    setEditItem(o)
+    setEditForm({
+      title: o.title,
+      description: o.description || '',
+      category: o.category,
+      price_info: o.price_info || '',
+      location_name: o.location_name,
+      lat: o.lat,
+      lng: o.lng,
+      radius_km: o.radius_km,
+    })
+    setEditMsg('')
+  }
+
+  const geocode = async (loc: string) => {
+    try {
+      const res = await fetch(`/api/geocode?city=${encodeURIComponent(loc)}`)
+      const data = await res.json()
+      if (data.lat && data.lng) {
+        setEditForm(f => ({ ...f, lat: data.lat, lng: data.lng }))
+        return { lat: data.lat, lng: data.lng }
+      }
+    } catch {}
+    return null
+  }
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editItem) return
+    setEditLoading(true)
+    setEditMsg('')
+
+    let submitData = { ...editForm }
+    if (submitData.lat === 0 && submitData.lng === 0) {
+      const geo = await geocode(submitData.location_name)
+      if (!geo) { setEditMsg('Standort nicht gefunden.'); setEditLoading(false); return }
+      submitData = { ...submitData, lat: geo.lat, lng: geo.lng }
+    }
+
+    try {
+      const res = await fetch('/api/offerings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: editItem.id, ...submitData }),
+      })
+      if (res.ok) {
+        const updated = await res.json()
+        setItems(prev => prev.map(o => o.id === editItem.id ? { ...o, ...updated } : o))
+        setEditItem(null)
+        setEditMsg('')
+      } else {
+        const err = await res.json()
+        setEditMsg(err.error || 'Fehler beim Speichern')
+      }
+    } catch { setEditMsg('Netzwerkfehler') }
+    setEditLoading(false)
+  }
+
+  return (
+    <div style={{ marginBottom: '2rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: 8 }}>
+        <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: 'clamp(0.95rem, 3vw, 1.05rem)', color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
+          🎯 Meine Angebote
+          {items.length > 0 && (
+            <span style={{ padding: '2px 10px', background: 'rgba(212,168,67,0.15)', border: '1px solid rgba(212,168,67,0.2)', borderRadius: 999, fontSize: '0.72rem', fontWeight: 700, color: '#d4a843' }}>{items.length}</span>
+          )}
+        </div>
+      </div>
+
+      {items.length === 0 ? (
+        <div style={{ background: 'linear-gradient(135deg, rgba(212,168,67,0.06), rgba(212,168,67,0.02))', border: '1px solid rgba(212,168,67,0.15)', borderRadius: 20, padding: 'clamp(1.5rem, 4vw, 2rem)', textAlign: 'center' as const }}>
+          <div style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', marginBottom: '0.75rem' }}>🎯</div>
+          <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.88rem', marginBottom: '1rem' }}>Du hast noch keine Fähigkeiten angeboten.</div>
+          <a href="/marktplatz" style={{ padding: '10px 20px', background: 'linear-gradient(135deg, #d4a843, #f0c060)', color: '#000', borderRadius: 12, fontWeight: 700, fontSize: '0.85rem', textDecoration: 'none' }}>🗺️ Zum Marktplatz</a>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {items.map(o => {
+            const { emoji, color } = getCatMeta(o.category)
+            const isDeleting = deletingId === o.id
+            return (
+              <div key={o.id} style={{
+                background: '#17172a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 16,
+                padding: 'clamp(0.75rem, 2vw, 1rem)', display: 'flex', alignItems: 'center', gap: 12,
+                opacity: isDeleting ? 0.5 : 1, transition: 'all 0.2s', flexWrap: 'wrap',
+              }}>
+                <span style={{
+                  width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+                  background: color + '18', border: `1.5px solid ${color}40`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem',
+                }}>{emoji}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, fontSize: 'clamp(0.82rem, 2vw, 0.9rem)', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {o.title}
+                  </div>
+                  <div style={{ fontSize: 'clamp(0.68rem, 1.5vw, 0.75rem)', color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>
+                    {o.category} · {o.location_name}
+                    {o.price_info && <span style={{ color: '#d4a843', marginLeft: 6 }}>💰 {o.price_info}</span>}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                  <button onClick={() => openEdit(o)} style={{
+                    padding: '7px 14px', background: 'rgba(124,104,250,0.12)', border: '1px solid rgba(124,104,250,0.25)',
+                    borderRadius: 10, color: '#a080ff', fontSize: '0.78rem', fontWeight: 700,
+                    cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
+                  }}>✏️ Bearbeiten</button>
+                  <button onClick={() => handleDelete(o.id)} disabled={isDeleting} style={{
+                    padding: '7px 14px', background: 'rgba(240,96,144,0.1)', border: '1px solid rgba(240,96,144,0.2)',
+                    borderRadius: 10, color: '#f06090', fontSize: '0.78rem', fontWeight: 700,
+                    cursor: isDeleting ? 'not-allowed' : 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
+                  }}>{isDeleting ? '...' : '🗑️ Löschen'}</button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* ── Bearbeiten Modal ── */}
+      {editItem && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 1000,
+          background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
+        }} onClick={(e) => { if (e.target === e.currentTarget) setEditItem(null) }}>
+          <form onSubmit={handleEditSubmit} style={{
+            background: 'var(--surface, #1a1a2e)', border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: 20, padding: '2rem', maxWidth: 460, width: '100%',
+            maxHeight: '85vh', overflowY: 'auto',
+          }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '1.15rem', marginBottom: '1.5rem', color: '#fff' }}>
+              ✏️ Angebot bearbeiten
+            </h3>
+
+            <label style={labelStyle}>Titel *</label>
+            <input style={inputStyle} required maxLength={200} value={editForm.title}
+              onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))} />
+
+            <label style={labelStyle}>Kategorie *</label>
+            <select style={inputStyle} value={editForm.category}
+              onChange={e => setEditForm(f => ({ ...f, category: e.target.value }))}>
+              {OFFERING_CATEGORIES.map(c => <option key={c} value={c}>{getCatMeta(c).emoji} {c}</option>)}
+            </select>
+
+            <label style={labelStyle}>Beschreibung</label>
+            <textarea style={{ ...inputStyle, resize: 'vertical' as const }} rows={3} maxLength={2000}
+              value={editForm.description} onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))} />
+
+            <label style={labelStyle}>Preis / Konditionen</label>
+            <input style={inputStyle} maxLength={100} value={editForm.price_info}
+              onChange={e => setEditForm(f => ({ ...f, price_info: e.target.value }))} />
+
+            <label style={labelStyle}>Standort *</label>
+            <input style={inputStyle} required maxLength={200} value={editForm.location_name}
+              onChange={e => setEditForm(f => ({ ...f, location_name: e.target.value, lat: 0, lng: 0 }))}
+              onBlur={e => { if (e.target.value) geocode(e.target.value) }} />
+            {editForm.lat !== 0 && (
+              <div style={{ fontSize: '0.72rem', color: '#3dba7e', marginTop: 2, marginBottom: 8 }}>
+                ✓ Standort erkannt ({editForm.lat.toFixed(3)}, {editForm.lng.toFixed(3)})
+              </div>
+            )}
+
+            <label style={labelStyle}>Umkreis (km)</label>
+            <input style={inputStyle} type="number" min={1} max={100} value={editForm.radius_km}
+              onChange={e => setEditForm(f => ({ ...f, radius_km: parseInt(e.target.value) || 10 }))} />
+
+            {editMsg && (
+              <div style={{
+                padding: '8px 12px', borderRadius: 8, marginTop: 12, fontSize: '0.82rem', fontWeight: 600,
+                background: editMsg.includes('Fehler') || editMsg.includes('nicht') ? 'rgba(240,96,144,0.1)' : 'rgba(61,186,126,0.1)',
+                color: editMsg.includes('Fehler') || editMsg.includes('nicht') ? '#f06090' : '#3dba7e',
+              }}>{editMsg}</div>
+            )}
+
+            <div style={{ display: 'flex', gap: 10, marginTop: '1.5rem' }}>
+              <button type="button" onClick={() => setEditItem(null)} style={{
+                flex: 1, padding: 10, border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12,
+                background: 'transparent', color: 'rgba(255,255,255,0.5)', fontFamily: 'inherit',
+                fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer',
+              }}>Abbrechen</button>
+              <button type="submit" disabled={editLoading} style={{
+                flex: 1, padding: 10, border: 'none', borderRadius: 12,
+                background: editLoading ? 'rgba(124,104,250,0.3)' : '#7c68fa',
+                color: '#fff', fontFamily: 'inherit', fontWeight: 700, fontSize: '0.85rem',
+                cursor: editLoading ? 'not-allowed' : 'pointer',
+              }}>{editLoading ? 'Speichern...' : 'Speichern'}</button>
+            </div>
+          </form>
+        </div>
+      )}
+    </div>
+  )
+}
+
+const labelStyle: React.CSSProperties = {
+  display: 'block', fontSize: '0.78rem', fontWeight: 700,
+  color: 'rgba(255,255,255,0.45)', marginBottom: 4, marginTop: 12,
+}
+
+const inputStyle: React.CSSProperties = {
+  width: '100%', padding: '10px 14px', background: 'rgba(255,255,255,0.04)',
+  border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10,
+  color: '#fff', fontFamily: 'inherit', fontSize: '0.88rem', outline: 'none',
+}
