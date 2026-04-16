@@ -28,3 +28,32 @@ export interface Job {
   created_at: string
   profiles?: Profile
 }
+
+export const OFFERING_CATEGORIES = [
+  'Handwerk', 'Garten & Haushalt', 'Nachhilfe', 'IT & Technik',
+  'Transport', 'Pflege & Betreuung', 'Kreativ & Design',
+  'Fitness & Sport', 'Musik & Kunst', 'Kochen & Catering',
+  'Reinigung', 'Reparatur', 'Sonstiges',
+] as const
+
+export type OfferingCategory = (typeof OFFERING_CATEGORIES)[number]
+
+export interface SkillOffering {
+  id: string
+  user_id: string
+  title: string
+  description?: string | null
+  category: string
+  price_info?: string | null
+  location_name: string
+  lat: number
+  lng: number
+  radius_km: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
+  // Joined fields from RPC
+  distance_km?: number
+  user_name?: string
+  user_avatar?: string | null
+}
