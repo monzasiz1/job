@@ -7,6 +7,7 @@ import InterestsSection from './InterestsSection'
 import JobsManagement from './JobsManagement'
 import OfferingsManagement from './OfferingsManagement'
 import RequestsManagement from './RequestsManagement'
+import BookingsSection from './BookingsSection'
 
 export default async function Dashboard() {
   const supabase = createClient()
@@ -143,6 +144,9 @@ export default async function Dashboard() {
 
         {/* MEINE GESUCHE */}
         <RequestsManagement requests={myRequests} />
+
+        {/* AUFTRÄGE & ANFRAGEN */}
+        <BookingsSection />
 
         {/* ARBEITGEBER: Stellen */}
         {isEmp && (
