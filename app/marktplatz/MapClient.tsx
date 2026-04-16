@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase-browser'
-import { SkillOffering, OFFERING_CATEGORIES } from '@/lib/types'
+import { SkillOffering, SkillRequest, OFFERING_CATEGORIES, REQUEST_URGENCY, URGENCY_META } from '@/lib/types'
+
+type MapMode = 'angebote' | 'gesuche'
 
 // ─── Leaflet wird per CDN geladen (kein npm nötig) ───
 declare const L: any
@@ -62,6 +64,25 @@ function createMarkerIcon(cat: string) {
   })
 }
 
+// ─── Request Marker (andere Form: abgerundetes Quadrat, gelb/pink Rand) ───
+function createRequestMarkerIcon(cat: string, urgency: string) {
+  const { emoji } = getCatMeta(cat)
+  const urgColor = urgency === 'sofort' ? '#f06090' : urgency === 'diese_woche' ? '#d4a843' : '#3dba7e'
+  return L.divIcon({
+    className: 'custom-map-marker',
+    html: `<div style="
+      width:38px;height:38px;border-radius:10px;
+      background:${urgColor}22;border:2.5px solid ${urgColor};
+      display:flex;align-items:center;justify-content:center;
+      font-size:18px;box-shadow:0 2px 12px ${urgColor}40;
+      backdrop-filter:blur(4px);position:relative;
+    ">${emoji}<span style="position:absolute;top:-4px;right:-4px;width:12px;height:12px;border-radius:50%;background:${urgColor};border:2px solid #0f0f17;"></span></div>`,
+    iconSize: [38, 38],
+    iconAnchor: [19, 19],
+    popupAnchor: [0, -22],
+  })
+}
+
 // ─── Haversine-Distanz in km ───
 function haversine(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const toRad = (d: number) => d * Math.PI / 180
@@ -85,6 +106,8 @@ export default function MapClient() {
   const searchRadiusRef = useRef(25)
 
   const [offerings, setOfferings] = useState<SkillOffering[]>([])
+  const [requests, setRequests] = useState<SkillRequest[]>([])
+  const [mapMode, setMapMode] = useState<MapMode>('angebote')
   const [loading, setLoading] = useState(true)
   const [leafletReady, setLeafletReady] = useState(false)
   const [selectedCat, setSelectedCat] = useState<string>('')
@@ -109,6 +132,17 @@ export default function MapClient() {
   const [formLoading, setFormLoading] = useState(false)
   const [formMsg, setFormMsg] = useState('')
   const [selectedOffering, setSelectedOffering] = useState<SkillOffering | null>(null)
+
+  // ── Gesuch erstellen ──
+  const [showRequestForm, setShowRequestForm] = useState(false)
+  const [reqFormData, setReqFormData] = useState({
+    title: '', description: '', category: 'Sonstiges',
+    budget: '', urgency: 'flexibel' as string,
+    location_name: '', lat: 0, lng: 0, radius_km: 15,
+  })
+  const [reqFormLoading, setReqFormLoading] = useState(false)
+  const [reqFormMsg, setReqFormMsg] = useState('')
+  const [selectedRequest, setSelectedRequest] = useState<SkillRequest | null>(null)
 
   // ── Init ──
   useEffect(() => {
@@ -162,6 +196,21 @@ export default function MapClient() {
     setLoading(false)
   }, [])
 
+  // ── Gesuche laden ──
+  const fetchRequests = useCallback(async (cat?: string) => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams()
+      if (cat) params.set('category', cat)
+      const res = await fetch(`/api/requests?${params}`)
+      const data = await res.json()
+      if (Array.isArray(data)) setRequests(data)
+    } catch (e) {
+      console.error('Fehler beim Laden der Gesuche:', e)
+    }
+    setLoading(false)
+  }, [])
+
   // ── Client-seitiger Distanz-Berechnung + Radius-Filter ──
   const filteredOfferings = useMemo(() => {
     // Kein Standort → keine Angebote anzeigen
@@ -175,6 +224,19 @@ export default function MapClient() {
       .filter((o: SkillOffering) => (o.distance_km ?? Infinity) <= searchRadius) // NUR im Radius
       .sort((a: SkillOffering, b: SkillOffering) => (a.distance_km ?? 0) - (b.distance_km ?? 0))
   }, [offerings, userPos, searchRadius])
+
+  // ── Client-seitiger Distanz-Filter für Gesuche ──
+  const filteredRequests = useMemo(() => {
+    if (!userPos) return []
+    return requests
+      .filter((r: SkillRequest) => r.lat !== 0 || r.lng !== 0)
+      .map((r: SkillRequest) => ({
+        ...r,
+        distance_km: Math.round(haversine(userPos.lat, userPos.lng, r.lat, r.lng) * 10) / 10,
+      }))
+      .filter((r: SkillRequest) => (r.distance_km ?? Infinity) <= searchRadius)
+      .sort((a: SkillRequest, b: SkillRequest) => (a.distance_km ?? 0) - (b.distance_km ?? 0))
+  }, [requests, userPos, searchRadius])
 
   // ── Zusammenfassung für den Standort ──
   const areaSummary = useMemo(() => {
@@ -195,33 +257,69 @@ export default function MapClient() {
   useEffect(() => {
     if (!markersRef.current || !leafletReady) return
     markersRef.current.clearLayers()
-    const filtered = filteredOfferings.filter(o => {
-      if (searchQuery) {
-        const q = searchQuery.toLowerCase()
-        return o.title.toLowerCase().includes(q) ||
-               o.category.toLowerCase().includes(q) ||
-               (o.description || '').toLowerCase().includes(q) ||
-               o.location_name.toLowerCase().includes(q)
-      }
-      return true
-    })
-    filtered.forEach(o => {
-      const { emoji } = getCatMeta(o.category)
-      const marker = L.marker([o.lat, o.lng], { icon: createMarkerIcon(o.category) })
-      marker.bindPopup(`
-        <div style="font-family:'DM Sans',sans-serif;min-width:200px;color:#e0e0e0">
-          <div style="font-weight:700;font-size:0.95rem;margin-bottom:4px">${emoji} ${escapeHtml(o.title)}</div>
-          <div style="color:#aaa;font-size:0.78rem;margin-bottom:6px">${escapeHtml(o.category)} · ${escapeHtml(o.location_name)}</div>
-          ${o.price_info ? `<div style="color:#d4a843;font-size:0.82rem;font-weight:600">💰 ${escapeHtml(o.price_info)}</div>` : ''}
-          ${o.user_name ? `<div style="color:#999;font-size:0.75rem;margin-top:6px">von ${escapeHtml(o.user_name)}</div>` : ''}
-          ${o.distance_km != null ? `<div style="color:#7c68fa;font-size:0.73rem">📍 ${o.distance_km.toFixed(1)} km entfernt</div>` : ''}
-        </div>
-      `, { className: 'dark-popup' })
-      marker.on('click', () => setSelectedOffering(o))
-      markersRef.current.addLayer(marker)
-    })
-    // Karte auf Marker zentrieren (wenn es welche gibt)
-    if (filtered.length > 0 && mapRef.current && markersRef.current.getLayers().length > 0) {
+
+    if (mapMode === 'angebote') {
+      const filtered = filteredOfferings.filter(o => {
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase()
+          return o.title.toLowerCase().includes(q) ||
+                 o.category.toLowerCase().includes(q) ||
+                 (o.description || '').toLowerCase().includes(q) ||
+                 o.location_name.toLowerCase().includes(q)
+        }
+        return true
+      })
+      filtered.forEach(o => {
+        const { emoji } = getCatMeta(o.category)
+        const marker = L.marker([o.lat, o.lng], { icon: createMarkerIcon(o.category) })
+        marker.bindPopup(`
+          <div style="font-family:'DM Sans',sans-serif;min-width:200px;color:#e0e0e0">
+            <div style="font-weight:700;font-size:0.95rem;margin-bottom:4px">${emoji} ${escapeHtml(o.title)}</div>
+            <div style="color:#aaa;font-size:0.78rem;margin-bottom:6px">${escapeHtml(o.category)} · ${escapeHtml(o.location_name)}</div>
+            ${o.price_info ? `<div style="color:#d4a843;font-size:0.82rem;font-weight:600">💰 ${escapeHtml(o.price_info)}</div>` : ''}
+            ${o.user_name ? `<div style="color:#999;font-size:0.75rem;margin-top:6px">von ${escapeHtml(o.user_name)}</div>` : ''}
+            ${o.distance_km != null ? `<div style="color:#7c68fa;font-size:0.73rem">📍 ${o.distance_km.toFixed(1)} km entfernt</div>` : ''}
+          </div>
+        `, { className: 'dark-popup' })
+        marker.on('click', () => setSelectedOffering(o))
+        markersRef.current.addLayer(marker)
+      })
+    } else {
+      // ── Gesuche-Marker ──
+      const filtered = filteredRequests.filter(r => {
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase()
+          return r.title.toLowerCase().includes(q) ||
+                 r.category.toLowerCase().includes(q) ||
+                 (r.description || '').toLowerCase().includes(q) ||
+                 r.location_name.toLowerCase().includes(q)
+        }
+        return true
+      })
+      filtered.forEach(r => {
+        const { emoji } = getCatMeta(r.category)
+        const urgMeta = URGENCY_META[r.urgency] || URGENCY_META.flexibel
+        const marker = L.marker([r.lat, r.lng], { icon: createRequestMarkerIcon(r.category, r.urgency) })
+        marker.bindPopup(`
+          <div style="font-family:'DM Sans',sans-serif;min-width:200px;color:#e0e0e0">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+              <span style="font-size:0.65rem;padding:2px 8px;border-radius:999px;background:${urgMeta.color}22;color:${urgMeta.color};font-weight:700">${urgMeta.emoji} ${urgMeta.label}</span>
+              <span style="font-size:0.65rem;color:#888">GESUCH</span>
+            </div>
+            <div style="font-weight:700;font-size:0.95rem;margin-bottom:4px">${emoji} ${escapeHtml(r.title)}</div>
+            <div style="color:#aaa;font-size:0.78rem;margin-bottom:6px">${escapeHtml(r.category)} · ${escapeHtml(r.location_name)}</div>
+            ${r.budget ? `<div style="color:#d4a843;font-size:0.82rem;font-weight:600">💰 Budget: ${escapeHtml(r.budget)}</div>` : ''}
+            ${r.user_name ? `<div style="color:#999;font-size:0.75rem;margin-top:6px">von ${escapeHtml(r.user_name)}</div>` : ''}
+            ${r.distance_km != null ? `<div style="color:#7c68fa;font-size:0.73rem">📍 ${r.distance_km.toFixed(1)} km entfernt</div>` : ''}
+          </div>
+        `, { className: 'dark-popup' })
+        marker.on('click', () => setSelectedRequest(r))
+        markersRef.current.addLayer(marker)
+      })
+    }
+
+    // Karte auf Marker zentrieren
+    if (mapRef.current && markersRef.current.getLayers().length > 0) {
       try {
         const bounds = markersRef.current.getBounds()
         if (bounds.isValid()) {
@@ -229,7 +327,7 @@ export default function MapClient() {
         }
       } catch {}
     }
-  }, [filteredOfferings, searchQuery, leafletReady])
+  }, [filteredOfferings, filteredRequests, mapMode, searchQuery, leafletReady])
 
   // ── Radius-Kreis ──
   useEffect(() => {
@@ -258,26 +356,36 @@ export default function MapClient() {
     } catch {}
   }
 
-  // ── Daten laden bei Kategorie-Wechsel (Radius-Filter ist client-seitig) ──
+  // ── Daten laden bei Kategorie-Wechsel oder Modus-Wechsel ──
   useEffect(() => {
-    fetchOfferings(selectedCat || undefined)
-  }, [selectedCat])
+    if (mapMode === 'angebote') {
+      fetchOfferings(selectedCat || undefined)
+    } else {
+      fetchRequests(selectedCat || undefined)
+    }
+  }, [selectedCat, mapMode])
 
   // ── KI-Empfehlung ──
   const getAiRecommendation = async () => {
     setAiLoading(true)
     setShowAiPanel(true)
     try {
+      const body: any = { offerings: [], jobs: [], requests: [] }
+      if (mapMode === 'angebote') {
+        body.offerings = filteredOfferings.slice(0, 15).map(o => ({
+          title: o.title, category: o.category,
+          location_name: o.location_name, price_info: o.price_info,
+        }))
+      } else {
+        body.requests = filteredRequests.slice(0, 15).map(r => ({
+          title: r.title, category: r.category,
+          location_name: r.location_name, budget: r.budget, urgency: r.urgency,
+        }))
+      }
       const res = await fetch('/api/map-recommend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          offerings: filteredOfferings.slice(0, 15).map(o => ({
-            title: o.title, category: o.category,
-            location_name: o.location_name, price_info: o.price_info,
-          })),
-          jobs: [],
-        }),
+        body: JSON.stringify(body),
       })
       if (res.ok) {
         const data = await res.json()
@@ -341,14 +449,70 @@ export default function MapClient() {
     setFormLoading(false)
   }
 
+  // ── Gesuch erstellen ──
+  const handleRequestSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setReqFormLoading(true)
+    setReqFormMsg('')
+
+    let submitData = { ...reqFormData }
+    if (submitData.lat === 0 && submitData.lng === 0) {
+      try {
+        const geoRes = await fetch(`/api/geocode?city=${encodeURIComponent(submitData.location_name)}`)
+        const geoData = await geoRes.json()
+        if (geoData.lat && geoData.lng) {
+          submitData = { ...submitData, lat: geoData.lat, lng: geoData.lng }
+          setReqFormData(f => ({ ...f, lat: geoData.lat, lng: geoData.lng }))
+        } else {
+          setReqFormMsg('Standort konnte nicht gefunden werden.'); setReqFormLoading(false); return
+        }
+      } catch {
+        setReqFormMsg('Standort konnte nicht gefunden werden.'); setReqFormLoading(false); return
+      }
+    }
+    try {
+      const res = await fetch('/api/requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(submitData),
+      })
+      if (res.ok) {
+        setReqFormMsg('Gesuch erstellt!')
+        setShowRequestForm(false)
+        setReqFormData({ title: '', description: '', category: 'Sonstiges', budget: '', urgency: 'flexibel', location_name: '', lat: 0, lng: 0, radius_km: 15 })
+        fetchRequests(selectedCat || undefined)
+      } else {
+        const err = await res.json()
+        setReqFormMsg(err.error || 'Fehler beim Erstellen')
+      }
+    } catch { setReqFormMsg('Netzwerkfehler') }
+    setReqFormLoading(false)
+  }
+
   return (
     <div style={{ display: 'flex', height: '100%', position: 'relative' }}>
       {/* ── Sidebar ── */}
       <div className="map-sidebar">
-        {/* Header */}
+        {/* Header + Toggle */}
         <div style={{ padding: '14px 16px 10px', borderBottom: '1px solid var(--border)' }}>
-          <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: '1rem', color: '#fff' }}>🎯 Marktplatz</div>
-          <div style={{ fontSize: '0.72rem', color: 'var(--text3)', marginTop: 2 }}>Fähigkeiten & Dienstleistungen in deiner Nähe</div>
+          <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: '1rem', color: '#fff', marginBottom: 8 }}>🎯 Marktplatz</div>
+          <div className="map-mode-toggle">
+            <button
+              className={`map-mode-btn ${mapMode === 'angebote' ? 'active-offer' : ''}`}
+              onClick={() => { setMapMode('angebote'); setSelectedRequest(null) }}
+            >
+              🛠️ Angebote
+            </button>
+            <button
+              className={`map-mode-btn ${mapMode === 'gesuche' ? 'active-request' : ''}`}
+              onClick={() => { setMapMode('gesuche'); setSelectedOffering(null) }}
+            >
+              🔍 Gesuche
+            </button>
+          </div>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text3)', marginTop: 6 }}>
+            {mapMode === 'angebote' ? 'Fähigkeiten & Dienstleistungen in deiner Nähe' : 'Leute in deiner Nähe suchen Hilfe'}
+          </div>
         </div>
 
         {/* Suchfeld + Ort + Radius */}
@@ -357,7 +521,7 @@ export default function MapClient() {
             <span style={{ fontSize: '0.9rem' }}>🔍</span>
             <input
               type="text"
-              placeholder="Angebote durchsuchen..."
+              placeholder={mapMode === 'angebote' ? 'Angebote durchsuchen...' : 'Gesuche durchsuchen...'}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               style={{
@@ -424,7 +588,7 @@ export default function MapClient() {
                 Wo suchst du?
               </div>
               <div style={{ fontSize: '0.82rem', lineHeight: 1.6, marginBottom: 14 }}>
-                Gib oben einen Ort ein oder erlaube die Standorterkennung, um Angebote in deiner Nähe zu sehen.
+                Gib oben einen Ort ein oder erlaube die Standorterkennung, um {mapMode === 'angebote' ? 'Angebote' : 'Gesuche'} in deiner Nähe zu sehen.
               </div>
               <button
                 onClick={() => {
@@ -451,14 +615,14 @@ export default function MapClient() {
               </button>
             </div>
           ) : loading ? (
-            <div style={{ textAlign: 'center', color: 'var(--text3)', padding: '2rem 0' }}>Lade Angebote...</div>
-          ) : filteredOfferings.length === 0 ? (
+            <div style={{ textAlign: 'center', color: 'var(--text3)', padding: '2rem 0' }}>Lade {mapMode === 'angebote' ? 'Angebote' : 'Gesuche'}...</div>
+          ) : (mapMode === 'angebote' ? filteredOfferings.length : filteredRequests.length) === 0 ? (
             <div style={{ textAlign: 'center', color: 'var(--text3)', padding: '2rem 0' }}>
               <div style={{ fontSize: '2rem', marginBottom: 8 }}>🔍</div>
-              <div style={{ fontWeight: 600, marginBottom: 4 }}>Keine Angebote im Umkreis von {searchRadius} km</div>
+              <div style={{ fontWeight: 600, marginBottom: 4 }}>Keine {mapMode === 'angebote' ? 'Angebote' : 'Gesuche'} im Umkreis von {searchRadius} km</div>
               <div style={{ fontSize: '0.78rem' }}>Versuche einen größeren Radius oder einen anderen Ort.</div>
             </div>
-          ) : (
+          ) : mapMode === 'angebote' ? (
             <>
             {/* Zusammenfassung der Umgebung */}
             {areaSummary && (
@@ -527,12 +691,67 @@ export default function MapClient() {
                 </div>
               ))}
           </>
+          ) : (
+            /* ── Gesuche-Liste ── */
+            <>
+            {filteredRequests
+              .filter(r => {
+                if (!searchQuery) return true
+                const q = searchQuery.toLowerCase()
+                return r.title.toLowerCase().includes(q) ||
+                  r.category.toLowerCase().includes(q) ||
+                  (r.description || '').toLowerCase().includes(q)
+              })
+              .map((r: SkillRequest) => {
+                const urgMeta = URGENCY_META[r.urgency] || URGENCY_META.flexibel
+                return (
+                <div
+                  key={r.id}
+                  className={`map-offer-card map-request-card ${selectedRequest?.id === r.id ? 'selected' : ''}`}
+                  onClick={() => {
+                    setSelectedRequest(r)
+                    if (mapRef.current) mapRef.current.setView([r.lat, r.lng], 14)
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{
+                      width: 32, height: 32, borderRadius: 8,
+                      background: urgMeta.color + '22',
+                      border: `1.5px solid ${urgMeta.color}55`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '0.9rem', flexShrink: 0,
+                    }}>{getCatMeta(r.category).emoji}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {r.title}
+                      </div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text3)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        {r.category} · {r.location_name}
+                        <span style={{ padding: '1px 6px', borderRadius: 999, background: urgMeta.color + '18', color: urgMeta.color, fontSize: '0.62rem', fontWeight: 700 }}>{urgMeta.emoji} {urgMeta.label}</span>
+                      </div>
+                    </div>
+                  </div>
+                  {r.budget && (
+                    <div style={{ fontSize: '0.78rem', color: 'var(--gold)', fontWeight: 600, marginTop: 4 }}>
+                      💰 Budget: {r.budget}
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text3)' }}>{r.user_name || 'Anonym'}</span>
+                    {r.distance_km != null && (
+                      <span style={{ fontSize: '0.7rem', color: 'var(--accent)' }}>{r.distance_km.toFixed(1)} km</span>
+                    )}
+                  </div>
+                </div>
+                )
+              })}
+          </>
           )}
         </div>
 
         {/* ── Bottom-Buttons ── */}
         <div style={{ padding: '8px 16px 12px', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {user && filteredOfferings.length > 0 && (
+          {user && (mapMode === 'angebote' ? filteredOfferings.length > 0 : filteredRequests.length > 0) && (
             <button onClick={getAiRecommendation} disabled={aiLoading} style={{
               width: '100%', padding: '9px', border: '1px solid rgba(124,104,250,0.3)', borderRadius: 'var(--r-md)',
               background: 'rgba(124,104,250,0.08)', color: 'var(--accent)',
@@ -540,15 +759,22 @@ export default function MapClient() {
               cursor: aiLoading ? 'not-allowed' : 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             }}>
-              {aiLoading ? '🧠 KI analysiert...' : '🧠 KI-Empfehlung für mich'}
+              {aiLoading ? '🧠 KI analysiert...' : mapMode === 'angebote' ? '🧠 KI-Empfehlung für mich' : '🧠 KI: Passende Anbieter finden'}
             </button>
           )}
-          {user && (
+          {user && mapMode === 'angebote' && (
             <button onClick={() => setShowForm(true)} style={{
               width: '100%', padding: '9px', border: 'none', borderRadius: 'var(--r-md)',
               background: 'linear-gradient(135deg, var(--gold), #f0c060)', color: '#000',
               fontFamily: 'inherit', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer',
             }}>+ Fähigkeit anbieten</button>
+          )}
+          {user && mapMode === 'gesuche' && (
+            <button onClick={() => setShowRequestForm(true)} style={{
+              width: '100%', padding: '9px', border: 'none', borderRadius: 'var(--r-md)',
+              background: 'linear-gradient(135deg, #f06090, #ff80ab)', color: '#fff',
+              fontFamily: 'inherit', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer',
+            }}>+ Ich suche Hilfe</button>
           )}
         </div>
       </div>
@@ -681,6 +907,96 @@ export default function MapClient() {
                 color: '#fff', fontFamily: 'inherit', fontWeight: 700, fontSize: '0.85rem',
                 cursor: formLoading ? 'not-allowed' : 'pointer',
               }}>{formLoading ? 'Wird erstellt...' : 'Angebot erstellen'}</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* ── Gesuch Formular Modal ── */}
+      {showRequestForm && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 1000,
+          background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
+        }} onClick={(e) => { if (e.target === e.currentTarget) setShowRequestForm(false) }}>
+          <form onSubmit={handleRequestSubmit} style={{
+            background: 'var(--surface)', border: '1px solid rgba(240,96,144,0.2)',
+            borderRadius: 'var(--r-xl)', padding: '2rem',
+            maxWidth: 460, width: '100%', maxHeight: '85vh', overflowY: 'auto',
+          }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '1.2rem', marginBottom: '0.5rem', color: '#f06090' }}>
+              🔍 Ich suche Hilfe
+            </h3>
+            <p style={{ fontSize: '0.78rem', color: 'var(--text3)', marginBottom: '1.5rem' }}>
+              Beschreibe kurz was du brauchst — in 30 Sekunden erstellt.
+            </p>
+            <label className="map-label">Was suchst du? *</label>
+            <input className="map-input" required maxLength={200} placeholder="z.B. Hilfe beim Umzug, Mathe-Nachhilfe..."
+              value={reqFormData.title} onChange={e => setReqFormData(f => ({ ...f, title: e.target.value }))} />
+            <label className="map-label">Kategorie *</label>
+            <select className="map-input" value={reqFormData.category} onChange={e => setReqFormData(f => ({ ...f, category: e.target.value }))}>
+              {OFFERING_CATEGORIES.map(c => <option key={c} value={c}>{getCatMeta(c).emoji} {c}</option>)}
+            </select>
+            <label className="map-label">Dringlichkeit</label>
+            <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+              {REQUEST_URGENCY.map(u => {
+                const m = URGENCY_META[u]
+                return (
+                  <button key={u} type="button" onClick={() => setReqFormData(f => ({ ...f, urgency: u }))} style={{
+                    flex: 1, padding: '8px 4px', borderRadius: 10, border: reqFormData.urgency === u ? `2px solid ${m.color}` : '1px solid rgba(255,255,255,0.08)',
+                    background: reqFormData.urgency === u ? m.color + '18' : 'rgba(255,255,255,0.03)',
+                    color: reqFormData.urgency === u ? m.color : 'var(--text3)',
+                    fontFamily: 'inherit', fontWeight: 700, fontSize: '0.75rem', cursor: 'pointer',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+                  }}>
+                    <span>{m.emoji}</span>
+                    <span>{m.label}</span>
+                  </button>
+                )
+              })}
+            </div>
+            <label className="map-label">Beschreibung</label>
+            <textarea className="map-input" rows={3} maxLength={2000} placeholder="Was genau brauchst du? Details helfen!"
+              value={reqFormData.description} onChange={e => setReqFormData(f => ({ ...f, description: e.target.value }))} style={{ resize: 'vertical' }} />
+            <label className="map-label">Budget (optional)</label>
+            <input className="map-input" maxLength={100} placeholder="z.B. Bis 50€, Verhandlungsbasis..."
+              value={reqFormData.budget} onChange={e => setReqFormData(f => ({ ...f, budget: e.target.value }))} />
+            <label className="map-label">Standort / Ort *</label>
+            <input className="map-input" required maxLength={200} placeholder="z.B. Krefeld, Düsseldorf..."
+              value={reqFormData.location_name} onChange={e => setReqFormData(f => ({ ...f, location_name: e.target.value }))}
+              onBlur={e => { if (e.target.value) {
+                fetch(`/api/geocode?city=${encodeURIComponent(e.target.value)}`).then(r => r.json()).then(d => {
+                  if (d.lat && d.lng) setReqFormData(f => ({ ...f, lat: d.lat, lng: d.lng }))
+                }).catch(() => {})
+              }}} />
+            {reqFormData.lat !== 0 && (
+              <div style={{ fontSize: '0.72rem', color: 'var(--green)', marginTop: 2, marginBottom: 8 }}>
+                ✓ Standort erkannt ({reqFormData.lat.toFixed(3)}, {reqFormData.lng.toFixed(3)})
+              </div>
+            )}
+            <label className="map-label">Umkreis (km)</label>
+            <input className="map-input" type="number" min={1} max={100} value={reqFormData.radius_km}
+              onChange={e => setReqFormData(f => ({ ...f, radius_km: parseInt(e.target.value) || 15 }))} />
+            {reqFormMsg && (
+              <div style={{
+                padding: '8px 12px', borderRadius: 'var(--r-sm)', marginTop: 12,
+                background: reqFormMsg.includes('erstellt') ? 'var(--green-soft)' : 'var(--pink-soft)',
+                color: reqFormMsg.includes('erstellt') ? 'var(--green)' : 'var(--pink)',
+                fontSize: '0.82rem', fontWeight: 600,
+              }}>{reqFormMsg}</div>
+            )}
+            <div style={{ display: 'flex', gap: 10, marginTop: '1.5rem' }}>
+              <button type="button" onClick={() => setShowRequestForm(false)} style={{
+                flex: 1, padding: 10, border: '1px solid var(--border2)', borderRadius: 'var(--r-md)',
+                background: 'transparent', color: 'var(--text2)', fontFamily: 'inherit',
+                fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer',
+              }}>Abbrechen</button>
+              <button type="submit" disabled={reqFormLoading} style={{
+                flex: 1, padding: 10, border: 'none', borderRadius: 'var(--r-md)',
+                background: reqFormLoading ? 'var(--surface3)' : '#f06090',
+                color: '#fff', fontFamily: 'inherit', fontWeight: 700, fontSize: '0.85rem',
+                cursor: reqFormLoading ? 'not-allowed' : 'pointer',
+              }}>{reqFormLoading ? 'Wird erstellt...' : 'Gesuch erstellen'}</button>
             </div>
           </form>
         </div>
