@@ -5,6 +5,7 @@ import AppShell from '@/components/AppShell'
 import ChatsSection from './ChatsSection'
 import InterestsSection from './InterestsSection'
 import JobsManagement from './JobsManagement'
+import OfferingsManagement from './OfferingsManagement'
 
 export default async function Dashboard() {
   const supabase = createClient()
@@ -17,6 +18,15 @@ export default async function Dashboard() {
   let interests: any[] = []
   let conversations: any[] = []
   let myInterests: any[] = []
+  let myOfferings: any[] = []
+
+  // Eigene Marktplatz-Angebote laden (für alle Nutzer)
+  const { data: offeringsData } = await supabase
+    .from('skill_offerings')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+  myOfferings = offeringsData || []
 
   if (isEmp) {
     // ARBEITGEBER: Meine Stellen
@@ -117,6 +127,9 @@ export default async function Dashboard() {
             </div>
           ))}
         </div>
+
+        {/* MEINE MARKTPLATZ-ANGEBOTE */}
+        <OfferingsManagement offerings={myOfferings} />
 
         {/* ARBEITGEBER: Stellen */}
         {isEmp && (
