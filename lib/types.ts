@@ -88,3 +88,35 @@ export interface SkillRequest {
   user_name?: string
   user_avatar?: string | null
 }
+
+// ─── Buchungen / Aufträge ───
+export const BOOKING_STATUSES = ['requested', 'accepted', 'in_progress', 'completed', 'cancelled', 'declined'] as const
+export type BookingStatus = (typeof BOOKING_STATUSES)[number]
+
+export const BOOKING_STATUS_META: Record<BookingStatus, { label: string; emoji: string; color: string }> = {
+  requested:   { label: 'Angefragt', emoji: '📩', color: '#d4a843' },
+  accepted:    { label: 'Angenommen', emoji: '✅', color: '#3dba7e' },
+  in_progress: { label: 'In Arbeit', emoji: '⚡', color: '#7c68fa' },
+  completed:   { label: 'Abgeschlossen', emoji: '🏆', color: '#3dba7e' },
+  cancelled:   { label: 'Storniert', emoji: '❌', color: '#888' },
+  declined:    { label: 'Abgelehnt', emoji: '🚫', color: '#f06090' },
+}
+
+export interface MarketplaceBooking {
+  id: string
+  client_id: string
+  provider_id: string
+  offering_id?: string | null
+  request_id?: string | null
+  title: string
+  message?: string | null
+  price?: string | null
+  status: BookingStatus
+  created_at: string
+  updated_at: string
+  // Joined
+  client?: { full_name: string; avatar_url?: string | null; company_name?: string | null }
+  provider?: { full_name: string; avatar_url?: string | null; company_name?: string | null }
+  offering?: { title: string; category: string; price_info?: string | null } | null
+  request?: { title: string; category: string; budget?: string | null } | null
+}
