@@ -57,3 +57,34 @@ export interface SkillOffering {
   user_name?: string
   user_avatar?: string | null
 }
+
+// ─── Gesuche / Requests ───
+export const REQUEST_URGENCY = ['sofort', 'diese_woche', 'flexibel'] as const
+export type RequestUrgency = (typeof REQUEST_URGENCY)[number]
+
+export const URGENCY_META: Record<RequestUrgency, { label: string; emoji: string; color: string }> = {
+  sofort:       { label: 'Sofort', emoji: '🔴', color: '#f06090' },
+  diese_woche:  { label: 'Diese Woche', emoji: '🟡', color: '#d4a843' },
+  flexibel:     { label: 'Flexibel', emoji: '🟢', color: '#3dba7e' },
+}
+
+export interface SkillRequest {
+  id: string
+  user_id: string
+  title: string
+  description?: string | null
+  category: string
+  budget?: string | null
+  urgency: RequestUrgency
+  location_name: string
+  lat: number
+  lng: number
+  radius_km: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
+  // Joined fields
+  distance_km?: number
+  user_name?: string
+  user_avatar?: string | null
+}
