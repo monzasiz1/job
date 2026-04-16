@@ -8,14 +8,8 @@ export default async function MarktplatzPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login?redirect=/marktplatz')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
-
   return (
-    <AppShell user={user} profile={profile}>
+    <AppShell>
       <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 62px)' }}>
         {/* Topbar */}
         <div style={{
