@@ -80,7 +80,10 @@ export default function MapClient() {
   const [leafletReady, setLeafletReady] = useState(false)
   const [selectedCat, setSelectedCat] = useState<string>('')
   const [searchQuery, setSearchQuery] = useState('')
+  const [searchRadius, setSearchRadius] = useState(25)
+  const [searchLocation, setSearchLocation] = useState('')
   const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null)
+  const radiusCircleRef = useRef<any>(null)
 
   // ── Eigenes Angebot erstellen ──
   const [showForm, setShowForm] = useState(false)
@@ -105,19 +108,24 @@ export default function MapClient() {
 
     const defaultCenter: [number, number] = [51.23, 6.78] // Krefeld
 
-    mapRef.current = L.map(mapContainerRef.current, {
+    const map = L.map(mapContainerRef.current, {
       zoomControl: false,
     }).setView(defaultCenter, 11)
+    mapRef.current = map
 
-    L.control.zoom({ position: 'bottomright' }).addTo(mapRef.current)
+    L.control.zoom({ position: 'bottomright' }).addTo(map)
 
-    // Dark tile layer
+    // Dark tile layer — use OSM as reliable fallback
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
       maxZoom: 19,
-    }).addTo(mapRef.current)
+    }).addTo(map)
 
-    markersRef.current = L.layerGroup().addTo(mapRef.current)
+    markersRef.current = L.layerGroup().addTo(map)
+
+    // Fix graue Karte: invalidateSize nach Render
+    setTimeout(() => { map.invalidateSize(); }, 200)
+    setTimeout(() => { map.invalidateSize(); }, 800)
 
     // Geolocation
     if ('geolocation' in navigator) {
@@ -125,7 +133,8 @@ export default function MapClient() {
         (pos) => {
           const latlng = { lat: pos.coords.latitude, lng: pos.coords.longitude }
           setUserPos(latlng)
-          mapRef.current.setView([latlng.lat, latlng.lng], 12)
+          map.setView([latlng.lat, latlng.lng], 12)
+          setTimeout(() => map.invalidateSize(), 100)
         },
         () => {} // Silently ignore if denied
       )
@@ -135,14 +144,14 @@ export default function MapClient() {
   }, [leafletReady])
 
   // ── Angebote laden ──
-  const fetchOfferings = useCallback(async (cat?: string) => {
+  const fetchOfferings = useCallback(async (cat?: string, radius?: number) => {
     setLoading(true)
     try {
       const params = new URLSearchParams()
       if (userPos) {
         params.set('lat', String(userPos.lat))
         params.set('lng', String(userPos.lng))
-        params.set('radius', '50')
+        params.set('radius', String(radius ?? searchRadius))
       }
       if (cat) params.set('category', cat)
       const res = await fetch(`/api/offerings?${params}`)
@@ -152,7 +161,7 @@ export default function MapClient() {
       console.error('Fehler beim Laden:', e)
     }
     setLoading(false)
-  }, [userPos])
+  }, [userPos, searchRadius])
 
   // ── Marker setzen ──
   useEffect(() => {
@@ -190,10 +199,37 @@ export default function MapClient() {
     })
   }, [offerings, searchQuery, leafletReady])
 
-  // ── Kategorie wechseln ──
+  // ── Radius-Kreis auf der Karte ──
+  useEffect(() => {
+    if (!mapRef.current || !leafletReady || !userPos) return
+    if (radiusCircleRef.current) radiusCircleRef.current.remove()
+    radiusCircleRef.current = L.circle([userPos.lat, userPos.lng], {
+      radius: searchRadius * 1000,
+      color: '#7c68fa', fillColor: '#7c68fa', fillOpacity: 0.06,
+      weight: 1.5, dashArray: '6 4', interactive: false,
+    }).addTo(mapRef.current)
+  }, [userPos, searchRadius, leafletReady])
+
+  // ── Suche nach Ort ──
+  const handleLocationSearch = async () => {
+    if (!searchLocation.trim()) return
+    try {
+      const res = await fetch(`/api/geocode?city=${encodeURIComponent(searchLocation)}`)
+      const data = await res.json()
+      if (data.lat && data.lng) {
+        const latlng = { lat: data.lat, lng: data.lng }
+        setUserPos(latlng)
+        if (mapRef.current) {
+          mapRef.current.setView([latlng.lat, latlng.lng], searchRadius <= 10 ? 13 : searchRadius <= 25 ? 11 : 10)
+        }
+      }
+    } catch {}
+  }
+
+  // ── Kategorie / Radius wechseln ──
   useEffect(() => {
     fetchOfferings(selectedCat || undefined)
-  }, [selectedCat, userPos])
+  }, [selectedCat, userPos, searchRadius])
 
   // ── Geocode Standort für Formular ──
   const geocodeLocation = async (loc: string) => {
@@ -245,8 +281,9 @@ export default function MapClient() {
     <div style={{ display: 'flex', height: '100%', position: 'relative' }}>
       {/* ── Linke Sidebar (Suche + Liste) ── */}
       <div className="map-sidebar">
-        {/* Suchfeld */}
-        <div style={{ padding: '16px 16px 8px' }}>
+        {/* Suchfeld + Ort + Radius */}
+        <div style={{ padding: '16px 16px 8px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {/* Textsuche */}
           <div className="map-search-box">
             <span style={{ fontSize: '0.9rem' }}>🔍</span>
             <input
@@ -259,6 +296,46 @@ export default function MapClient() {
                 color: '#fff', fontFamily: 'inherit', fontSize: '0.85rem',
               }}
             />
+          </div>
+
+          {/* Ortsuche */}
+          <div className="map-search-box">
+            <span style={{ fontSize: '0.9rem' }}>📍</span>
+            <input
+              type="text"
+              placeholder="Ort suchen (z.B. Krefeld, Berlin)..."
+              value={searchLocation}
+              onChange={e => setSearchLocation(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleLocationSearch() } }}
+              style={{
+                flex: 1, border: 'none', outline: 'none', background: 'transparent',
+                color: '#fff', fontFamily: 'inherit', fontSize: '0.85rem',
+              }}
+            />
+            <button
+              onClick={handleLocationSearch}
+              style={{
+                background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 6,
+                padding: '4px 10px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer',
+                fontFamily: 'inherit', whiteSpace: 'nowrap',
+              }}
+            >Suchen</button>
+          </div>
+
+          {/* Radius-Slider */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text3)', whiteSpace: 'nowrap' }}>Radius:</span>
+            <input
+              type="range"
+              min={5} max={100} step={5}
+              value={searchRadius}
+              onChange={e => setSearchRadius(parseInt(e.target.value))}
+              className="map-range"
+              style={{ flex: 1 }}
+            />
+            <span style={{ fontSize: '0.78rem', color: 'var(--accent)', fontWeight: 700, minWidth: 42, textAlign: 'right' }}>
+              {searchRadius} km
+            </span>
           </div>
         </div>
 
@@ -363,8 +440,8 @@ export default function MapClient() {
       </div>
 
       {/* ── Karte ── */}
-      <div style={{ flex: 1, position: 'relative' }}>
-        <div ref={mapContainerRef} style={{ width: '100%', height: '100%', background: '#0f0f17' }} />
+      <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
+        <div ref={mapContainerRef} style={{ position: 'absolute', inset: 0, background: '#0f0f17' }} />
         {!leafletReady && (
           <div style={{
             position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
