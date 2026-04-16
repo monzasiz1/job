@@ -98,6 +98,10 @@ export async function POST(request: Request) {
     .select()
     .single()
 
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json(data, { status: 201 })
+}
+
 // PUT — eigenes Angebot bearbeiten
 export async function PUT(request: Request) {
   const supabase = createClient()
