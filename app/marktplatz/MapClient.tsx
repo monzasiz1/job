@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase-browser'
-import { SkillOffering, OFFERING_CATEGORIES } from '@/lib/types'
+import { SkillOffering, OFFERING_CATEGORIES, Job } from '@/lib/types'
 
 // ─── Leaflet wird per CDN geladen (kein npm nötig) ───
 declare const L: any
@@ -65,6 +65,27 @@ function createMarkerIcon(cat: string) {
   })
 }
 
+// ─── Job Marker (blauer Pin) ───
+function createJobMarkerIcon(type: string) {
+  const colors: Record<string, string> = { 'Remote': '#3dba7e', 'Hybrid': '#d4a843', 'Vor Ort': '#7c68fa' }
+  const color = colors[type] || '#7c68fa'
+  return L.divIcon({
+    className: 'custom-map-marker',
+    html: `<div style="
+      width:36px;height:36px;border-radius:10px;
+      background:${color}20;border:2px solid ${color};
+      display:flex;align-items:center;justify-content:center;
+      font-size:16px;box-shadow:0 2px 12px ${color}40;
+      backdrop-filter:blur(4px);
+    ">💼</div>`,
+    iconSize: [36, 36],
+    iconAnchor: [18, 18],
+    popupAnchor: [0, -20],
+  })
+}
+
+type MapTab = 'offerings' | 'jobs'
+
 // ═══════════════════════════════════════════════════════════════
 // MapClient Component
 // ═══════════════════════════════════════════════════════════════
@@ -76,6 +97,7 @@ export default function MapClient() {
   const markersRef = useRef<any>(null)
 
   const [offerings, setOfferings] = useState<SkillOffering[]>([])
+  const [jobs, setJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(true)
   const [leafletReady, setLeafletReady] = useState(false)
   const [selectedCat, setSelectedCat] = useState<string>('')
@@ -84,6 +106,12 @@ export default function MapClient() {
   const [searchLocation, setSearchLocation] = useState('')
   const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null)
   const radiusCircleRef = useRef<any>(null)
+  const [activeTab, setActiveTab] = useState<MapTab>('offerings')
+
+  // ── KI-Empfehlung ──
+  const [aiTips, setAiTips] = useState<{ summary: string; recommendations: { id: string; reason: string }[] } | null>(null)
+  const [aiLoading, setAiLoading] = useState(false)
+  const [showAiPanel, setShowAiPanel] = useState(false)
 
   // ── Eigenes Angebot erstellen ──
   const [showForm, setShowForm] = useState(false)
@@ -163,41 +191,82 @@ export default function MapClient() {
     setLoading(false)
   }, [userPos, searchRadius])
 
-  // ── Marker setzen ──
+  // ── Jobs laden ──
+  const fetchJobs = useCallback(async () => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams()
+      if (userPos) {
+        params.set('lat', String(userPos.lat))
+        params.set('lng', String(userPos.lng))
+        params.set('radius', String(searchRadius))
+        if (searchLocation) params.set('city', searchLocation)
+      }
+      if (searchQuery) params.set('q', searchQuery)
+      const res = await fetch(`/api/jobs?${params}`)
+      const data = await res.json()
+      if (data.jobs) setJobs(data.jobs)
+    } catch (e) {
+      console.error('Fehler beim Laden der Jobs:', e)
+    }
+    setLoading(false)
+  }, [userPos, searchRadius, searchLocation, searchQuery])
+
+  // ── Marker setzen (Offerings + Jobs) ──
   useEffect(() => {
     if (!markersRef.current || !leafletReady) return
     markersRef.current.clearLayers()
 
-    const filtered = offerings.filter(o => {
-      if (searchQuery) {
-        const q = searchQuery.toLowerCase()
-        return o.title.toLowerCase().includes(q) ||
-               o.category.toLowerCase().includes(q) ||
-               (o.description || '').toLowerCase().includes(q) ||
-               o.location_name.toLowerCase().includes(q)
-      }
-      return true
-    })
-
-    filtered.forEach(o => {
-      const { emoji, color } = getCatMeta(o.category)
-      const marker = L.marker([o.lat, o.lng], { icon: createMarkerIcon(o.category) })
-      marker.bindPopup(`
-        <div style="font-family:'DM Sans',sans-serif;min-width:200px;color:#e0e0e0">
-          <div style="font-weight:700;font-size:0.95rem;margin-bottom:4px">${emoji} ${escapeHtml(o.title)}</div>
-          <div style="color:#aaa;font-size:0.78rem;margin-bottom:6px">${escapeHtml(o.category)} · ${escapeHtml(o.location_name)}</div>
-          ${o.price_info ? `<div style="color:#d4a843;font-size:0.82rem;font-weight:600">💰 ${escapeHtml(o.price_info)}</div>` : ''}
-          ${o.user_name ? `<div style="color:#999;font-size:0.75rem;margin-top:6px">von ${escapeHtml(o.user_name)}</div>` : ''}
-          ${o.distance_km != null ? `<div style="color:#7c68fa;font-size:0.73rem">📍 ${o.distance_km.toFixed(1)} km entfernt</div>` : ''}
-        </div>
-      `, {
-        className: 'dark-popup',
+    if (activeTab === 'offerings') {
+      const filtered = offerings.filter(o => {
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase()
+          return o.title.toLowerCase().includes(q) ||
+                 o.category.toLowerCase().includes(q) ||
+                 (o.description || '').toLowerCase().includes(q) ||
+                 o.location_name.toLowerCase().includes(q)
+        }
+        return true
       })
 
-      marker.on('click', () => setSelectedOffering(o))
-      markersRef.current.addLayer(marker)
-    })
-  }, [offerings, searchQuery, leafletReady])
+      filtered.forEach(o => {
+        const { emoji, color } = getCatMeta(o.category)
+        const marker = L.marker([o.lat, o.lng], { icon: createMarkerIcon(o.category) })
+        marker.bindPopup(`
+          <div style="font-family:'DM Sans',sans-serif;min-width:200px;color:#e0e0e0">
+            <div style="font-weight:700;font-size:0.95rem;margin-bottom:4px">${emoji} ${escapeHtml(o.title)}</div>
+            <div style="color:#aaa;font-size:0.78rem;margin-bottom:6px">${escapeHtml(o.category)} · ${escapeHtml(o.location_name)}</div>
+            ${o.price_info ? `<div style="color:#d4a843;font-size:0.82rem;font-weight:600">💰 ${escapeHtml(o.price_info)}</div>` : ''}
+            ${o.user_name ? `<div style="color:#999;font-size:0.75rem;margin-top:6px">von ${escapeHtml(o.user_name)}</div>` : ''}
+            ${o.distance_km != null ? `<div style="color:#7c68fa;font-size:0.73rem">📍 ${o.distance_km.toFixed(1)} km entfernt</div>` : ''}
+          </div>
+        `, { className: 'dark-popup' })
+        marker.on('click', () => setSelectedOffering(o))
+        markersRef.current.addLayer(marker)
+      })
+    } else {
+      // Jobs auf der Karte
+      jobs.forEach(j => {
+        if (!j.lat || !j.lng) return
+        const marker = L.marker([j.lat, j.lng], { icon: createJobMarkerIcon(j.type) })
+        const salary = j.salary_min && j.salary_max ? `${(j.salary_min/1000).toFixed(0)}k - ${(j.salary_max/1000).toFixed(0)}k €` : ''
+        marker.bindPopup(`
+          <div style="font-family:'DM Sans',sans-serif;min-width:220px;color:#e0e0e0">
+            <div style="font-weight:700;font-size:0.95rem;margin-bottom:4px">💼 ${escapeHtml(j.title)}</div>
+            <div style="color:#aaa;font-size:0.78rem;margin-bottom:2px">${escapeHtml(j.company)} · ${escapeHtml(j.location)}</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0">
+              <span style="padding:2px 8px;border-radius:99px;background:rgba(124,104,250,0.15);color:#a78bfa;font-size:0.7rem;font-weight:600">${escapeHtml(j.type)}</span>
+              <span style="padding:2px 8px;border-radius:99px;background:rgba(61,186,126,0.12);color:#3dba7e;font-size:0.7rem;font-weight:600">${escapeHtml(j.contract)}</span>
+              <span style="padding:2px 8px;border-radius:99px;background:rgba(212,168,67,0.12);color:#d4a843;font-size:0.7rem;font-weight:600">${escapeHtml(j.level)}</span>
+            </div>
+            ${salary ? `<div style="color:#d4a843;font-size:0.82rem;font-weight:600;margin-top:4px">💰 ${salary}</div>` : ''}
+            <a href="/jobs/${j.id}" target="_blank" style="display:block;margin-top:8px;padding:6px 12px;background:#7c68fa;color:#fff;border-radius:8px;text-align:center;font-size:0.78rem;font-weight:700;text-decoration:none">Details ansehen →</a>
+          </div>
+        `, { className: 'dark-popup' })
+        markersRef.current.addLayer(marker)
+      })
+    }
+  }, [offerings, jobs, searchQuery, leafletReady, activeTab])
 
   // ── Radius-Kreis auf der Karte ──
   useEffect(() => {
@@ -226,10 +295,41 @@ export default function MapClient() {
     } catch {}
   }
 
-  // ── Kategorie / Radius wechseln ──
+  // ── Kategorie / Radius / Tab wechseln ──
   useEffect(() => {
-    fetchOfferings(selectedCat || undefined)
-  }, [selectedCat, userPos, searchRadius])
+    if (activeTab === 'offerings') {
+      fetchOfferings(selectedCat || undefined)
+    } else {
+      fetchJobs()
+    }
+  }, [selectedCat, userPos, searchRadius, activeTab])
+
+  // ── KI-Empfehlung holen ──
+  const getAiRecommendation = async () => {
+    setAiLoading(true)
+    setShowAiPanel(true)
+    try {
+      const res = await fetch('/api/map-recommend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          offerings: offerings.slice(0, 15).map(o => ({
+            title: o.title, category: o.category,
+            location_name: o.location_name, price_info: o.price_info,
+          })),
+          jobs: jobs.slice(0, 15).map(j => ({
+            title: j.title, company: j.company,
+            location: j.location, type: j.type,
+          })),
+        }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setAiTips(data)
+      }
+    } catch {}
+    setAiLoading(false)
+  }
 
   // ── Geocode Standort für Formular ──
   const geocodeLocation = async (loc: string) => {
@@ -281,16 +381,37 @@ export default function MapClient() {
     <div style={{ display: 'flex', height: '100%', position: 'relative' }}>
       {/* ── Linke Sidebar (Suche + Liste) ── */}
       <div className="map-sidebar">
+        {/* Tab-Wechsel: Angebote / Jobs */}
+        <div style={{ display: 'flex', borderBottom: '1px solid var(--border)' }}>
+          {(['offerings', 'jobs'] as MapTab[]).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              style={{
+                flex: 1, padding: '10px 0', border: 'none', cursor: 'pointer',
+                fontFamily: 'inherit', fontWeight: 700, fontSize: '0.82rem',
+                background: activeTab === tab ? 'var(--accent-soft)' : 'transparent',
+                color: activeTab === tab ? 'var(--accent)' : 'var(--text3)',
+                borderBottom: activeTab === tab ? '2px solid var(--accent)' : '2px solid transparent',
+                transition: 'all 0.15s',
+              }}
+            >
+              {tab === 'offerings' ? '🎯 Angebote' : '💼 Jobs'}
+            </button>
+          ))}
+        </div>
+
         {/* Suchfeld + Ort + Radius */}
-        <div style={{ padding: '16px 16px 8px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ padding: '12px 16px 8px', display: 'flex', flexDirection: 'column', gap: 8 }}>
           {/* Textsuche */}
           <div className="map-search-box">
             <span style={{ fontSize: '0.9rem' }}>🔍</span>
             <input
               type="text"
-              placeholder="Angebote durchsuchen..."
+              placeholder={activeTab === 'offerings' ? 'Angebote durchsuchen...' : 'Jobs suchen (Titel, Firma)...'}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && activeTab === 'jobs') fetchJobs() }}
               style={{
                 flex: 1, border: 'none', outline: 'none', background: 'transparent',
                 color: '#fff', fontFamily: 'inherit', fontSize: '0.85rem',
@@ -339,104 +460,178 @@ export default function MapClient() {
           </div>
         </div>
 
-        {/* Kategorie-Filter */}
-        <div style={{ padding: '0 16px 12px', display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-          <button
-            onClick={() => setSelectedCat('')}
-            className={`map-cat-btn ${selectedCat === '' ? 'active' : ''}`}
-          >Alle</button>
-          {OFFERING_CATEGORIES.map(cat => {
-            const { emoji } = getCatMeta(cat)
-            return (
-              <button
-                key={cat}
-                onClick={() => setSelectedCat(cat === selectedCat ? '' : cat)}
-                className={`map-cat-btn ${selectedCat === cat ? 'active' : ''}`}
-              >{emoji} {cat}</button>
-            )
-          })}
-        </div>
+        {/* Kategorie-Filter (nur bei Angeboten) */}
+        {activeTab === 'offerings' && (
+          <div style={{ padding: '0 16px 12px', display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+            <button
+              onClick={() => setSelectedCat('')}
+              className={`map-cat-btn ${selectedCat === '' ? 'active' : ''}`}
+            >Alle</button>
+            {OFFERING_CATEGORIES.map(cat => {
+              const { emoji } = getCatMeta(cat)
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCat(cat === selectedCat ? '' : cat)}
+                  className={`map-cat-btn ${selectedCat === cat ? 'active' : ''}`}
+                >{emoji} {cat}</button>
+              )
+            })}
+          </div>
+        )}
 
-        {/* Angebote-Liste */}
+        {/* ── Listen-Bereich ── */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 16px' }}>
           {loading ? (
             <div style={{ textAlign: 'center', color: 'var(--text3)', padding: '2rem 0' }}>
-              Lade Angebote...
+              Lade {activeTab === 'offerings' ? 'Angebote' : 'Jobs'}...
             </div>
-          ) : offerings.length === 0 ? (
-            <div style={{ textAlign: 'center', color: 'var(--text3)', padding: '2rem 0' }}>
-              <div style={{ fontSize: '2rem', marginBottom: 8 }}>📍</div>
-              <div>Keine Angebote in der Nähe gefunden.</div>
-              <div style={{ fontSize: '0.8rem', marginTop: 4 }}>Versuche einen anderen Standort oder eine andere Kategorie.</div>
-            </div>
+          ) : activeTab === 'offerings' ? (
+            /* ── Angebote-Liste ── */
+            offerings.length === 0 ? (
+              <div style={{ textAlign: 'center', color: 'var(--text3)', padding: '2rem 0' }}>
+                <div style={{ fontSize: '2rem', marginBottom: 8 }}>📍</div>
+                <div>Keine Angebote in der Nähe.</div>
+              </div>
+            ) : (
+              offerings
+                .filter(o => {
+                  if (!searchQuery) return true
+                  const q = searchQuery.toLowerCase()
+                  return o.title.toLowerCase().includes(q) ||
+                    o.category.toLowerCase().includes(q) ||
+                    (o.description || '').toLowerCase().includes(q)
+                })
+                .map(o => (
+                  <div
+                    key={o.id}
+                    className={`map-offer-card ${selectedOffering?.id === o.id ? 'selected' : ''}`}
+                    onClick={() => {
+                      setSelectedOffering(o)
+                      if (mapRef.current) mapRef.current.setView([o.lat, o.lng], 14)
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{
+                        width: 32, height: 32, borderRadius: '50%',
+                        background: getCatMeta(o.category).color + '22',
+                        border: `1.5px solid ${getCatMeta(o.category).color}55`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '0.9rem', flexShrink: 0,
+                      }}>{getCatMeta(o.category).emoji}</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {o.title}
+                        </div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text3)' }}>
+                          {o.category} · {o.location_name}
+                        </div>
+                      </div>
+                    </div>
+                    {o.price_info && (
+                      <div style={{ fontSize: '0.78rem', color: 'var(--gold)', fontWeight: 600, marginTop: 4 }}>
+                        💰 {o.price_info}
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text3)' }}>
+                        {o.user_name || 'Anonym'}
+                      </span>
+                      {o.distance_km != null && (
+                        <span style={{ fontSize: '0.7rem', color: 'var(--accent)' }}>
+                          {o.distance_km.toFixed(1)} km
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))
+            )
           ) : (
-            offerings
-              .filter(o => {
-                if (!searchQuery) return true
-                const q = searchQuery.toLowerCase()
-                return o.title.toLowerCase().includes(q) ||
-                  o.category.toLowerCase().includes(q) ||
-                  (o.description || '').toLowerCase().includes(q)
-              })
-              .map(o => (
-                <div
-                  key={o.id}
-                  className={`map-offer-card ${selectedOffering?.id === o.id ? 'selected' : ''}`}
-                  onClick={() => {
-                    setSelectedOffering(o)
-                    if (mapRef.current) mapRef.current.setView([o.lat, o.lng], 14)
+            /* ── Jobs-Liste ── */
+            jobs.length === 0 ? (
+              <div style={{ textAlign: 'center', color: 'var(--text3)', padding: '2rem 0' }}>
+                <div style={{ fontSize: '2rem', marginBottom: 8 }}>💼</div>
+                <div>Keine Jobs in der Nähe gefunden.</div>
+                <div style={{ fontSize: '0.8rem', marginTop: 4 }}>Versuche einen anderen Ort oder größeren Radius.</div>
+              </div>
+            ) : (
+              jobs.map(j => (
+                <a
+                  key={j.id}
+                  href={`/jobs/${j.id}`}
+                  className="map-offer-card"
+                  style={{ textDecoration: 'none', display: 'block' }}
+                  onClick={(e) => {
+                    if (j.lat && j.lng && mapRef.current) {
+                      e.preventDefault()
+                      mapRef.current.setView([j.lat, j.lng], 14)
+                    }
                   }}
+                  onDoubleClick={() => { window.open(`/jobs/${j.id}`, '_blank') }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{
-                      width: 32, height: 32, borderRadius: '50%',
-                      background: getCatMeta(o.category).color + '22',
-                      border: `1.5px solid ${getCatMeta(o.category).color}55`,
+                      width: 32, height: 32, borderRadius: 10,
+                      background: 'rgba(124,104,250,0.12)',
+                      border: '1.5px solid rgba(124,104,250,0.25)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontSize: '0.9rem', flexShrink: 0,
-                    }}>{getCatMeta(o.category).emoji}</span>
+                    }}>💼</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {o.title}
+                        {j.title}
                       </div>
                       <div style={{ fontSize: '0.72rem', color: 'var(--text3)' }}>
-                        {o.category} · {o.location_name}
+                        {j.company} · {j.location}
                       </div>
                     </div>
                   </div>
-                  {o.price_info && (
+                  <div style={{ display: 'flex', gap: 5, marginTop: 6, flexWrap: 'wrap' }}>
+                    <span className="map-job-tag" style={{ background: 'rgba(124,104,250,0.12)', color: '#a78bfa' }}>{j.type}</span>
+                    <span className="map-job-tag" style={{ background: 'rgba(61,186,126,0.1)', color: '#3dba7e' }}>{j.contract}</span>
+                    <span className="map-job-tag" style={{ background: 'rgba(212,168,67,0.1)', color: '#d4a843' }}>{j.level}</span>
+                  </div>
+                  {j.salary_min > 0 && (
                     <div style={{ fontSize: '0.78rem', color: 'var(--gold)', fontWeight: 600, marginTop: 4 }}>
-                      💰 {o.price_info}
+                      💰 {(j.salary_min / 1000).toFixed(0)}k – {(j.salary_max / 1000).toFixed(0)}k €
                     </div>
                   )}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
-                    <span style={{ fontSize: '0.72rem', color: 'var(--text3)' }}>
-                      {o.user_name || 'Anonym'}
-                    </span>
-                    {o.distance_km != null && (
-                      <span style={{ fontSize: '0.7rem', color: 'var(--accent)' }}>
-                        {o.distance_km.toFixed(1)} km
-                      </span>
-                    )}
-                  </div>
-                </div>
+                </a>
               ))
+            )
           )}
         </div>
 
-        {/* Angebot erstellen Button */}
-        {user && (
-          <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border)' }}>
+        {/* ── Bottom-Buttons ── */}
+        <div style={{ padding: '8px 16px 12px', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {/* KI-Empfehlung */}
+          {user && (offerings.length > 0 || jobs.length > 0) && (
+            <button
+              onClick={getAiRecommendation}
+              disabled={aiLoading}
+              style={{
+                width: '100%', padding: '9px', border: '1px solid rgba(124,104,250,0.3)', borderRadius: 'var(--r-md)',
+                background: 'rgba(124,104,250,0.08)', color: 'var(--accent)',
+                fontFamily: 'inherit', fontWeight: 700, fontSize: '0.82rem',
+                cursor: aiLoading ? 'not-allowed' : 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              }}
+            >
+              {aiLoading ? '🧠 KI analysiert...' : '🧠 KI-Empfehlung für mich'}
+            </button>
+          )}
+          {/* Angebot erstellen */}
+          {user && activeTab === 'offerings' && (
             <button
               onClick={() => setShowForm(true)}
               style={{
-                width: '100%', padding: '10px', border: 'none', borderRadius: 'var(--r-md)',
+                width: '100%', padding: '9px', border: 'none', borderRadius: 'var(--r-md)',
                 background: 'linear-gradient(135deg, var(--gold), #f0c060)', color: '#000',
-                fontFamily: 'inherit', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer',
+                fontFamily: 'inherit', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer',
               }}
             >+ Fähigkeit anbieten</button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* ── Karte ── */}
@@ -449,6 +644,41 @@ export default function MapClient() {
           }}>Karte wird geladen...</div>
         )}
       </div>
+
+      {/* ── KI-Empfehlungs-Panel (Floating) ── */}
+      {showAiPanel && (
+        <div className="map-ai-panel">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+            <span style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: '0.9rem' }}>🧠 KI-Empfehlung</span>
+            <button onClick={() => setShowAiPanel(false)} style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
+          </div>
+          {aiLoading ? (
+            <div style={{ textAlign: 'center', color: 'var(--text3)', padding: '1rem 0' }}>
+              <div style={{ fontSize: '1.5rem', marginBottom: 6 }}>🧠</div>
+              Analysiere dein Profil und {offerings.length + jobs.length} Ergebnisse...
+            </div>
+          ) : aiTips ? (
+            <>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text2)', lineHeight: 1.6, marginBottom: 10 }}>
+                {aiTips.summary}
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {aiTips.recommendations?.map((r, i) => (
+                  <div key={i} style={{
+                    padding: '8px 10px', borderRadius: 'var(--r-sm)',
+                    background: 'rgba(124,104,250,0.08)', border: '1px solid rgba(124,104,250,0.15)',
+                  }}>
+                    <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--accent)' }}>{r.id}</span>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--text2)', marginLeft: 6 }}>{r.reason}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div style={{ color: 'var(--text3)', fontSize: '0.82rem' }}>Keine Empfehlung verfügbar.</div>
+          )}
+        </div>
+      )}
 
       {/* ── Formular Modal ── */}
       {showForm && (
