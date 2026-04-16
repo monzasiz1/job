@@ -7,118 +7,228 @@ export default function Home() {
     <div style={{minHeight:'100vh',background:'var(--bg)'}}>
       <Navbar />
 
-      {/* ═══════ HERO — Premium Glassmorphism mit Orbital-Ringen ═══════ */}
-      <section className="hero" style={{position:'relative',overflow:'hidden',padding:'6rem 2rem 4.5rem'}}>
+      {/* ═══════ HERO — Compact Brand Statement ═══════ */}
+      <section className="hero" style={{position:'relative',overflow:'hidden',padding:'5rem 2rem 2.5rem'}}>
         <div className="hero-grid"/>
-
-        {/* ── Animated Mesh Gradient Background ── */}
         <div className="hero-mesh-bg"/>
-        <div className="hero-aurora"/>
 
-        {/* ── Orbital Ringe um Logo ── */}
-        <div className="hero-orbital" style={{position:'absolute',left:'50%',top:'240px',transform:'translate(-50%,-50%)',width:520,height:520,pointerEvents:'none',zIndex:0}}>
-          <div className="orbital-ring ring-1"/>
-          <div className="orbital-ring ring-2"/>
-          <div className="orbital-ring ring-3"/>
-          {/* Fliegende Dots auf den Orbits */}
-          <div className="orbital-dot dot-1"/>
-          <div className="orbital-dot dot-2"/>
-          <div className="orbital-dot dot-3"/>
-          <div className="orbital-dot dot-4"/>
-        </div>
+        <div style={{position:'relative',zIndex:2,maxWidth:800,margin:'0 auto',textAlign:'center'}}>
 
-        {/* ── Floating Glass Cards (Categories) ── */}
-        <div className="hero-glass-cards" style={{position:'absolute',inset:0,zIndex:0,overflow:'hidden',pointerEvents:'none'}}>
-          {[
-            {x:'8%', y:'20%',icon:'💻',label:'Entwicklung',delay:'0s'},
-            {x:'88%',y:'18%',icon:'📊',label:'Marketing',delay:'1.2s'},
-            {x:'5%', y:'65%',icon:'🎨',label:'Design',delay:'0.6s'},
-            {x:'92%',y:'60%',icon:'🏗️',label:'Handwerk',delay:'1.8s'},
-            {x:'15%',y:'82%',icon:'💼',label:'Vertrieb',delay:'0.3s'},
-            {x:'82%',y:'84%',icon:'📈',label:'Finanzen',delay:'2.1s'},
-          ].map(c=>(
-            <div key={c.label} className="hero-float-card" style={{
-              position:'absolute',left:c.x,top:c.y,
-              animationDelay:c.delay,
-            }}>
-              <span style={{fontSize:'1.15rem'}}>{c.icon}</span>
-              <span style={{fontSize:'0.65rem',fontWeight:700,letterSpacing:'0.06em',textTransform:'uppercase',color:'rgba(255,255,255,0.7)'}}>{c.label}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* ── Haupt-Content ── */}
-        <div style={{position:'relative',zIndex:2,maxWidth:900,margin:'0 auto',textAlign:'center'}}>
-
-          {/* Logo mit Glow-Ring */}
-          <div className="anim" style={{display:'flex',justifyContent:'center',marginBottom:'2rem'}}>
+          <div className="anim" style={{display:'flex',justifyContent:'center',marginBottom:'1.5rem'}}>
             <div className="hero-logo-wrap">
               <div className="hero-logo-glow"/>
-              <TalentoMark size={96} radius={24} />
+              <TalentoMark size={72} radius={20} />
             </div>
           </div>
 
           <div className="hero-pill anim d1">
             <span className="hero-pill-dot"/>
-            Deutschlands smarteste Jobbörse
+            Zwei Welten. Eine Plattform.
           </div>
 
-          <h1 className="hero-h anim d1" style={{marginTop:'0.75rem'}}>
-            Finde deinen Job —<br/>
-            <span className="hero-gradient-text">mit KI-Unterstützung.</span>
+          <h1 className="hero-h anim d1" style={{marginTop:'0.75rem',fontSize:'clamp(2rem,5vw,3.6rem)'}}>
+            Jobs & Talente —<br/>
+            <span className="hero-gradient-text">direkt in deiner Nähe.</span>
           </h1>
 
           <p className="hero-sub anim d2">
-            Talento kombiniert präzise Stellensuche mit KI-Analyse und intelligentem Job-Matching — dein ganzes Karriere-Netzwerk, eine Plattform.
+            Talento vereint intelligente Jobsuche und einen lokalen Marktplatz für Fähigkeiten & Dienstleistungen — alles mit KI-Unterstützung.
           </p>
 
           <div className="hero-ctas anim d3">
             <Link href="/register" className="btn btn-gold btn-xl hero-btn-glow">Kostenlos starten →</Link>
             <Link href="/jobs" className="btn btn-ghost btn-xl">Jobs entdecken</Link>
           </div>
-
-          {/* Stats mit Glassmorphism-Karten */}
-          <div style={{marginTop:'3rem'}} className="anim d3">
-            <div className="hero-stats-premium">
-              {[
-                {n:'12.400+',l:'Aktive Jobs',icon:'🔥'},
-                {n:'4.200+',l:'Firmen',icon:'🏢'},
-                {n:'89%',l:'Erfolgsrate',icon:'🎯'},
-                {n:'KI',l:'Assistent',icon:'🧠'},
-              ].map(s=>(
-                <div key={s.l} className="hstat-glass">
-                  <span style={{fontSize:'1rem'}}>{s.icon}</span>
-                  <div className="hstat-n">{s.n}</div>
-                  <div className="hstat-l">{s.l}</div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       </section>
 
-      {/* SEARCH */}
-      <div style={{background:'var(--surface)',borderBottom:'1px solid var(--border)',padding:'1.5rem 1.5rem'}}>
-        <form action="/jobs" method="get" className="search-bar">
-          <div className="sf" style={{flex:2}}>
-            <span style={{color:'var(--text3)',fontSize:'1rem',flexShrink:0}}>🔍</span>
-            <input name="q" placeholder="Jobtitel, Fähigkeit, Unternehmen..."/>
-          </div>
-          <div className="sf-div"/>
-          <div className="sf" style={{flex:1}}>
-            <span style={{color:'var(--text3)',fontSize:'1rem',flexShrink:0}}>📍</span>
-            <select name="city" style={{color:'var(--text2)',flex:1,border:'none',outline:'none',background:'transparent',fontFamily:'inherit',fontSize:'0.88rem'}}>
-              <option value="">Alle Orte</option>
-              <option>Berlin</option><option>München</option><option>Hamburg</option>
-              <option>Köln</option><option>Düsseldorf</option><option>Frankfurt</option>
-              <option>Krefeld</option><option>Remote</option>
-            </select>
-          </div>
-          <button type="submit" style={{padding:'11px 22px',background:'var(--accent)',color:'#fff',border:'none',borderRadius:'var(--r-lg)',fontFamily:'inherit',fontWeight:700,fontSize:'0.88rem',cursor:'pointer',width:'100%',maxWidth:140}}>Suchen</button>
-        </form>
-      </div>
+      {/* ═══════ SPLIT SCREEN — Marktplatz & Jobs Showcase ═══════ */}
+      <section style={{padding:'0 1.5rem 3.5rem'}}>
+        <div className="lp-split">
 
-      {/* KI FEATURES */}
+          {/* ── LEFT: Marktplatz ── */}
+          <div className="lp-panel lp-panel-markt">
+            <div className="lp-panel-badge" style={{background:'var(--green-soft)',color:'var(--green)'}}>
+              🏪 Marktplatz
+            </div>
+            <h2 className="lp-panel-title">Fähigkeiten &amp; Dienstleistungen</h2>
+            <p className="lp-panel-desc">
+              Entdecke lokale Angebote auf einer interaktiven Karte — von Nachhilfe über Handwerk bis Kreativ &amp; Design.
+            </p>
+
+            {/* Browser Mockup */}
+            <div className="lp-mockup">
+              <div className="lp-mockup-bar">
+                <div className="lp-mockup-dot" style={{background:'#ff5f57'}}/>
+                <div className="lp-mockup-dot" style={{background:'#febc2e'}}/>
+                <div className="lp-mockup-dot" style={{background:'#28c840'}}/>
+              </div>
+              <div className="lp-mockup-content">
+                <div className="lp-mock-split">
+                  {/* Sidebar */}
+                  <div className="lp-mock-sidebar">
+                    <div className="lp-mock-search">🔍 Angebote durchsuchen...</div>
+                    <div className="lp-mock-cats">
+                      <span className="lp-cat active">Alle</span>
+                      <span className="lp-cat">🔧 Handwerk</span>
+                      <span className="lp-cat">📚 Nachhilfe</span>
+                      <span className="lp-cat">💻 IT</span>
+                    </div>
+                    <div className="lp-mock-card-m">
+                      <div style={{display:'flex',alignItems:'center',gap:6}}>
+                        <span style={{fontSize:'0.85rem'}}>📚</span>
+                        <div>
+                          <div style={{fontWeight:700,fontSize:'0.68rem',color:'#fff'}}>Nachhilfe</div>
+                          <div style={{fontSize:'0.55rem',color:'var(--text3)'}}>Krefeld · 5.1 km</div>
+                        </div>
+                      </div>
+                      <div style={{fontSize:'0.62rem',color:'var(--gold)',fontWeight:700}}>🔥 10€</div>
+                    </div>
+                    <div className="lp-mock-card-m">
+                      <div style={{display:'flex',alignItems:'center',gap:6}}>
+                        <span style={{fontSize:'0.85rem'}}>🌿</span>
+                        <div>
+                          <div style={{fontWeight:700,fontSize:'0.68rem',color:'#fff'}}>Gartenarbeit</div>
+                          <div style={{fontSize:'0.55rem',color:'var(--text3)'}}>Hamm · 90.3 km</div>
+                        </div>
+                      </div>
+                      <div style={{fontSize:'0.62rem',color:'var(--gold)',fontWeight:700}}>🔥 20€</div>
+                    </div>
+                  </div>
+                  {/* Map */}
+                  <div className="lp-mock-map">
+                    <div className="lp-mock-map-grid"/>
+                    <div className="lp-mock-radius"/>
+                    <div className="lp-mock-marker" style={{top:'38%',left:'42%',background:'var(--accent)',color:'var(--accent)'}}/>
+                    <div className="lp-mock-marker" style={{top:'58%',left:'55%',background:'var(--green)',color:'var(--green)'}}/>
+                    <div className="lp-mock-marker" style={{top:'28%',left:'68%',background:'var(--gold)',color:'var(--gold)'}}/>
+                    <div className="lp-mock-popup">
+                      <div style={{fontWeight:700,fontSize:'0.55rem',color:'#fff'}}>🌿 Gartenarbeit</div>
+                      <div style={{fontSize:'0.5rem',color:'var(--gold)'}}>20€/std.</div>
+                      <div style={{fontSize:'0.45rem',color:'var(--text3)',marginTop:1}}>📍 90.3 km entfernt</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="lp-panel-features">
+              <div className="lp-feat-item"><span>📍</span> Interaktive Karte</div>
+              <div className="lp-feat-item"><span>🎯</span> Radius-Suche</div>
+              <div className="lp-feat-item"><span>🧠</span> KI-Empfehlungen</div>
+              <div className="lp-feat-item"><span>⚡</span> Sofort anbieten</div>
+            </div>
+
+            <Link href="/marktplatz" className="btn btn-xl lp-btn-markt">
+              Zum Marktplatz →
+            </Link>
+          </div>
+
+          {/* ── RIGHT: Jobs ── */}
+          <div className="lp-panel lp-panel-jobs">
+            <div className="lp-panel-badge" style={{background:'var(--accent-soft)',color:'#a080ff'}}>
+              💼 Jobsuche
+            </div>
+            <h2 className="lp-panel-title">Stellenangebote mit KI-Matching</h2>
+            <p className="lp-panel-desc">
+              Durchsuche tausende Jobs mit intelligenten Filtern, Swipe-Modus und automatischem KI-Match-Score.
+            </p>
+
+            {/* Browser Mockup */}
+            <div className="lp-mockup">
+              <div className="lp-mockup-bar">
+                <div className="lp-mockup-dot" style={{background:'#ff5f57'}}/>
+                <div className="lp-mockup-dot" style={{background:'#febc2e'}}/>
+                <div className="lp-mockup-dot" style={{background:'#28c840'}}/>
+              </div>
+              <div className="lp-mockup-content">
+                <div className="lp-mock-jobs-wrap">
+                  <div className="lp-mock-filters">
+                    <span className="lp-filter active">Alle</span>
+                    <span className="lp-filter">Remote</span>
+                    <span className="lp-filter">Vollzeit</span>
+                    <span className="lp-filter">Junior</span>
+                    <span className="lp-filter">Tech</span>
+                    <span className="lp-filter">Handwerk</span>
+                  </div>
+                  <div className="lp-mock-jobs-grid">
+                    <div className="lp-mock-job">
+                      <div className="lp-mock-job-header" style={{background:'linear-gradient(135deg,#1a1a3e,#2a2a5e)'}}>
+                        <div className="lp-mock-company-logo" style={{background:'linear-gradient(135deg,var(--gold),#f0c060)'}}>💡</div>
+                      </div>
+                      <div className="lp-mock-job-body">
+                        <div style={{fontWeight:700,fontSize:'0.68rem',color:'#fff'}}>Elektriker m/w/d</div>
+                        <div style={{fontSize:'0.55rem',color:'var(--text3)'}}>Atelier Dreizehn</div>
+                        <div style={{fontSize:'0.58rem',color:'var(--green)',fontWeight:600,marginTop:3}}>20.000–30.000 €</div>
+                        <div style={{display:'flex',gap:3,marginTop:4,flexWrap:'wrap'}}>
+                          <span className="lp-tag">Vor Ort</span>
+                          <span className="lp-tag">Vollzeit</span>
+                          <span className="lp-tag accent">Handwerk</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="lp-mock-job">
+                      <div className="lp-mock-job-header" style={{background:'linear-gradient(135deg,#1e1e40,#2e2e55)'}}>
+                        <div className="lp-mock-company-logo" style={{background:'linear-gradient(135deg,var(--accent),#a080ff)'}}>✂️</div>
+                      </div>
+                      <div className="lp-mock-job-body">
+                        <div style={{fontWeight:700,fontSize:'0.68rem',color:'#fff'}}>Friseur/in</div>
+                        <div style={{fontSize:'0.55rem',color:'var(--text3)'}}>Atelier Dreizehn</div>
+                        <div style={{fontSize:'0.58rem',color:'var(--green)',fontWeight:600,marginTop:3}}>35.000–40.000 €</div>
+                        <div style={{display:'flex',gap:3,marginTop:4,flexWrap:'wrap'}}>
+                          <span className="lp-tag">Vor Ort</span>
+                          <span className="lp-tag">Vollzeit</span>
+                          <span className="lp-tag accent">Mid</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="lp-mock-detail">
+                    <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
+                      <span className="lp-benefit">✓ Jobrad</span>
+                      <span className="lp-benefit">✓ Obstkorb</span>
+                      <span className="lp-benefit">✓ Altersvorsorge</span>
+                      <span className="lp-benefit">✓ Angenehmes Klima</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="lp-panel-features">
+              <div className="lp-feat-item"><span>🔍</span> Smarte Suche</div>
+              <div className="lp-feat-item"><span>👆</span> Swipe-Modus</div>
+              <div className="lp-feat-item"><span>🧠</span> KI-Match-Score</div>
+              <div className="lp-feat-item"><span>🗺️</span> Kartenansicht</div>
+            </div>
+
+            <Link href="/jobs" className="btn btn-xl lp-btn-jobs">
+              Jobs entdecken →
+            </Link>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ═══════ STATS BAR ═══════ */}
+      <section style={{borderTop:'1px solid var(--border)',borderBottom:'1px solid var(--border)',background:'var(--surface)'}}>
+        <div className="lp-stats">
+          {[
+            {n:'12.400+',l:'Aktive Jobs',icon:'🔥'},
+            {n:'4.200+',l:'Unternehmen',icon:'🏢'},
+            {n:'89%',l:'Erfolgsrate',icon:'🎯'},
+            {n:'KI',l:'Assistent',icon:'🧠'},
+          ].map(s=>(
+            <div key={s.l} className="lp-stat">
+              <span style={{fontSize:'1.1rem',marginBottom:2}}>{s.icon}</span>
+              <div className="lp-stat-n">{s.n}</div>
+              <div className="lp-stat-l">{s.l}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ═══════ KI FEATURES ═══════ */}
       <section style={{padding:'4rem 1.5rem',background:'var(--bg)'}}>
         <div style={{maxWidth:1100,margin:'0 auto'}}>
           <div style={{textAlign:'center',marginBottom:'2.5rem'}}>
@@ -130,7 +240,8 @@ export default function Home() {
             {[
               {icon:'🧠',title:'Lebenslauf-Analyse',desc:'KI analysiert dein Profil und gibt konkrete Verbesserungsvorschläge.',color:'rgba(124,104,250,0.12)',border:'rgba(124,104,250,0.2)'},
               {icon:'🎯',title:'Job-Matching',desc:'Präziser Match-Score — sieh sofort wie gut du zur Stelle passt.',color:'rgba(212,168,67,0.08)',border:'rgba(212,168,67,0.2)'},
-              {icon:'📍',title:'Umkreissuche',desc:'GPS-Radius — Jobs in Willich finden, die auch in Krefeld sind.',color:'rgba(240,96,144,0.08)',border:'rgba(240,96,144,0.2)'},
+              {icon:'📍',title:'Umkreissuche',desc:'GPS-Radius — Jobs & Angebote in deiner Nähe finden.',color:'rgba(240,96,144,0.08)',border:'rgba(240,96,144,0.2)'},
+              {icon:'🏪',title:'Marktplatz',desc:'Biete deine Fähigkeiten an oder finde lokale Dienstleistungen.',color:'rgba(61,186,126,0.08)',border:'rgba(61,186,126,0.2)'},
             ].map(f=>(
               <Link key={f.title} href="/ki-tools" style={{textDecoration:'none'}}>
                 <div className="feat" style={{background:f.color,borderColor:f.border,height:'100%'}}>
@@ -246,7 +357,7 @@ export default function Home() {
         <div className="foot-in">
           <div className="foot-logo"><TalentoWordmark size="sm" /></div>
           <div className="foot-links">
-            <a href="/jobs">Jobs</a><a href="/ki-tools">KI-Tools</a><a href="/register">Registrieren</a><a href="#">Datenschutz</a><a href="#">Impressum</a>
+            <a href="/marktplatz">Marktplatz</a><a href="/jobs">Jobs</a><a href="/ki-tools">KI-Tools</a><a href="/register">Registrieren</a><a href="#">Datenschutz</a><a href="#">Impressum</a>
           </div>
           <div style={{fontSize:'0.78rem',color:'var(--text3)'}}>© 2026 Talento · Made in 🇩🇪</div>
         </div>
