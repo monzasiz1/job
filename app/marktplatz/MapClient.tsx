@@ -332,7 +332,7 @@ export default function MapClient() {
         if (bounds.isValid()) {
           mapRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 13 })
         }
-      } catch {}
+      } catch(e) {}
     }
   }, [filteredOfferings, filteredRequests, mapMode, searchQuery, leafletReady])
 
@@ -360,7 +360,7 @@ export default function MapClient() {
           mapRef.current.setView([latlng.lat, latlng.lng], searchRadius <= 10 ? 13 : searchRadius <= 25 ? 11 : 10)
         }
       }
-    } catch {}
+    } catch(e) {}
   }
 
   // ── Daten laden bei Kategorie-Wechsel oder Modus-Wechsel ──
@@ -398,7 +398,7 @@ export default function MapClient() {
         const data = await res.json()
         setAiTips(data)
       }
-    } catch {}
+    } catch(e) {}
     setAiLoading(false)
   }
 
@@ -411,7 +411,7 @@ export default function MapClient() {
         setFormData(f => ({ ...f, lat: data.lat, lng: data.lng, location_name: loc }))
         return true
       }
-    } catch {}
+    } catch(e) {}
     return false
   }
 
@@ -433,7 +433,7 @@ export default function MapClient() {
         } else {
           setFormMsg('Standort konnte nicht gefunden werden.'); setFormLoading(false); return
         }
-      } catch {
+      } catch(e) {
         setFormMsg('Standort konnte nicht gefunden werden.'); setFormLoading(false); return
       }
     }
@@ -452,7 +452,7 @@ export default function MapClient() {
         const err = await res.json()
         setFormMsg(err.error || 'Fehler beim Erstellen')
       }
-    } catch { setFormMsg('Netzwerkfehler') }
+    } catch(e) { setFormMsg('Netzwerkfehler') }
     setFormLoading(false)
   }
 
@@ -473,7 +473,7 @@ export default function MapClient() {
         } else {
           setReqFormMsg('Standort konnte nicht gefunden werden.'); setReqFormLoading(false); return
         }
-      } catch {
+      } catch(e) {
         setReqFormMsg('Standort konnte nicht gefunden werden.'); setReqFormLoading(false); return
       }
     }
@@ -492,7 +492,7 @@ export default function MapClient() {
         const err = await res.json()
         setReqFormMsg(err.error || 'Fehler beim Erstellen')
       }
-    } catch { setReqFormMsg('Netzwerkfehler') }
+    } catch(e) { setReqFormMsg('Netzwerkfehler') }
     setReqFormLoading(false)
   }
 
@@ -534,7 +534,7 @@ export default function MapClient() {
         const err = await res.json()
         setBookingMsg(err.error || 'Fehler beim Senden')
       }
-    } catch { setBookingMsg('Netzwerkfehler') }
+    } catch(e) { setBookingMsg('Netzwerkfehler') }
     setBookingLoading(false)
   }
 
@@ -714,8 +714,8 @@ export default function MapClient() {
                   onClick={() => {
                     setSelectedOffering(o)
                     if (mapRef.current) mapRef.current.setView([o.lat, o.lng], 14)
+                    openDetail('offering', o)
                   }}
-                  onDoubleClick={() => openDetail('offering', o)}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{
@@ -777,8 +777,8 @@ export default function MapClient() {
                   onClick={() => {
                     setSelectedRequest(r)
                     if (mapRef.current) mapRef.current.setView([r.lat, r.lng], 14)
+                    openDetail('request', r)
                   }}
-                  onDoubleClick={() => openDetail('request', r)}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{
