@@ -23,6 +23,7 @@ export default function Navbar() {
         {/* Desktop links */}
         <div className="pub-links">
           <Link href="/jobs" style={{color:'var(--text2)',fontWeight:500,fontSize:'0.85rem',textDecoration:'none'}}>Jobs</Link>
+          <Link href="/marktplatz" style={{color:'var(--text2)',fontWeight:500,fontSize:'0.85rem',textDecoration:'none'}}>Marktplatz</Link>
           <Link href="/ki-tools" style={{color:'var(--text2)',fontWeight:500,fontSize:'0.85rem',textDecoration:'none'}}>KI-Tools</Link>
           <Link href="/#arbeitgeber" style={{color:'var(--text2)',fontWeight:500,fontSize:'0.85rem',textDecoration:'none'}}>Arbeitgeber</Link>
           <Link href="/#preise" style={{color:'var(--text2)',fontWeight:500,fontSize:'0.85rem',textDecoration:'none'}}>Preise</Link>
@@ -47,7 +48,7 @@ export default function Navbar() {
       {/* Mobile dropdown menu */}
       {menuOpen && (
         <div style={{position:'fixed',top:60,left:0,right:0,zIndex:190,background:'rgba(23,23,42,0.98)',borderBottom:'1px solid var(--border)',padding:'1rem 1.5rem',display:'flex',flexDirection:'column',gap:4}}>
-          {[['Jobs','/jobs'],['KI-Tools','/ki-tools'],['Arbeitgeber','/#arbeitgeber'],['Preise','/#preise']].map(([l,h])=>(
+          {[['Jobs','/jobs'],['Marktplatz','/marktplatz'],['KI-Tools','/ki-tools'],['Arbeitgeber','/#arbeitgeber'],['Preise','/#preise']].map(([l,h])=>(
             <Link key={l} href={h} onClick={() => setMenuOpen(false)} style={{padding:'11px 0',color:'var(--text2)',fontWeight:600,fontSize:'0.9rem',textDecoration:'none',borderBottom:'1px solid var(--border)'}}>
               {l}
             </Link>
