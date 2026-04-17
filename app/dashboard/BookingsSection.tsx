@@ -93,20 +93,20 @@ export default function BookingsSection() {
   return (
     <div style={{ marginBottom: '1.5rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: 8 }}>
-        <div style={{ fontWeight: 800, fontSize: 'clamp(0.85rem, 3vw, 0.95rem)', color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span>Auftraege</span>
+        <div style={{ fontWeight: 600, fontSize: 'clamp(0.78rem, 3vw, 0.85rem)', color: 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', gap: 8, textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>
+          <span>Aufträge</span>
           {total > 0 && (
-            <span style={{ padding: '2px 10px', background: 'rgba(124,104,250,0.15)', border: '1px solid rgba(124,104,250,0.2)', borderRadius: 999, fontSize: '0.72rem', fontWeight: 700, color: '#a080ff' }}>
+            <span style={{ padding: '2px 8px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6, fontSize: '0.72rem', fontWeight: 700, color: 'rgba(255,255,255,0.5)' }}>
               {total}
             </span>
           )}
           {(needsAction.length + needsPayment.length) > 0 && (
-            <span style={{ padding: '2px 8px', background: 'rgba(240,96,144,0.15)', border: '1px solid rgba(240,96,144,0.25)', borderRadius: 999, fontSize: '0.68rem', fontWeight: 700, color: '#f06090' }}>
+            <span style={{ padding: '2px 8px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6, fontSize: '0.68rem', fontWeight: 700, color: '#fff' }}>
               {needsAction.length + needsPayment.length} neu
             </span>
           )}
         </div>
-        <Link href="/marktplatz" style={{ padding: '6px 14px', background: 'rgba(124,104,250,0.1)', border: '1px solid rgba(124,104,250,0.2)', borderRadius: 999, color: '#a080ff', fontSize: '0.75rem', fontWeight: 700, textDecoration: 'none' }}>
+        <Link href="/marktplatz" style={{ padding: '6px 14px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>
           Marktplatz
         </Link>
       </div>
