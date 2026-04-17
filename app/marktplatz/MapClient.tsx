@@ -596,7 +596,7 @@ export default function MapClient() {
       {/* ── Sidebar ── */}
       <div className={`map-sidebar ${mobileView === 'list' ? 'mob-active' : ''}`}>
         {/* Header + Toggle */}
-        <div style={{ padding: '14px 16px 10px', borderBottom: '1px solid var(--border)' }}>
+        <div className="map-sidebar-header" style={{ padding: '14px 16px 10px', borderBottom: '1px solid var(--border)' }}>
           <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: '1rem', color: '#fff', marginBottom: 8 }}>🎯 Marktplatz</div>
           <div className="map-mode-toggle">
             <button
@@ -618,7 +618,7 @@ export default function MapClient() {
         </div>
 
         {/* Suchfeld + Ort + Radius */}
-        <div style={{ padding: '12px 16px 8px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div className="map-search-area" style={{ padding: '12px 16px 8px', display: 'flex', flexDirection: 'column', gap: 8 }}>
           <div className="map-search-box">
             <span style={{ fontSize: '0.9rem' }}>🔍</span>
             <input
@@ -669,7 +669,7 @@ export default function MapClient() {
         </div>
 
         {/* Kategorie-Filter */}
-        <div style={{ padding: '0 16px 12px', display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+        <div className="map-cat-wrap" style={{ padding: '0 16px 12px', display: 'flex', flexWrap: 'wrap', gap: 5 }}>
           <button onClick={() => setSelectedCat('')} className={`map-cat-btn ${selectedCat === '' ? 'active' : ''}`}>Alle</button>
           {OFFERING_CATEGORIES.map(cat => {
             const { emoji } = getCatMeta(cat)
