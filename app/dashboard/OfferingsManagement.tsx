@@ -123,7 +123,7 @@ export default function OfferingsManagement({ offerings: initial }: { offerings:
                 background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10,
                 padding: 'clamp(0.75rem, 2vw, 1rem)', display: 'flex', alignItems: 'center', gap: 12,
                 opacity: isDeleting ? 0.5 : 1, transition: 'opacity 0.2s', flexWrap: 'wrap',
-              }>
+              }}>
                 <span style={{
                   width: 40, height: 40, borderRadius: 12, flexShrink: 0,
                   background: color + '18', border: `1.5px solid ${color}40`,
