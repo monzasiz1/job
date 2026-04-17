@@ -330,7 +330,7 @@ export default function ChatContent() {
             </div>
           ) : (
             messages.map((msg) => (
-              msg.sender_id === 'system-talento' ? (
+              (msg.sender_id === 'system-talento' || msg.content?.startsWith('[SYSTEM]')) ? (
                 <div key={msg.id} style={{
                   display: 'flex', justifyContent: 'center', padding: '4px 0',
                 }}>
@@ -346,7 +346,7 @@ export default function ChatContent() {
                     textAlign: 'center',
                     fontWeight: 600,
                   }}>
-                    {msg.content}
+                    {msg.content?.replace(/^\[SYSTEM\]\s*/, '')}
                   </div>
                 </div>
               ) : (
