@@ -542,6 +542,14 @@ export default function MapClient() {
   // ── Anfrage senden ──
   const sendBookingRequest = async () => {
     if (!detailItem || !user) return
+    if (!bookingPriceEur || parseFloat(bookingPriceEur) < 0.5) {
+      setBookingMsg('Bitte gib einen Preis ein (mind. 0,50 EUR)')
+      return
+    }
+    if (bookingPriceType === 'hourly' && (!bookingEstHours || parseFloat(bookingEstHours) < 0.5)) {
+      setBookingMsg('Bitte gib die geschaetzten Stunden ein')
+      return
+    }
     setBookingLoading(true)
     setBookingMsg('')
     try {
