@@ -563,6 +563,30 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:2rem
   /* Offer-Cards: etwas kompakter */
   .map-offer-card { padding: 10px; margin-bottom: 6px; }
 
+  /* Sidebar-Header kompakter auf Mobile */
+  .map-sidebar-header { padding: 10px 14px 8px !important; }
+  .map-sidebar-header > div:first-child { font-size: 0.9rem !important; margin-bottom: 4px !important; }
+
+  /* Suchbereich kompakter */
+  .map-search-area { padding: 8px 14px 6px !important; gap: 6px !important; }
+  .map-search-area .map-search-box { padding: 7px 10px !important; }
+
+  /* Kategorie-Filter: horizontal scrollbar statt wrap */
+  .map-cat-wrap {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 0 14px 8px !important;
+    gap: 6px !important;
+  }
+  .map-cat-wrap::-webkit-scrollbar { display: none; }
+  .map-cat-wrap .map-cat-btn {
+    flex-shrink: 0;
+    padding: 5px 12px;
+    font-size: 0.72rem;
+  }
+
   /* Popup etwas kompakter */
   .dark-popup .leaflet-popup-content-wrapper { border-radius: 10px !important; }
   .dark-popup .leaflet-popup-content { margin: 10px 12px !important; }
