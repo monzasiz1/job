@@ -105,19 +105,18 @@ export default function RequestsManagement({ requests: initial }: { requests: Sk
   return (
     <div style={{ marginBottom: '2rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: 8 }}>
-        <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: 'clamp(0.95rem, 3vw, 1.05rem)', color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
-          🔍 Meine Gesuche
+        <div style={{ fontWeight: 600, fontSize: 'clamp(0.78rem, 3vw, 0.85rem)', color: 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', gap: 8, textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>
+          Gesuche
           {items.length > 0 && (
-            <span style={{ padding: '2px 10px', background: 'rgba(240,96,144,0.15)', border: '1px solid rgba(240,96,144,0.2)', borderRadius: 999, fontSize: '0.72rem', fontWeight: 700, color: '#f06090' }}>{items.length}</span>
+            <span style={{ padding: '2px 8px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6, fontSize: '0.72rem', fontWeight: 700, color: 'rgba(255,255,255,0.5)' }}>{items.length}</span>
           )}
         </div>
       </div>
 
       {items.length === 0 ? (
-        <div style={{ background: 'linear-gradient(135deg, rgba(240,96,144,0.06), rgba(240,96,144,0.02))', border: '1px solid rgba(240,96,144,0.15)', borderRadius: 20, padding: 'clamp(1.5rem, 4vw, 2rem)', textAlign: 'center' as const }}>
-          <div style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', marginBottom: '0.75rem' }}>🔍</div>
+        <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: 'clamp(1.5rem, 4vw, 2rem)', textAlign: 'center' as const }}>
           <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.88rem', marginBottom: '1rem' }}>Du hast noch keine Gesuche erstellt.</div>
-          <a href="/marktplatz" style={{ padding: '10px 20px', background: 'linear-gradient(135deg, #f06090, #ff80ab)', color: '#fff', borderRadius: 12, fontWeight: 700, fontSize: '0.85rem', textDecoration: 'none' }}>🗺️ Zum Marktplatz</a>
+          <a href="/marktplatz" style={{ padding: '10px 20px', background: '#fff', color: '#000', borderRadius: 8, fontWeight: 700, fontSize: '0.85rem', textDecoration: 'none' }}>Zum Marktplatz</a>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -127,9 +126,9 @@ export default function RequestsManagement({ requests: initial }: { requests: Sk
             const isDeleting = deletingId === r.id
             return (
               <div key={r.id} style={{
-                background: '#17172a', border: '1px solid rgba(240,96,144,0.1)', borderRadius: 16,
+                background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10,
                 padding: 'clamp(0.75rem, 2vw, 1rem)', display: 'flex', alignItems: 'center', gap: 12,
-                opacity: isDeleting ? 0.5 : 1, transition: 'all 0.2s', flexWrap: 'wrap',
+                opacity: isDeleting ? 0.5 : 1, transition: 'opacity 0.2s', flexWrap: 'wrap',
               }}>
                 <span style={{
                   width: 40, height: 40, borderRadius: 10, flexShrink: 0,
@@ -142,21 +141,21 @@ export default function RequestsManagement({ requests: initial }: { requests: Sk
                   </div>
                   <div style={{ fontSize: 'clamp(0.68rem, 1.5vw, 0.75rem)', color: 'rgba(255,255,255,0.35)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
                     {r.category} · {r.location_name}
-                    <span style={{ padding: '1px 6px', borderRadius: 999, background: urgMeta.color + '18', color: urgMeta.color, fontSize: '0.62rem', fontWeight: 700 }}>{urgMeta.emoji} {urgMeta.label}</span>
-                    {r.budget && <span style={{ color: '#d4a843', marginLeft: 2 }}>💰 {r.budget}</span>}
+                    <span style={{ padding: '1px 6px', borderRadius: 4, background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.45)', fontSize: '0.62rem', fontWeight: 600 }}>{urgMeta.label}</span>
+                    {r.budget && <span style={{ color: 'rgba(255,255,255,0.5)', marginLeft: 2 }}>{r.budget}</span>}
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
                   <button onClick={() => openEdit(r)} style={{
-                    padding: '7px 14px', background: 'rgba(124,104,250,0.12)', border: '1px solid rgba(124,104,250,0.25)',
-                    borderRadius: 10, color: '#a080ff', fontSize: '0.78rem', fontWeight: 700,
+                    padding: '7px 14px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: 8, color: 'rgba(255,255,255,0.6)', fontSize: '0.78rem', fontWeight: 600,
                     cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
-                  }}>✏️ Bearbeiten</button>
+                  }}>Bearbeiten</button>
                   <button onClick={() => handleDelete(r.id)} disabled={isDeleting} style={{
-                    padding: '7px 14px', background: 'rgba(240,96,144,0.1)', border: '1px solid rgba(240,96,144,0.2)',
-                    borderRadius: 10, color: '#f06090', fontSize: '0.78rem', fontWeight: 700,
+                    padding: '7px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)',
+                    borderRadius: 8, color: 'rgba(255,255,255,0.4)', fontSize: '0.78rem', fontWeight: 600,
                     cursor: isDeleting ? 'not-allowed' : 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
-                  }}>{isDeleting ? '...' : '🗑️ Löschen'}</button>
+                  }}>{isDeleting ? '...' : 'Löschen'}</button>
                 </div>
               </div>
             )
@@ -172,12 +171,12 @@ export default function RequestsManagement({ requests: initial }: { requests: Sk
           display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
         }} onClick={(e) => { if (e.target === e.currentTarget) setEditItem(null) }}>
           <form onSubmit={handleEditSubmit} style={{
-            background: 'var(--surface, #1a1a2e)', border: '1px solid rgba(240,96,144,0.15)',
-            borderRadius: 20, padding: '2rem', maxWidth: 460, width: '100%',
+            background: 'var(--surface, #1a1a2e)', border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: 16, padding: '2rem', maxWidth: 460, width: '100%',
             maxHeight: '85vh', overflowY: 'auto',
           }} onClick={e => e.stopPropagation()}>
-            <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '1.15rem', marginBottom: '1.5rem', color: '#f06090' }}>
-              ✏️ Gesuch bearbeiten
+            <h3 style={{ fontWeight: 700, fontSize: '1.05rem', marginBottom: '1.5rem', color: '#fff' }}>
+              Gesuch bearbeiten
             </h3>
 
             <label style={labelStyle}>Titel *</label>
