@@ -2,8 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-browser'
-import { MarketplaceBooking, BOOKING_STATUS_META, BookingStatus } from '@/lib/types'
+import { MarketplaceBooking, BOOKING_STATUS_META, BookingStatus, PAYMENT_STATUS_META, PaymentStatus } from '@/lib/types'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
+
+const PaymentModal = dynamic(() => import('@/components/PaymentForm'), { ssr: false })
 
 type BookingWithRole = MarketplaceBooking & { role: 'provider' | 'client' }
 
@@ -15,6 +18,7 @@ export default function BookingsSection() {
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [msg, setMsg] = useState('')
   const [showDone, setShowDone] = useState(false)
+  const [payBooking, setPayBooking] = useState<BookingWithRole | null>(null)
 
   useEffect(() => { loadBookings() }, [])
 
@@ -65,7 +69,13 @@ export default function BookingsSection() {
   ]
 
   const needsAction = allBookings.filter(b => b.status === 'requested' && b.role === 'provider')
-  const active = allBookings.filter(b => ['accepted', 'in_progress'].includes(b.status))
+  const needsPayment = allBookings.filter(b =>
+    b.status === 'accepted' &&
+    b.price_amount && b.price_amount > 0 &&
+    (!b.payment_status || b.payment_status === 'none')
+  )
+  const needsPaymentIds = new Set(needsPayment.map(b => b.id))
+  const active = allBookings.filter(b => ['accepted', 'in_progress'].includes(b.status) && !needsPaymentIds.has(b.id))
   const waiting = allBookings.filter(b => b.status === 'requested' && b.role === 'client')
   const done = allBookings.filter(b => ['completed', 'declined', 'cancelled'].includes(b.status))
 
@@ -84,9 +94,9 @@ export default function BookingsSection() {
               {total}
             </span>
           )}
-          {needsAction.length > 0 && (
+          {(needsAction.length + needsPayment.length) > 0 && (
             <span style={{ padding: '2px 8px', background: 'rgba(240,96,144,0.15)', border: '1px solid rgba(240,96,144,0.25)', borderRadius: 999, fontSize: '0.68rem', fontWeight: 700, color: '#f06090' }}>
-              {needsAction.length} neu
+              {needsAction.length + needsPayment.length} neu
             </span>
           )}
         </div>
@@ -117,11 +127,20 @@ export default function BookingsSection() {
         </>
       )}
 
+      {needsPayment.length > 0 && (
+        <>
+          <SectionLabel color="#d4a843" label={'Zahlung noetig (' + needsPayment.length + ')'} />
+          {needsPayment.map(b => (
+            <BookingCard key={b.id} booking={b} onAction={updateStatus} actionLoading={actionLoading} onPay={setPayBooking} />
+          ))}
+        </>
+      )}
+
       {active.length > 0 && (
         <>
           <SectionLabel color="#3dba7e" label={'Laufend (' + active.length + ')'} />
           {active.map(b => (
-            <BookingCard key={b.id} booking={b} onAction={updateStatus} actionLoading={actionLoading} />
+            <BookingCard key={b.id} booking={b} onAction={updateStatus} actionLoading={actionLoading} onPay={setPayBooking} />
           ))}
         </>
       )}
@@ -130,7 +149,7 @@ export default function BookingsSection() {
         <>
           <SectionLabel color="#d4a843" label={'Warten auf Antwort (' + waiting.length + ')'} />
           {waiting.map(b => (
-            <BookingCard key={b.id} booking={b} onAction={updateStatus} actionLoading={actionLoading} />
+            <BookingCard key={b.id} booking={b} onAction={updateStatus} actionLoading={actionLoading} onPay={setPayBooking} />
           ))}
         </>
       )}
@@ -153,7 +172,7 @@ export default function BookingsSection() {
             </span>
           </button>
           {showDone && done.slice(0, 8).map(b => (
-            <BookingCard key={b.id} booking={b} onAction={updateStatus} actionLoading={actionLoading} />
+            <BookingCard key={b.id} booking={b} onAction={updateStatus} actionLoading={actionLoading} onPay={setPayBooking} />
           ))}
         </>
       )}
@@ -166,8 +185,26 @@ export default function BookingsSection() {
           </Link>
         </div>
       )}
+
+      {payBooking && (
+        <PaymentModal
+          bookingId={payBooking.id}
+          amount={calcPaymentAmount(payBooking)}
+          priceType={payBooking.price_type || 'fixed'}
+          onClose={() => setPayBooking(null)}
+          onSuccess={() => { setPayBooking(null); loadBookings() }}
+        />
+      )}
     </div>
   )
+}
+
+function calcPaymentAmount(b: BookingWithRole): number {
+  if (!b.price_amount) return 0
+  if (b.price_type === 'hourly' && b.estimated_hours) {
+    return Math.ceil(b.price_amount * Number(b.estimated_hours) * 1.2)
+  }
+  return b.price_amount
 }
 
 function StatBox({ count, label, color }: { count: number; label: string; color: string }) {
@@ -201,6 +238,22 @@ function RoleBadge({ role }: { role: 'provider' | 'client' }) {
   )
 }
 
+function PaymentBadge({ status, amount }: { status?: PaymentStatus; amount?: number }) {
+  if (!status || status === 'none') return null
+  const meta = PAYMENT_STATUS_META[status] || PAYMENT_STATUS_META.none
+  return (
+    <span style={{
+      padding: '1px 7px', borderRadius: 6, fontSize: '0.6rem', fontWeight: 700,
+      background: meta.color + '15', color: meta.color,
+      border: '1px solid ' + meta.color + '25',
+      display: 'inline-flex', alignItems: 'center', gap: 3,
+    }}>
+      {meta.label}
+      {amount ? (' ' + (amount / 100).toFixed(2).replace('.', ',') + ' EUR') : ''}
+    </span>
+  )
+}
+
 function BookingHeader({ booking: b }: { booking: BookingWithRole }) {
   const meta = BOOKING_STATUS_META[b.status]
   const otherPerson = b.role === 'client' ? b.provider : b.client
@@ -224,11 +277,18 @@ function BookingHeader({ booking: b }: { booking: BookingWithRole }) {
             {meta.label}
           </span>
           <RoleBadge role={b.role} />
+          <PaymentBadge status={b.payment_status as PaymentStatus} amount={b.price_amount} />
         </div>
         <div style={{ fontSize: '0.73rem', color: 'var(--text3)', display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
           <span>{otherPerson?.full_name || 'Unbekannt'}</span>
           {category && <span style={{ opacity: 0.5 }}>/ {category}</span>}
-          {b.price && <span style={{ color: '#d4a843', fontWeight: 600 }}>{b.price}</span>}
+          {b.price_amount ? (
+            <span style={{ color: '#d4a843', fontWeight: 600 }}>
+              {(b.price_amount / 100).toFixed(2).replace('.', ',')} EUR{b.price_type === 'hourly' ? '/Std.' : ''}
+            </span>
+          ) : b.price ? (
+            <span style={{ color: '#d4a843', fontWeight: 600 }}>{b.price}</span>
+          ) : null}
         </div>
         <div style={{ fontSize: '0.66rem', color: 'var(--text3)', marginTop: 2, opacity: 0.5 }}>
           {new Date(b.created_at).toLocaleDateString('de-DE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
@@ -271,15 +331,21 @@ function ActionCard({ booking: b, onAction, actionLoading }: {
   )
 }
 
-function BookingCard({ booking: b, onAction, actionLoading }: {
+function BookingCard({ booking: b, onAction, actionLoading, onPay }: {
   booking: BookingWithRole
   onAction: (id: string, status: BookingStatus) => void
   actionLoading: string | null
+  onPay: (b: BookingWithRole) => void
 }) {
   const meta = BOOKING_STATUS_META[b.status]
   const isActive = ['accepted', 'in_progress'].includes(b.status)
   const isDone = ['completed', 'declined', 'cancelled'].includes(b.status)
   const chatParams = 'employer=' + b.provider_id + '&applicant=' + b.client_id
+
+  const awaitingPayment = b.status === 'accepted' &&
+    b.price_amount && b.price_amount > 0 &&
+    (!b.payment_status || b.payment_status === 'none')
+  const showPayButton = b.role === 'client' && awaitingPayment
 
   return (
     <div style={{
@@ -297,6 +363,17 @@ function BookingCard({ booking: b, onAction, actionLoading }: {
       )}
 
       <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+        {showPayButton && (
+          <button onClick={() => onPay(b)} style={{
+            flex: 1, padding: '10px 0', border: 'none', borderRadius: 10,
+            background: 'linear-gradient(135deg, #3dba7e, #2ea36d)',
+            color: '#fff', fontFamily: 'inherit', fontWeight: 700, fontSize: '0.82rem',
+            cursor: 'pointer', minWidth: 140,
+          }}>
+            Jetzt bezahlen - {((b.price_amount || 0) / 100).toFixed(2).replace('.', ',')} EUR
+          </button>
+        )}
+
         {isActive && (
           <Link href={'/chat?' + chatParams} style={{
             flex: 1, padding: '8px 0', borderRadius: 10,
@@ -310,7 +387,7 @@ function BookingCard({ booking: b, onAction, actionLoading }: {
           </Link>
         )}
 
-        {b.role === 'provider' && b.status === 'accepted' && (
+        {b.role === 'provider' && b.status === 'accepted' && !awaitingPayment && (
           <>
             <button onClick={() => onAction(b.id, 'in_progress')} disabled={actionLoading === b.id}
               style={{ flex: 1, padding: '8px 0', border: 'none', borderRadius: 10, background: '#7c68fa', color: '#fff', fontFamily: 'inherit', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer' }}>
@@ -335,7 +412,7 @@ function BookingCard({ booking: b, onAction, actionLoading }: {
             Stornieren
           </button>
         )}
-        {b.role === 'client' && b.status === 'accepted' && (
+        {b.role === 'client' && b.status === 'accepted' && !showPayButton && (
           <button onClick={() => onAction(b.id, 'cancelled')} disabled={actionLoading === b.id}
             style={{ padding: '8px 12px', border: '1px solid rgba(240,96,144,0.2)', borderRadius: 10, background: 'transparent', color: '#f06090', fontFamily: 'inherit', fontWeight: 600, fontSize: '0.75rem', cursor: 'pointer' }}>
             Stornieren
@@ -343,16 +420,31 @@ function BookingCard({ booking: b, onAction, actionLoading }: {
         )}
       </div>
 
-      {b.status === 'accepted' && (
-        <div style={{ fontSize: '0.7rem', color: 'var(--text3)', marginTop: 8 }}>
-          {b.role === 'provider'
+      {b.status === 'accepted' && !showPayButton && (
+        <div style={{ fontSize: '0.7rem', color: awaitingPayment ? '#d4a843' : 'var(--text3)', marginTop: 8 }}>
+          {awaitingPayment && b.role === 'provider'
+            ? 'Warte auf Zahlung des Auftraggebers. Der Auftrag kann erst nach Zahlung gestartet werden.'
+            : b.role === 'provider'
             ? 'Nutze den Chat um Details zu klaeren, dann starte den Auftrag.'
-            : 'Angenommen! Nutze den Chat um Details zu klaeren.'}
+            : (b.payment_status === 'authorized'
+              ? 'Zahlung reserviert. Der Anbieter kann den Auftrag starten.'
+              : 'Angenommen! Nutze den Chat um Details zu klaeren.')}
+        </div>
+      )}
+      {showPayButton && (
+        <div style={{ fontSize: '0.7rem', color: '#d4a843', marginTop: 8 }}>
+          Der Anbieter hat angenommen. Bezahle jetzt, damit der Auftrag starten kann.
+          Das Geld wird erst nach Abschluss ausgezahlt (Treuhand).
         </div>
       )}
       {b.status === 'in_progress' && b.role === 'provider' && (
         <div style={{ fontSize: '0.7rem', color: 'var(--text3)', marginTop: 8 }}>
           Wenn du fertig bist, schliesse den Auftrag ab.
+        </div>
+      )}
+      {b.status === 'completed' && b.payment_status === 'paid' && (
+        <div style={{ fontSize: '0.7rem', color: '#3dba7e', marginTop: 8 }}>
+          Zahlung erfolgreich abgeschlossen.
         </div>
       )}
     </div>
