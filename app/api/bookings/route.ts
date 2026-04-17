@@ -175,6 +175,11 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: `Status-Übergang von "${booking.status}" zu "${status}" nicht erlaubt` }, { status: 400 })
   }
 
+  // Stornierung blockieren wenn bereits bezahlt (captured)
+  if (status === 'cancelled' && booking.payment_status === 'captured') {
+    return NextResponse.json({ error: 'Stornierung nicht möglich – Zahlung wurde bereits abgeschlossen' }, { status: 400 })
+  }
+
   // Payment logic on status transitions
   // Block starting work if price exists but payment not authorized
   if (status === 'in_progress' && booking.price_amount && booking.price_amount > 0) {
@@ -191,6 +196,65 @@ export async function PUT(request: Request) {
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // ── Chat-Benachrichtigung bei Stornierung/Ablehnung ──
+  if (['cancelled', 'declined'].includes(status)) {
+    try {
+      const isRequestBased2 = !!booking.request_id
+      const itemType = isRequestBased2 ? 'Gesuch' : 'Angebot'
+      const actionLabel = status === 'cancelled' ? 'storniert' : 'abgelehnt'
+      const systemMsg = `[SYSTEM] ❌ Der Auftrag "${booking.title}" (${itemType}) wurde ${actionLabel}.`
+
+      // Finde oder erstelle Konversation zwischen den beiden Parteien
+      const employer = booking.provider_id
+      const applicant = booking.client_id
+
+      let convQuery = supabase
+        .from('conversations')
+        .select('id')
+        .eq('employer_id', employer)
+        .eq('applicant_id', applicant)
+        .is('job_id', null)
+
+      let { data: conv } = await convQuery.maybeSingle()
+
+      // Auch umgekehrt prüfen (employer/applicant könnten vertauscht sein)
+      if (!conv) {
+        const { data: conv2 } = await supabase
+          .from('conversations')
+          .select('id')
+          .eq('employer_id', applicant)
+          .eq('applicant_id', employer)
+          .is('job_id', null)
+          .maybeSingle()
+        conv = conv2
+      }
+
+      // Neue Konversation erstellen falls keine existiert
+      if (!conv) {
+        const { data: newConv } = await supabase
+          .from('conversations')
+          .insert([{ employer_id: employer, applicant_id: applicant }])
+          .select('id')
+          .single()
+        conv = newConv
+      }
+
+      if (conv) {
+        await supabase
+          .from('messages')
+          .insert([{
+            conversation_id: conv.id,
+            sender_id: user.id,
+            content: systemMsg,
+          }])
+        await supabase
+          .from('conversations')
+          .update({ last_message: systemMsg, last_message_at: new Date().toISOString() })
+          .eq('id', conv.id)
+      }
+    } catch(e) { /* Chat-Benachrichtigung ist best-effort */ }
+  }
 
   // Auto-capture payment on completion
   if (status === 'completed' && booking.payment_intent_id && booking.payment_status === 'authorized') {
