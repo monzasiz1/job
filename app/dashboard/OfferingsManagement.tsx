@@ -100,19 +100,18 @@ export default function OfferingsManagement({ offerings: initial }: { offerings:
   return (
     <div style={{ marginBottom: '2rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: 8 }}>
-        <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: 'clamp(0.95rem, 3vw, 1.05rem)', color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
-          🎯 Meine Angebote
+        <div style={{ fontWeight: 600, fontSize: 'clamp(0.78rem, 3vw, 0.85rem)', color: 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', gap: 8, textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>
+          Angebote
           {items.length > 0 && (
-            <span style={{ padding: '2px 10px', background: 'rgba(212,168,67,0.15)', border: '1px solid rgba(212,168,67,0.2)', borderRadius: 999, fontSize: '0.72rem', fontWeight: 700, color: '#d4a843' }}>{items.length}</span>
+            <span style={{ padding: '2px 8px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6, fontSize: '0.72rem', fontWeight: 700, color: 'rgba(255,255,255,0.5)' }}>{items.length}</span>
           )}
         </div>
       </div>
 
       {items.length === 0 ? (
-        <div style={{ background: 'linear-gradient(135deg, rgba(212,168,67,0.06), rgba(212,168,67,0.02))', border: '1px solid rgba(212,168,67,0.15)', borderRadius: 20, padding: 'clamp(1.5rem, 4vw, 2rem)', textAlign: 'center' as const }}>
-          <div style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', marginBottom: '0.75rem' }}>🎯</div>
+        <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: 'clamp(1.5rem, 4vw, 2rem)', textAlign: 'center' as const }}>
           <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.88rem', marginBottom: '1rem' }}>Du hast noch keine Fähigkeiten angeboten.</div>
-          <a href="/marktplatz" style={{ padding: '10px 20px', background: 'linear-gradient(135deg, #d4a843, #f0c060)', color: '#000', borderRadius: 12, fontWeight: 700, fontSize: '0.85rem', textDecoration: 'none' }}>🗺️ Zum Marktplatz</a>
+          <a href="/marktplatz" style={{ padding: '10px 20px', background: '#fff', color: '#000', borderRadius: 8, fontWeight: 700, fontSize: '0.85rem', textDecoration: 'none' }}>Zum Marktplatz</a>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -121,10 +120,10 @@ export default function OfferingsManagement({ offerings: initial }: { offerings:
             const isDeleting = deletingId === o.id
             return (
               <div key={o.id} style={{
-                background: '#17172a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 16,
+                background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10,
                 padding: 'clamp(0.75rem, 2vw, 1rem)', display: 'flex', alignItems: 'center', gap: 12,
-                opacity: isDeleting ? 0.5 : 1, transition: 'all 0.2s', flexWrap: 'wrap',
-              }}>
+                opacity: isDeleting ? 0.5 : 1, transition: 'opacity 0.2s', flexWrap: 'wrap',
+              }>
                 <span style={{
                   width: 40, height: 40, borderRadius: 12, flexShrink: 0,
                   background: color + '18', border: `1.5px solid ${color}40`,
@@ -136,20 +135,20 @@ export default function OfferingsManagement({ offerings: initial }: { offerings:
                   </div>
                   <div style={{ fontSize: 'clamp(0.68rem, 1.5vw, 0.75rem)', color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>
                     {o.category} · {o.location_name}
-                    {o.price_info && <span style={{ color: '#d4a843', marginLeft: 6 }}>💰 {o.price_info}</span>}
+                    {o.price_info && <span style={{ color: 'rgba(255,255,255,0.5)', marginLeft: 6 }}>{o.price_info}</span>}
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
                   <button onClick={() => openEdit(o)} style={{
-                    padding: '7px 14px', background: 'rgba(124,104,250,0.12)', border: '1px solid rgba(124,104,250,0.25)',
-                    borderRadius: 10, color: '#a080ff', fontSize: '0.78rem', fontWeight: 700,
+                    padding: '7px 14px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: 8, color: 'rgba(255,255,255,0.6)', fontSize: '0.78rem', fontWeight: 600,
                     cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
-                  }}>✏️ Bearbeiten</button>
+                  }}>Bearbeiten</button>
                   <button onClick={() => handleDelete(o.id)} disabled={isDeleting} style={{
-                    padding: '7px 14px', background: 'rgba(240,96,144,0.1)', border: '1px solid rgba(240,96,144,0.2)',
-                    borderRadius: 10, color: '#f06090', fontSize: '0.78rem', fontWeight: 700,
+                    padding: '7px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)',
+                    borderRadius: 8, color: 'rgba(255,255,255,0.4)', fontSize: '0.78rem', fontWeight: 600,
                     cursor: isDeleting ? 'not-allowed' : 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
-                  }}>{isDeleting ? '...' : '🗑️ Löschen'}</button>
+                  }}>{isDeleting ? '...' : 'Löschen'}</button>
                 </div>
               </div>
             )
@@ -169,8 +168,8 @@ export default function OfferingsManagement({ offerings: initial }: { offerings:
             borderRadius: 20, padding: '2rem', maxWidth: 460, width: '100%',
             maxHeight: '85vh', overflowY: 'auto',
           }} onClick={e => e.stopPropagation()}>
-            <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '1.15rem', marginBottom: '1.5rem', color: '#fff' }}>
-              ✏️ Angebot bearbeiten
+            <h3 style={{ fontWeight: 700, fontSize: '1.05rem', marginBottom: '1.5rem', color: '#fff' }}>
+              Angebot bearbeiten
             </h3>
 
             <label style={labelStyle}>Titel *</label>
