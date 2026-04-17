@@ -25,13 +25,19 @@ export async function GET(req: NextRequest) {
     }
 
     // Finde existierende Konversation
-    const { data: existing, error: selectError } = await supabase
+    let query = supabase
       .from('conversations')
       .select('id')
       .eq('employer_id', employerId)
       .eq('applicant_id', applicantId)
-      .eq('job_id', jobId)
-      .maybeSingle()
+
+    if (jobId) {
+      query = query.eq('job_id', jobId)
+    } else {
+      query = query.is('job_id', null)
+    }
+
+    const { data: existing, error: selectError } = await query.maybeSingle()
 
     if (selectError && selectError.code !== 'PGRST116') {
       throw selectError
