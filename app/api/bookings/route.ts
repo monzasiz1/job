@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
+import { stripe } from '@/lib/stripe'
+import { PLATFORM_FEE_PERCENT } from '@/lib/stripe'
 
 // GET — Meine Buchungen laden (als Client oder Provider)
 export async function GET(request: Request) {
@@ -41,7 +43,7 @@ export async function POST(request: Request) {
   if (authError || !user) return NextResponse.json({ error: 'Nicht eingeloggt' }, { status: 401 })
 
   const body = await request.json()
-  const { provider_id, client_id, offering_id, request_id, title, message, price } = body
+  const { provider_id, client_id, offering_id, request_id, title, message, price, price_amount, price_type, estimated_hours } = body
 
   if (!title) {
     return NextResponse.json({ error: 'title ist Pflicht' }, { status: 400 })
@@ -98,6 +100,9 @@ export async function POST(request: Request) {
       title: String(title).slice(0, 200),
       message: message ? String(message).slice(0, 2000) : null,
       price: price ? String(price).slice(0, 100) : null,
+      price_amount: price_amount ? Math.round(Number(price_amount)) : 0,
+      price_type: price_type === 'hourly' ? 'hourly' : 'fixed',
+      estimated_hours: estimated_hours ? Number(estimated_hours) : null,
       status: 'requested',
     })
     .select()
@@ -164,6 +169,11 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: `Status-Übergang von "${booking.status}" zu "${status}" nicht erlaubt` }, { status: 400 })
   }
 
+  // Payment logic on status transitions
+  if (status === 'in_progress' && booking.payment_intent_id && booking.payment_status !== 'authorized') {
+    return NextResponse.json({ error: 'Zahlung muss zuerst autorisiert sein bevor der Auftrag gestartet werden kann' }, { status: 400 })
+  }
+
   const { data, error } = await supabase
     .from('marketplace_bookings')
     .update({ status, updated_at: new Date().toISOString() })
@@ -172,6 +182,28 @@ export async function PUT(request: Request) {
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Auto-capture payment on completion
+  if (status === 'completed' && booking.payment_intent_id && booking.payment_status === 'authorized') {
+    try {
+      await stripe.paymentIntents.capture(booking.payment_intent_id)
+      await supabase
+        .from('marketplace_bookings')
+        .update({ payment_status: 'captured', updated_at: new Date().toISOString() })
+        .eq('id', id)
+    } catch(e) { /* webhook will handle it */ }
+  }
+
+  // Auto-cancel payment on cancellation/decline
+  if (['cancelled', 'declined'].includes(status) && booking.payment_intent_id && ['authorized', 'none'].includes(booking.payment_status || 'none')) {
+    try {
+      await stripe.paymentIntents.cancel(booking.payment_intent_id)
+      await supabase
+        .from('marketplace_bookings')
+        .update({ payment_status: 'cancelled', updated_at: new Date().toISOString() })
+        .eq('id', id)
+    } catch(e) { /* ignore if already cancelled */ }
+  }
 
   // Bei completed/declined/cancelled: Angebot/Gesuch vom Marktplatz nehmen (is_active=false)
   if (['completed', 'declined', 'cancelled'].includes(status)) {
