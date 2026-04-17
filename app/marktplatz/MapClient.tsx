@@ -919,6 +919,20 @@ export default function MapClient() {
             color: 'var(--text3)', fontSize: '0.9rem',
           }}>Karte wird geladen...</div>
         )}
+
+        {/* ── Radius-Control auf der Karte ── */}
+        <div className="map-radius-overlay">
+          <span style={{ fontSize: '0.72rem', color: 'var(--text3)', whiteSpace: 'nowrap' }}>📍 Radius:</span>
+          <input
+            type="range" min={5} max={100} step={5}
+            value={searchRadius}
+            onChange={e => setSearchRadius(parseInt(e.target.value))}
+            className="map-range" style={{ flex: 1, minWidth: 80 }}
+          />
+          <span style={{ fontSize: '0.78rem', color: 'var(--accent)', fontWeight: 700, minWidth: 42, textAlign: 'right' }}>
+            {searchRadius} km
+          </span>
+        </div>
       </div>
 
       {/* ── KI-Panel ── */}
