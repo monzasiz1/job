@@ -108,29 +108,20 @@ export async function POST(req: NextRequest) {
     // 1) Schneller Keyword-Check (sofort)
     // 2) Mistral-Check als Ergänzung (async, für subtilere Fälle)
     let warning = null
-    const quickHit = quickBypassCheck(content)
+    const shouldWarn = quickBypassCheck(content) || await mistralBypassCheck(content)
 
-    if (quickHit) {
-      // Sofort warnen bei eindeutigen Keywords
-      warning = {
-        id: 'warn-' + Date.now(),
-        conversation_id,
-        sender_id: 'system-talento',
-        content: WARNING_TEXT,
-        created_at: new Date().toISOString(),
-      }
-    } else {
-      // Mistral für subtilere Fälle (non-blocking: Fehler = keine Warnung)
-      const mistralHit = await mistralBypassCheck(content)
-      if (mistralHit) {
-        warning = {
-          id: 'warn-' + Date.now(),
+    if (shouldWarn) {
+      // Warnung in DB speichern (mit echtem sender_id wegen FK, Prefix [SYSTEM] zur Erkennung)
+      const { data: warnMsg } = await supabase
+        .from('messages')
+        .insert([{
           conversation_id,
-          sender_id: 'system-talento',
-          content: WARNING_TEXT,
-          created_at: new Date().toISOString(),
-        }
-      }
+          sender_id,
+          content: '[SYSTEM] ' + WARNING_TEXT,
+        }])
+        .select()
+        .single()
+      warning = warnMsg
     }
 
     return NextResponse.json({ message, warning })
