@@ -68,7 +68,13 @@ export default function BookingsSection() {
     ...outgoing.map(b => ({ ...b, role: 'client' as const })),
   ]
 
-  const needsAction = allBookings.filter(b => b.status === 'requested' && b.role === 'provider')
+  // Bei Gesuchen entscheidet der Client (Ersteller), bei Angeboten der Provider
+  const isDecider = (b: BookingWithRole) => {
+    const isRequestBased = !!b.request_id
+    return isRequestBased ? b.role === 'client' : b.role === 'provider'
+  }
+
+  const needsAction = allBookings.filter(b => b.status === 'requested' && isDecider(b))
   const needsPayment = allBookings.filter(b =>
     b.status === 'accepted' &&
     b.price_amount && b.price_amount > 0 &&
@@ -76,7 +82,7 @@ export default function BookingsSection() {
   )
   const needsPaymentIds = new Set(needsPayment.map(b => b.id))
   const active = allBookings.filter(b => ['accepted', 'in_progress'].includes(b.status) && !needsPaymentIds.has(b.id))
-  const waiting = allBookings.filter(b => b.status === 'requested' && b.role === 'client')
+  const waiting = allBookings.filter(b => b.status === 'requested' && !isDecider(b))
   const done = allBookings.filter(b => ['completed', 'declined', 'cancelled'].includes(b.status))
 
   const total = allBookings.length
@@ -224,16 +230,26 @@ function SectionLabel({ color, label }: { color: string; label: string }) {
   )
 }
 
-function RoleBadge({ role }: { role: 'provider' | 'client' }) {
-  const isProvider = role === 'provider'
+function RoleBadge({ role, isRequestBased }: { role: 'provider' | 'client'; isRequestBased?: boolean }) {
+  // Bei Gesuchen: client = Ersteller, provider = Helfer
+  // Bei Angeboten: provider = Anbieter, client = Anfragender
+  let label: string
+  let isGreen: boolean
+  if (isRequestBased) {
+    label = role === 'client' ? 'Dein Gesuch' : 'Du hilfst'
+    isGreen = role === 'provider'
+  } else {
+    label = role === 'provider' ? 'Du bietest an' : 'Deine Anfrage'
+    isGreen = role === 'provider'
+  }
   return (
     <span style={{
       padding: '1px 7px', borderRadius: 6, fontSize: '0.62rem', fontWeight: 700,
-      background: isProvider ? 'rgba(61,186,126,0.12)' : 'rgba(124,104,250,0.12)',
-      color: isProvider ? '#3dba7e' : '#a080ff',
-      border: '1px solid ' + (isProvider ? 'rgba(61,186,126,0.2)' : 'rgba(124,104,250,0.2)'),
+      background: isGreen ? 'rgba(61,186,126,0.12)' : 'rgba(124,104,250,0.12)',
+      color: isGreen ? '#3dba7e' : '#a080ff',
+      border: '1px solid ' + (isGreen ? 'rgba(61,186,126,0.2)' : 'rgba(124,104,250,0.2)'),
     }}>
-      {isProvider ? 'Du bietest an' : 'Deine Anfrage'}
+      {label}
     </span>
   )
 }
@@ -276,7 +292,7 @@ function BookingHeader({ booking: b }: { booking: BookingWithRole }) {
           <span style={{ padding: '2px 7px', borderRadius: 8, background: meta.color + '18', color: meta.color, fontSize: '0.64rem', fontWeight: 700 }}>
             {meta.label}
           </span>
-          <RoleBadge role={b.role} />
+          <RoleBadge role={b.role} isRequestBased={!!b.request_id} />
           <PaymentBadge status={b.payment_status as PaymentStatus} amount={b.price_amount} />
         </div>
         <div style={{ fontSize: '0.73rem', color: 'var(--text3)', display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
@@ -342,6 +358,11 @@ function BookingCard({ booking: b, onAction, actionLoading, onPay }: {
   const isDone = ['completed', 'declined', 'cancelled'].includes(b.status)
   const chatParams = 'employer=' + b.provider_id + '&applicant=' + b.client_id
 
+  // Bei Gesuchen: client = Entscheider, provider = Initiator (umgekehrt zu Angeboten)
+  const isRequestBased = !!b.request_id
+  const isDecider = isRequestBased ? b.role === 'client' : b.role === 'provider'
+  const isInitiator = !isDecider
+
   const awaitingPayment = b.status === 'accepted' &&
     b.price_amount && b.price_amount > 0 &&
     (!b.payment_status || b.payment_status === 'none')
@@ -406,13 +427,13 @@ function BookingCard({ booking: b, onAction, actionLoading, onPay }: {
           </button>
         )}
 
-        {b.role === 'client' && b.status === 'requested' && (
+        {isInitiator && b.status === 'requested' && (
           <button onClick={() => onAction(b.id, 'cancelled')} disabled={actionLoading === b.id}
             style={{ flex: 1, padding: '8px 0', border: '1px solid rgba(240,96,144,0.2)', borderRadius: 10, background: 'transparent', color: '#f06090', fontFamily: 'inherit', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer' }}>
             Stornieren
           </button>
         )}
-        {b.role === 'client' && b.status === 'accepted' && !showPayButton && (
+        {isInitiator && b.status === 'accepted' && !showPayButton && (
           <button onClick={() => onAction(b.id, 'cancelled')} disabled={actionLoading === b.id}
             style={{ padding: '8px 12px', border: '1px solid rgba(240,96,144,0.2)', borderRadius: 10, background: 'transparent', color: '#f06090', fontFamily: 'inherit', fontWeight: 600, fontSize: '0.75rem', cursor: 'pointer' }}>
             Stornieren
