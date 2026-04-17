@@ -140,7 +140,7 @@ export default function ChatContent() {
     setMsgText('')
 
     try {
-      await fetch('/api/chat/messages', {
+      const res = await fetch('/api/chat/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -149,6 +149,10 @@ export default function ChatContent() {
           content: msgToSend,
         }),
       })
+      const data = await res.json()
+      if (data.warning) {
+        setMessages(prev => [...prev, data.warning])
+      }
     } catch (err) {
       console.error('Error sending message:', err)
     }
@@ -326,36 +330,57 @@ export default function ChatContent() {
             </div>
           ) : (
             messages.map((msg) => (
-              <div
-                key={msg.id}
-                style={{
-                  display: 'flex',
-                  justifyContent:
-                    msg.sender_id === currentUser?.id ? 'flex-end' : 'flex-start',
-                }}
-              >
-                <div
-                  style={{
-                    maxWidth: isMobile ? '85%' : '65%',
-                    padding: isMobile ? '8px 12px' : '10px 14px',
-                    borderRadius: '16px',
-                    background:
-                      msg.sender_id === currentUser?.id
-                        ? 'linear-gradient(135deg, rgba(124,104,250,0.3), rgba(124,104,250,0.15))'
-                        : 'rgba(255,255,255,0.08)',
-                    border:
-                      msg.sender_id === currentUser?.id
-                        ? '1px solid rgba(124,104,250,0.3)'
-                        : '1px solid rgba(255,255,255,0.05)',
-                    color: '#fff',
-                    fontSize: isMobile ? '0.85rem' : '0.9rem',
+              msg.sender_id === 'system-talento' ? (
+                <div key={msg.id} style={{
+                  display: 'flex', justifyContent: 'center', padding: '4px 0',
+                }}>
+                  <div style={{
+                    maxWidth: isMobile ? '90%' : '75%',
+                    padding: '8px 14px',
+                    borderRadius: 12,
+                    background: 'rgba(212,168,67,0.1)',
+                    border: '1px solid rgba(212,168,67,0.25)',
+                    color: '#d4a843',
+                    fontSize: isMobile ? '0.78rem' : '0.82rem',
                     lineHeight: 1.5,
-                    wordWrap: 'break-word',
+                    textAlign: 'center',
+                    fontWeight: 600,
+                  }}>
+                    {msg.content}
+                  </div>
+                </div>
+              ) : (
+                <div
+                  key={msg.id}
+                  style={{
+                    display: 'flex',
+                    justifyContent:
+                      msg.sender_id === currentUser?.id ? 'flex-end' : 'flex-start',
                   }}
                 >
-                  {msg.content}
+                  <div
+                    style={{
+                      maxWidth: isMobile ? '85%' : '65%',
+                      padding: isMobile ? '8px 12px' : '10px 14px',
+                      borderRadius: '16px',
+                      background:
+                        msg.sender_id === currentUser?.id
+                          ? 'linear-gradient(135deg, rgba(124,104,250,0.3), rgba(124,104,250,0.15))'
+                          : 'rgba(255,255,255,0.08)',
+                      border:
+                        msg.sender_id === currentUser?.id
+                          ? '1px solid rgba(124,104,250,0.3)'
+                          : '1px solid rgba(255,255,255,0.05)',
+                      color: '#fff',
+                      fontSize: isMobile ? '0.85rem' : '0.9rem',
+                      lineHeight: 1.5,
+                      wordWrap: 'break-word',
+                    }}
+                  >
+                    {msg.content}
+                  </div>
                 </div>
-              </div>
+              )
             ))
           )}
           <div ref={messagesEndRef} />
