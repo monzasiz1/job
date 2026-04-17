@@ -172,5 +172,22 @@ export async function PUT(request: Request) {
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Bei completed/declined/cancelled: Angebot/Gesuch vom Marktplatz nehmen (is_active=false)
+  if (['completed', 'declined', 'cancelled'].includes(status)) {
+    if (booking.offering_id) {
+      await supabase
+        .from('skill_offerings')
+        .update({ is_active: false, updated_at: new Date().toISOString() })
+        .eq('id', booking.offering_id)
+    }
+    if (booking.request_id) {
+      await supabase
+        .from('skill_requests')
+        .update({ is_active: false, updated_at: new Date().toISOString() })
+        .eq('id', booking.request_id)
+    }
+  }
+
   return NextResponse.json(data)
 }
