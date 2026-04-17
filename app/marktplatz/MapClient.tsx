@@ -157,6 +157,15 @@ export default function MapClient() {
   // ── Mobile: Karte / Liste Toggle ──
   const [mobileView, setMobileView] = useState<'map' | 'list'>('map')
 
+  // ── Leaflet invalidateSize bei Wechsel zurück zur Karte ──
+  useEffect(() => {
+    if (mobileView === 'map' && mapRef.current) {
+      // Container war display:none → Leaflet muss Größe neu berechnen
+      setTimeout(() => { mapRef.current?.invalidateSize(); }, 50)
+      setTimeout(() => { mapRef.current?.invalidateSize(); }, 300)
+    }
+  }, [mobileView])
+
   // ── Refs für globale Popup-Bridge ──
   const offeringsRef = useRef<SkillOffering[]>([])
   const requestsRef = useRef<SkillRequest[]>([])
