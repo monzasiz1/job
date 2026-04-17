@@ -2,6 +2,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
+
+const PaymentModal = dynamic(() => import('@/components/PaymentForm'), { ssr: false })
 
 export default function ChatContent() {
   const router = useRouter()
@@ -17,6 +20,7 @@ export default function ChatContent() {
   const [isMobile, setIsMobile] = useState(false)
   const [showSidebar, setShowSidebar] = useState(false)
   const [booking, setBooking] = useState<any>(null)
+  const [payBooking, setPayBooking] = useState<any>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Mobile detection
@@ -302,7 +306,7 @@ export default function ChatContent() {
         </div>
 
         {/* AUFTRAGS-STATUS BAR */}
-        {booking && <BookingStatusBar booking={booking} currentUserId={currentUser?.id} />}
+        {booking && <BookingStatusBar booking={booking} currentUserId={currentUser?.id} onPay={() => setPayBooking(booking)} />}
 
         {/* MESSAGES */}
         <div
@@ -429,8 +433,28 @@ export default function ChatContent() {
           </div>
         </div>
       )}
+      {payBooking && (
+        <PaymentModal
+          bookingId={payBooking.id}
+          amount={calcChatPaymentAmount(payBooking)}
+          priceType={payBooking.price_type || 'fixed'}
+          onClose={() => setPayBooking(null)}
+          onSuccess={() => {
+            setPayBooking(null)
+            setBooking({ ...payBooking, payment_status: 'authorized' })
+          }}
+        />
+      )}
     </div>
   )
+}
+
+function calcChatPaymentAmount(b: any): number {
+  if (!b.price_amount) return 0
+  if (b.price_type === 'hourly' && b.estimated_hours) {
+    return Math.ceil(b.price_amount * Number(b.estimated_hours) * 1.2)
+  }
+  return b.price_amount
 }
 
 const STATUS_INFO: Record<string, { label: string; color: string; emoji: string }> = {
@@ -451,11 +475,14 @@ const PAYMENT_INFO: Record<string, { label: string; color: string }> = {
   refunded:   { label: 'Erstattet', color: '#888' },
 }
 
-function BookingStatusBar({ booking, currentUserId }: { booking: any; currentUserId?: string }) {
+function BookingStatusBar({ booking, currentUserId, onPay }: { booking: any; currentUserId?: string; onPay: () => void }) {
   const status = STATUS_INFO[booking.status] || STATUS_INFO.requested
   const payment = booking.payment_status ? PAYMENT_INFO[booking.payment_status] : null
   const isProvider = booking.provider_id === currentUserId
+  const isClient = booking.client_id === currentUserId
   const priceAmount = booking.price_amount
+  const showPayButton = isClient && booking.status === 'accepted' &&
+    priceAmount > 0 && (!booking.payment_status || booking.payment_status === 'none')
 
   return (
     <div style={{
@@ -495,6 +522,17 @@ function BookingStatusBar({ booking, currentUserId }: { booking: any; currentUse
           {(priceAmount / 100).toFixed(2).replace('.', ',')} EUR
           {booking.price_type === 'hourly' ? '/Std.' : ''}
         </span>
+      )}
+
+      {showPayButton && (
+        <button onClick={onPay} style={{
+          padding: '4px 12px', border: 'none', borderRadius: 8,
+          background: 'linear-gradient(135deg, #3dba7e, #2ea36d)',
+          color: '#fff', fontFamily: 'inherit', fontWeight: 700, fontSize: '0.72rem',
+          cursor: 'pointer', whiteSpace: 'nowrap',
+        }}>
+          Jetzt bezahlen - {(priceAmount / 100).toFixed(2).replace('.', ',')} EUR
+        </button>
       )}
 
       <span style={{
