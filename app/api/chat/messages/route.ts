@@ -1,6 +1,38 @@
 import { createClient } from '@/lib/supabase-server'
 import { NextRequest, NextResponse } from 'next/server'
 
+const SYSTEM_SENDER = 'system-talento'
+
+async function scanForPaymentBypass(content: string): Promise<boolean> {
+  const apiKey = process.env.MISTRAL_API_KEY
+  if (!apiKey) return false
+  try {
+    const res = await fetch('https://api.mistral.ai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model: 'mistral-small-latest',
+        messages: [
+          {
+            role: 'system',
+            content:
+              'Du bist ein Moderations-Bot für eine Dienstleistungs-Plattform. Antworte NUR mit "JA" oder "NEIN". Prüfe ob die folgende Chat-Nachricht einen Versuch enthält, die Bezahlung außerhalb der Plattform abzuwickeln. Beispiele: Barzahlung, PayPal direkt, Überweisung direkt, "ohne Plattform bezahlen", "bar machen", "cash", IBAN teilen, Revolut, Venmo, Handshake-Deal. Ignoriere harmlose Erwähnungen von Geld.',
+          },
+          { role: 'user', content },
+        ],
+        max_tokens: 5,
+        temperature: 0,
+      }),
+    })
+    if (!res.ok) return false
+    const data = await res.json()
+    const answer = data.choices?.[0]?.message?.content?.trim().toUpperCase() || ''
+    return answer.startsWith('JA')
+  } catch {
+    return false
+  }
+}
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
@@ -51,7 +83,23 @@ export async function POST(req: NextRequest) {
       .update({ last_message: content, last_message_at: new Date().toISOString() })
       .eq('id', conversation_id)
 
-    return NextResponse.json(message)
+    // Mistral-Scan: prüfe ob Zahlung außerhalb der Plattform vorgeschlagen wird
+    let warning = null
+    const isBypass = await scanForPaymentBypass(content)
+    if (isBypass) {
+      const { data: warnMsg } = await supabase
+        .from('messages')
+        .insert([{
+          conversation_id,
+          sender_id: SYSTEM_SENDER,
+          content: '⚠️ Hinweis: Bei Barzahlung entfällt dein Talento-Käuferschutz. Wir empfehlen, alle Zahlungen über die Plattform abzuwickeln.',
+        }])
+        .select()
+        .single()
+      warning = warnMsg
+    }
+
+    return NextResponse.json({ message, warning })
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
