@@ -102,6 +102,18 @@ export const BOOKING_STATUS_META: Record<BookingStatus, { label: string; emoji: 
   declined:    { label: 'Abgelehnt', emoji: '🚫', color: '#f06090' },
 }
 
+export type PriceType = 'fixed' | 'hourly'
+export type PaymentStatus = 'none' | 'authorized' | 'captured' | 'paid' | 'cancelled' | 'refunded'
+
+export const PAYMENT_STATUS_META: Record<PaymentStatus, { label: string; color: string }> = {
+  none:       { label: 'Nicht bezahlt', color: '#888' },
+  authorized: { label: 'Reserviert', color: '#d4a843' },
+  captured:   { label: 'Eingezogen', color: '#7c68fa' },
+  paid:       { label: 'Bezahlt', color: '#3dba7e' },
+  cancelled:  { label: 'Storniert', color: '#f06090' },
+  refunded:   { label: 'Erstattet', color: '#888' },
+}
+
 export interface MarketplaceBooking {
   id: string
   client_id: string
@@ -111,6 +123,14 @@ export interface MarketplaceBooking {
   title: string
   message?: string | null
   price?: string | null
+  price_amount?: number
+  price_type?: PriceType
+  estimated_hours?: number | null
+  actual_hours?: number | null
+  payment_intent_id?: string | null
+  payment_status?: PaymentStatus
+  platform_fee?: number
+  provider_payout?: number
   status: BookingStatus
   created_at: string
   updated_at: string
