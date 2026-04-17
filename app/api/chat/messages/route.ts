@@ -1,9 +1,30 @@
 import { createClient } from '@/lib/supabase-server'
 import { NextRequest, NextResponse } from 'next/server'
 
-const SYSTEM_SENDER = 'system-talento'
+const WARNING_TEXT = '⚠️ Hinweis: Bei Barzahlung entfällt dein Talento-Käuferschutz. Wir empfehlen, alle Zahlungen über die Plattform abzuwickeln.'
 
-async function scanForPaymentBypass(content: string): Promise<boolean> {
+// Schneller Keyword-Check (sofort, kein API-Call nötig)
+const BYPASS_PATTERNS = [
+  /\bbar\s*(bezahl|machen|geld|zahlen|kasse)/i,
+  /\bbarzahlung/i,
+  /\bcash\b/i,
+  /\b(ohne|außerhalb)\s*(der\s*)?(plattform|talento)/i,
+  /\bpaypal\s*(direkt|privat|schick)/i,
+  /\b(meine?|deine?|schick.*)\s*iban\b/i,
+  /\brevolut\b/i,
+  /\bvenmo\b/i,
+  /\büberweisen?\b.*direkt/i,
+  /direkt.*\büberweisen?\b/i,
+  /\bhand\s*shake/i,
+  /\bschwarz\s*(arbeit|bezahl|kasse)/i,
+  /\bam\s*finanzamt\s*vorbei/i,
+]
+
+function quickBypassCheck(content: string): boolean {
+  return BYPASS_PATTERNS.some(p => p.test(content))
+}
+
+async function mistralBypassCheck(content: string): Promise<boolean> {
   const apiKey = process.env.MISTRAL_API_KEY
   if (!apiKey) return false
   try {
@@ -83,20 +104,33 @@ export async function POST(req: NextRequest) {
       .update({ last_message: content, last_message_at: new Date().toISOString() })
       .eq('id', conversation_id)
 
-    // Mistral-Scan: prüfe ob Zahlung außerhalb der Plattform vorgeschlagen wird
+    // Chat-Scan: prüfe ob Zahlung außerhalb der Plattform vorgeschlagen wird
+    // 1) Schneller Keyword-Check (sofort)
+    // 2) Mistral-Check als Ergänzung (async, für subtilere Fälle)
     let warning = null
-    const isBypass = await scanForPaymentBypass(content)
-    if (isBypass) {
-      const { data: warnMsg } = await supabase
-        .from('messages')
-        .insert([{
+    const quickHit = quickBypassCheck(content)
+
+    if (quickHit) {
+      // Sofort warnen bei eindeutigen Keywords
+      warning = {
+        id: 'warn-' + Date.now(),
+        conversation_id,
+        sender_id: 'system-talento',
+        content: WARNING_TEXT,
+        created_at: new Date().toISOString(),
+      }
+    } else {
+      // Mistral für subtilere Fälle (non-blocking: Fehler = keine Warnung)
+      const mistralHit = await mistralBypassCheck(content)
+      if (mistralHit) {
+        warning = {
+          id: 'warn-' + Date.now(),
           conversation_id,
-          sender_id: SYSTEM_SENDER,
-          content: '⚠️ Hinweis: Bei Barzahlung entfällt dein Talento-Käuferschutz. Wir empfehlen, alle Zahlungen über die Plattform abzuwickeln.',
-        }])
-        .select()
-        .single()
-      warning = warnMsg
+          sender_id: 'system-talento',
+          content: WARNING_TEXT,
+          created_at: new Date().toISOString(),
+        }
+      }
     }
 
     return NextResponse.json({ message, warning })
