@@ -108,7 +108,7 @@ export default function ProfilBearbeiten() {
       <div style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(15,15,23,0.92)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: '1rem', padding: '0 1.5rem', height: 60 }}>
         <Link href="/dashboard" style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6 }}>← Dashboard</Link>
         <span style={{ fontWeight: 800, fontSize: '0.95rem', color: '#fff', flex: 1 }}>Profil bearbeiten</span>
-        {saved && <span style={{ padding: '6px 14px', background: 'rgba(61,186,126,0.15)', border: '1px solid rgba(61,186,126,0.25)', borderRadius: 999, color: '#3dba7e', fontSize: '0.82rem', fontWeight: 700 }}>✓ Gespeichert!</span>}
+        {saved && <span style={{ padding: '6px 14px', background: 'rgba(61,186,126,0.15)', border: '1px solid rgba(61,186,126,0.25)', borderRadius: 6, color: '#3dba7e', fontSize: '0.82rem', fontWeight: 600 }}>Gespeichert</span>}
       </div>
 
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '2rem 1.5rem' }}>
@@ -117,17 +117,17 @@ export default function ProfilBearbeiten() {
         <form onSubmit={save} style={{ display: 'flex', flexDirection: 'column' as const, gap: '1.25rem' }}>
 
           {/* AVATAR */}
-          <div style={{ background: '#17172a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 20, padding: '1.5rem' }}>
-            <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'rgba(255,255,255,0.4)', letterSpacing: '0.06em', textTransform: 'uppercase' as const, marginBottom: '1rem' }}>
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10, padding: '1.5rem' }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'rgba(255,255,255,0.45)', letterSpacing: '0.06em', textTransform: 'uppercase' as const, marginBottom: '1rem' }}>
               {isEmp ? 'Firmenlogo / Avatar' : 'Profilbild'}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-              <div onClick={() => avatarRef.current?.click()} style={{ width: 80, height: 80, borderRadius: 20, background: avatarPreview ? 'transparent' : 'linear-gradient(135deg, #7c68fa, #a080ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '1.6rem', color: '#fff', cursor: 'pointer', overflow: 'hidden', border: '2px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
+              <div onClick={() => avatarRef.current?.click()} style={{ width: 80, height: 80, borderRadius: 12, background: avatarPreview ? 'transparent' : 'rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '1.4rem', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
                 {avatarPreview ? <img src={avatarPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (profile.full_name?.slice(0,2).toUpperCase() || '?')}
               </div>
               <div>
-                <button type="button" onClick={() => avatarRef.current?.click()} style={{ padding: '8px 16px', background: 'rgba(124,104,250,0.15)', border: '1px solid rgba(124,104,250,0.25)', borderRadius: 999, color: '#a080ff', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'block', marginBottom: 6 }}>
-                  {uploading ? '⏳ Lädt...' : '📷 Bild ändern'}
+                <button type="button" onClick={() => avatarRef.current?.click()} style={{ padding: '8px 16px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, color: 'rgba(255,255,255,0.6)', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'block', marginBottom: 6 }}>
+                  {uploading ? 'Lädt...' : 'Bild ändern'}
                 </button>
                 <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.25)' }}>JPG, PNG · max. 5 MB</div>
                 <input ref={avatarRef} type="file" accept="image/*" onChange={uploadAvatar} style={{ display: 'none' }} />
@@ -136,8 +136,8 @@ export default function ProfilBearbeiten() {
           </div>
 
           {/* BASIS INFO */}
-          <div style={{ background: '#17172a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 20, padding: '1.5rem' }}>
-            <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'rgba(255,255,255,0.4)', letterSpacing: '0.06em', textTransform: 'uppercase' as const, marginBottom: '1rem' }}>Basisinformationen</div>
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10, padding: '1.5rem' }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'rgba(255,255,255,0.45)', letterSpacing: '0.06em', textTransform: 'uppercase' as const, marginBottom: '1rem' }}>Basisinformationen</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1rem' }}>
               <div style={{ gridColumn: '1/-1' }}>{inp('Vollständiger Name *', 'full_name', 'Max Mustermann')}</div>
               {isEmp && <div style={{ gridColumn: '1/-1' }}>{inp('Firmenname *', 'company_name', 'Muster GmbH')}</div>}
@@ -150,8 +150,8 @@ export default function ProfilBearbeiten() {
           </div>
 
           {/* BIO */}
-          <div style={{ background: '#17172a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 20, padding: '1.5rem' }}>
-            <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'rgba(255,255,255,0.4)', letterSpacing: '0.06em', textTransform: 'uppercase' as const, marginBottom: '1rem' }}>
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10, padding: '1.5rem' }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'rgba(255,255,255,0.45)', letterSpacing: '0.06em', textTransform: 'uppercase' as const, marginBottom: '1rem' }}>
               {isEmp ? 'Über das Unternehmen' : 'Über mich'}
             </div>
             <textarea value={form.bio} onChange={set('bio')}
@@ -161,22 +161,22 @@ export default function ProfilBearbeiten() {
           </div>
 
           {/* SKILLS — für beide */}
-          <div style={{ background: '#17172a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 20, padding: '1.5rem' }}>
-            <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'rgba(255,255,255,0.4)', letterSpacing: '0.06em', textTransform: 'uppercase' as const, marginBottom: '1rem' }}>
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10, padding: '1.5rem' }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'rgba(255,255,255,0.45)', letterSpacing: '0.06em', textTransform: 'uppercase' as const, marginBottom: '1rem' }}>
               {isEmp ? 'Gesuchte Skills / Branchen' : 'Meine Skills'}
             </div>
             <div style={{ display: 'flex', gap: 8, marginBottom: '1rem' }}>
               <input value={skillInput} onChange={e => setSkillInput(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addSkill() } }}
-                placeholder="Skill eingeben + Enter" style={{ flex: 1, padding: '10px 14px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, fontFamily: 'inherit', fontSize: '0.88rem', background: 'rgba(255,255,255,0.05)', color: '#fff', outline: 'none' }} />
-              <button type="button" onClick={addSkill} style={{ padding: '10px 18px', background: 'rgba(124,104,250,0.2)', border: '1px solid rgba(124,104,250,0.3)', borderRadius: 12, color: '#a080ff', fontFamily: 'inherit', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}>＋ Hinzufügen</button>
+                placeholder="Skill eingeben + Enter" style={{ flex: 1, padding: '10px 14px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontFamily: 'inherit', fontSize: '0.88rem', background: 'rgba(255,255,255,0.05)', color: '#fff', outline: 'none' }} />
+              <button type="button" onClick={addSkill} style={{ padding: '10px 18px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, color: 'rgba(255,255,255,0.6)', fontFamily: 'inherit', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}>Hinzufügen</button>
             </div>
             {form.skills.length > 0 ? (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {form.skills.map(s => (
-                  <div key={s} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '6px 12px', background: 'rgba(124,104,250,0.12)', border: '1px solid rgba(124,104,250,0.2)', borderRadius: 999 }}>
-                    <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#a080ff' }}>{s}</span>
-                    <button type="button" onClick={() => removeSkill(s)} style={{ background: 'none', border: 'none', color: 'rgba(124,104,250,0.5)', cursor: 'pointer', fontSize: '0.8rem', padding: 0, lineHeight: 1, fontFamily: 'inherit' }}>✕</button>
+                  <div key={s} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '6px 12px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6 }}>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>{s}</span>
+                    <button type="button" onClick={() => removeSkill(s)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: '0.8rem', padding: 0, lineHeight: 1, fontFamily: 'inherit' }}>✕</button>
                   </div>
                 ))}
               </div>
@@ -186,19 +186,19 @@ export default function ProfilBearbeiten() {
           </div>
 
           {/* SAVE */}
-          <button type="submit" disabled={loading} style={{ width: '100%', padding: '14px', background: loading ? 'rgba(124,104,250,0.4)' : '#7c68fa', color: '#fff', border: 'none', borderRadius: 14, fontFamily: 'inherit', fontWeight: 700, fontSize: '0.95rem', cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.18s' }}>
-            {loading ? '⏳ Wird gespeichert...' : '✓ Profil speichern'}
+          <button type="submit" disabled={loading} style={{ width: '100%', padding: '14px', background: loading ? 'rgba(255,255,255,0.08)' : '#fff', color: loading ? 'rgba(255,255,255,0.4)' : '#000', border: 'none', borderRadius: 8, fontFamily: 'inherit', fontWeight: 600, fontSize: '0.9rem', cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.18s' }}>
+            {loading ? 'Wird gespeichert...' : 'Profil speichern'}
           </button>
 
           <div style={{ display: 'flex', gap: 10 }}>
             {!isEmp && profile.id && (
-              <Link href={`/bewerber/${profile.id}`} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '11px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem', fontWeight: 600, textDecoration: 'none' }}>
-                👤 Profil ansehen
+              <Link href={`/bewerber/${profile.id}`} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '11px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem', fontWeight: 600, textDecoration: 'none' }}>
+                Profil ansehen
               </Link>
             )}
             {isEmp && profile.id && (
-              <Link href={`/arbeitgeber/${profile.id}`} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '11px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem', fontWeight: 600, textDecoration: 'none' }}>
-                🏢 Firmenprofil ansehen
+              <Link href={`/arbeitgeber/${profile.id}`} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '11px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem', fontWeight: 600, textDecoration: 'none' }}>
+                Firmenprofil ansehen
               </Link>
             )}
           </div>
