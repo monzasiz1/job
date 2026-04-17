@@ -1,225 +1,473 @@
-import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase-server'
-import { stripe } from '@/lib/stripe'
-import { PLATFORM_FEE_PERCENT } from '@/lib/stripe'
+'use client'
 
-// GET — Meine Buchungen laden (als Client oder Provider)
-export async function GET(request: Request) {
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase-browser'
+import { MarketplaceBooking, BOOKING_STATUS_META, BookingStatus, PAYMENT_STATUS_META, PaymentStatus } from '@/lib/types'
+import Link from 'next/link'
+import dynamic from 'next/dynamic'
+
+const PaymentModal = dynamic(() => import('@/components/PaymentForm'), { ssr: false })
+
+type BookingWithRole = MarketplaceBooking & { role: 'provider' | 'client' }
+
+export default function BookingsSection() {
   const supabase = createClient()
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) return NextResponse.json({ error: 'Nicht eingeloggt' }, { status: 401 })
+  const [incoming, setIncoming] = useState<MarketplaceBooking[]>([])
+  const [outgoing, setOutgoing] = useState<MarketplaceBooking[]>([])
+  const [loading, setLoading] = useState(true)
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [msg, setMsg] = useState('')
+  const [showDone, setShowDone] = useState(false)
+  const [payBooking, setPayBooking] = useState<BookingWithRole | null>(null)
 
-  const { searchParams } = new URL(request.url)
-  const role = searchParams.get('role') // 'client' | 'provider' | null (beide)
-  const status = searchParams.get('status') // optional Status-Filter
+  useEffect(() => { loadBookings() }, [])
 
-  let query = supabase
-    .from('marketplace_bookings')
-    .select('*, client:client_id(full_name, avatar_url, company_name), provider:provider_id(full_name, avatar_url, company_name), offering:offering_id(title, category, price_info), request:request_id(title, category, budget)')
-    .order('created_at', { ascending: false })
-    .limit(50)
+  async function loadBookings() {
+    setLoading(true)
+    try {
+      const [incRes, outRes] = await Promise.all([
+        fetch('/api/bookings?role=provider'),
+        fetch('/api/bookings?role=client'),
+      ])
+      if (incRes.ok) {
+        const d = await incRes.json()
+        setIncoming(Array.isArray(d) ? d : d.bookings || [])
+      }
+      if (outRes.ok) {
+        const d = await outRes.json()
+        setOutgoing(Array.isArray(d) ? d : d.bookings || [])
+      }
+    } catch(e) { /* ignore */ }
+    setLoading(false)
+  }
 
-  if (role === 'client') {
-    query = query.eq('client_id', user.id)
-  } else if (role === 'provider') {
-    query = query.eq('provider_id', user.id)
+  async function updateStatus(bookingId: string, status: BookingStatus) {
+    setActionLoading(bookingId)
+    setMsg('')
+    try {
+      const res = await fetch('/api/bookings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: bookingId, status }),
+      })
+      if (res.ok) {
+        await loadBookings()
+        const meta = BOOKING_STATUS_META[status]
+        setMsg(meta.label)
+        setTimeout(() => setMsg(''), 2500)
+      } else {
+        const err = await res.json()
+        setMsg(err.error || 'Fehler')
+      }
+    } catch(e) { setMsg('Netzwerkfehler') }
+    setActionLoading(null)
+  }
+
+  const allBookings: BookingWithRole[] = [
+    ...incoming.map(b => ({ ...b, role: 'provider' as const })),
+    ...outgoing.map(b => ({ ...b, role: 'client' as const })),
+  ]
+
+  // Bei Gesuchen entscheidet der Client (Ersteller), bei Angeboten der Provider
+  const isDecider = (b: BookingWithRole) => {
+    const isRequestBased = !!b.request_id
+    return isRequestBased ? b.role === 'client' : b.role === 'provider'
+  }
+
+  const needsAction = allBookings.filter(b => b.status === 'requested' && isDecider(b))
+  const needsPayment = allBookings.filter(b =>
+    b.status === 'accepted' &&
+    b.price_amount && b.price_amount > 0 &&
+    (!b.payment_status || b.payment_status === 'none')
+  )
+  const needsPaymentIds = new Set(needsPayment.map(b => b.id))
+  const active = allBookings.filter(b => ['accepted', 'in_progress'].includes(b.status) && !needsPaymentIds.has(b.id))
+  const waiting = allBookings.filter(b => b.status === 'requested' && !isDecider(b))
+  const done = allBookings.filter(b => ['completed', 'declined', 'cancelled'].includes(b.status))
+
+  const total = allBookings.length
+
+  if (loading && total === 0) return null
+  if (total === 0 && !loading) return null
+
+  return (
+    <div style={{ marginBottom: '1.5rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: 8 }}>
+        <div style={{ fontWeight: 800, fontSize: 'clamp(0.85rem, 3vw, 0.95rem)', color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span>Auftraege</span>
+          {total > 0 && (
+            <span style={{ padding: '2px 10px', background: 'rgba(124,104,250,0.15)', border: '1px solid rgba(124,104,250,0.2)', borderRadius: 999, fontSize: '0.72rem', fontWeight: 700, color: '#a080ff' }}>
+              {total}
+            </span>
+          )}
+          {(needsAction.length + needsPayment.length) > 0 && (
+            <span style={{ padding: '2px 8px', background: 'rgba(240,96,144,0.15)', border: '1px solid rgba(240,96,144,0.25)', borderRadius: 999, fontSize: '0.68rem', fontWeight: 700, color: '#f06090' }}>
+              {needsAction.length + needsPayment.length} neu
+            </span>
+          )}
+        </div>
+        <Link href="/marktplatz" style={{ padding: '6px 14px', background: 'rgba(124,104,250,0.1)', border: '1px solid rgba(124,104,250,0.2)', borderRadius: 999, color: '#a080ff', fontSize: '0.75rem', fontWeight: 700, textDecoration: 'none' }}>
+          Marktplatz
+        </Link>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: 16 }}>
+        <StatBox count={needsAction.length} label="Aktion" color="#f06090" />
+        <StatBox count={active.length} label="Aktiv" color="#3dba7e" />
+        <StatBox count={waiting.length} label="Wartend" color="#d4a843" />
+        <StatBox count={done.length} label="Erledigt" color="#a080ff" />
+      </div>
+
+      {msg && (
+        <div style={{ padding: '8px 14px', borderRadius: 10, marginBottom: 12, background: 'rgba(124,104,250,0.1)', border: '1px solid rgba(124,104,250,0.2)', color: '#a080ff', fontSize: '0.82rem', fontWeight: 600, textAlign: 'center' }}>
+          {msg}
+        </div>
+      )}
+
+      {needsAction.length > 0 && (
+        <>
+          <SectionLabel color="#f06090" label={'Aktion noetig (' + needsAction.length + ')'} />
+          {needsAction.map(b => (
+            <ActionCard key={b.id} booking={b} onAction={updateStatus} actionLoading={actionLoading} />
+          ))}
+        </>
+      )}
+
+      {needsPayment.length > 0 && (
+        <>
+          <SectionLabel color="#d4a843" label={'Zahlung noetig (' + needsPayment.length + ')'} />
+          {needsPayment.map(b => (
+            <BookingCard key={b.id} booking={b} onAction={updateStatus} actionLoading={actionLoading} onPay={setPayBooking} />
+          ))}
+        </>
+      )}
+
+      {active.length > 0 && (
+        <>
+          <SectionLabel color="#3dba7e" label={'Laufend (' + active.length + ')'} />
+          {active.map(b => (
+            <BookingCard key={b.id} booking={b} onAction={updateStatus} actionLoading={actionLoading} onPay={setPayBooking} />
+          ))}
+        </>
+      )}
+
+      {waiting.length > 0 && (
+        <>
+          <SectionLabel color="#d4a843" label={'Warten auf Antwort (' + waiting.length + ')'} />
+          {waiting.map(b => (
+            <BookingCard key={b.id} booking={b} onAction={updateStatus} actionLoading={actionLoading} onPay={setPayBooking} />
+          ))}
+        </>
+      )}
+
+      {done.length > 0 && (
+        <>
+          <button
+            onClick={() => setShowDone(!showDone)}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '10px 0', marginTop: 16, border: 'none', background: 'none',
+              cursor: 'pointer', fontFamily: 'inherit',
+            }}
+          >
+            <span style={{ fontSize: '0.73rem', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              Abgeschlossen ({done.length})
+            </span>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text3)', transform: showDone ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+              &#9660;
+            </span>
+          </button>
+          {showDone && done.slice(0, 8).map(b => (
+            <BookingCard key={b.id} booking={b} onAction={updateStatus} actionLoading={actionLoading} onPay={setPayBooking} />
+          ))}
+        </>
+      )}
+
+      {total === 0 && !loading && (
+        <div style={{ background: '#17172a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 20, padding: 'clamp(1.5rem, 4vw, 2rem)', textAlign: 'center' }}>
+          <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.88rem' }}>Noch keine Auftraege. Schau im Marktplatz vorbei!</div>
+          <Link href="/marktplatz" style={{ display: 'inline-block', marginTop: 12, padding: '8px 18px', background: 'rgba(124,104,250,0.15)', border: '1px solid rgba(124,104,250,0.2)', borderRadius: 10, color: '#a080ff', fontSize: '0.8rem', fontWeight: 700, textDecoration: 'none' }}>
+            Zum Marktplatz
+          </Link>
+        </div>
+      )}
+
+      {payBooking && (
+        <PaymentModal
+          bookingId={payBooking.id}
+          amount={calcPaymentAmount(payBooking)}
+          priceType={payBooking.price_type || 'fixed'}
+          onClose={() => setPayBooking(null)}
+          onSuccess={() => { setPayBooking(null); loadBookings() }}
+        />
+      )}
+    </div>
+  )
+}
+
+function calcPaymentAmount(b: BookingWithRole): number {
+  if (!b.price_amount) return 0
+  if (b.price_type === 'hourly' && b.estimated_hours) {
+    return Math.ceil(b.price_amount * Number(b.estimated_hours) * 1.2)
+  }
+  return b.price_amount
+}
+
+function StatBox({ count, label, color }: { count: number; label: string; color: string }) {
+  return (
+    <div style={{ background: color + '0a', border: '1px solid ' + color + '1a', borderRadius: 12, padding: '8px 6px', textAlign: 'center' }}>
+      <div style={{ fontSize: '1.1rem', fontWeight: 800, color: color }}>{count}</div>
+      <div style={{ fontSize: '0.6rem', fontWeight: 600, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</div>
+    </div>
+  )
+}
+
+function SectionLabel({ color, label }: { color: string; label: string }) {
+  return (
+    <div style={{ fontSize: '0.73rem', fontWeight: 700, color: color, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8, marginTop: 16 }}>
+      {label}
+    </div>
+  )
+}
+
+function RoleBadge({ role, isRequestBased }: { role: 'provider' | 'client'; isRequestBased?: boolean }) {
+  // Bei Gesuchen: client = Ersteller, provider = Helfer
+  // Bei Angeboten: provider = Anbieter, client = Anfragender
+  let label: string
+  let isGreen: boolean
+  if (isRequestBased) {
+    label = role === 'client' ? 'Dein Gesuch' : 'Du hilfst'
+    isGreen = role === 'provider'
   } else {
-    query = query.or(`client_id.eq.${user.id},provider_id.eq.${user.id}`)
+    label = role === 'provider' ? 'Du bietest an' : 'Deine Anfrage'
+    isGreen = role === 'provider'
   }
-
-  if (status) {
-    query = query.eq('status', status)
-  }
-
-  const { data, error } = await query
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json(data || [])
+  return (
+    <span style={{
+      padding: '1px 7px', borderRadius: 6, fontSize: '0.62rem', fontWeight: 700,
+      background: isGreen ? 'rgba(61,186,126,0.12)' : 'rgba(124,104,250,0.12)',
+      color: isGreen ? '#3dba7e' : '#a080ff',
+      border: '1px solid ' + (isGreen ? 'rgba(61,186,126,0.2)' : 'rgba(124,104,250,0.2)'),
+    }}>
+      {label}
+    </span>
+  )
 }
 
-// POST — Neue Buchung / Anfrage erstellen
-export async function POST(request: Request) {
-  const supabase = createClient()
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) return NextResponse.json({ error: 'Nicht eingeloggt' }, { status: 401 })
-
-  const body = await request.json()
-  const { provider_id, client_id, offering_id, request_id, title, message, price, price_amount, price_type, estimated_hours } = body
-
-  if (!title) {
-    return NextResponse.json({ error: 'title ist Pflicht' }, { status: 400 })
-  }
-
-  // Determine roles: For offerings, current user is client. For requests, current user is provider.
-  const resolvedClientId = client_id || user.id
-  const resolvedProviderId = provider_id || user.id
-
-  if (resolvedProviderId === resolvedClientId) {
-    return NextResponse.json({ error: 'Du kannst dich nicht selbst buchen' }, { status: 400 })
-  }
-
-  // Der aktuelle User muss entweder Client oder Provider sein
-  if (resolvedClientId !== user.id && resolvedProviderId !== user.id) {
-    return NextResponse.json({ error: 'Du musst entweder Client oder Provider sein' }, { status: 400 })
-  }
-
-  // Duplikat-Check: Offene Anfrage für dasselbe Angebot?
-  if (offering_id) {
-    const { data: existing } = await supabase
-      .from('marketplace_bookings')
-      .select('id')
-      .eq('client_id', resolvedClientId)
-      .eq('offering_id', offering_id)
-      .in('status', ['requested', 'accepted', 'in_progress'])
-      .limit(1)
-    if (existing && existing.length > 0) {
-      return NextResponse.json({ error: 'Es gibt bereits eine offene Anfrage für dieses Angebot' }, { status: 409 })
-    }
-  }
-
-  // Duplikat-Check für Gesuche
-  if (request_id) {
-    const { data: existing } = await supabase
-      .from('marketplace_bookings')
-      .select('id')
-      .eq('provider_id', resolvedProviderId)
-      .eq('request_id', request_id)
-      .in('status', ['requested', 'accepted', 'in_progress'])
-      .limit(1)
-    if (existing && existing.length > 0) {
-      return NextResponse.json({ error: 'Du hast bereits ein Angebot für dieses Gesuch abgegeben' }, { status: 409 })
-    }
-  }
-
-  const { data, error } = await supabase
-    .from('marketplace_bookings')
-    .insert({
-      client_id: resolvedClientId,
-      provider_id: resolvedProviderId,
-      offering_id: offering_id || null,
-      request_id: request_id || null,
-      title: String(title).slice(0, 200),
-      message: message ? String(message).slice(0, 2000) : null,
-      price: price ? String(price).slice(0, 100) : null,
-      price_amount: price_amount ? Math.round(Number(price_amount)) : 0,
-      price_type: price_type === 'hourly' ? 'hourly' : 'fixed',
-      estimated_hours: estimated_hours ? Number(estimated_hours) : null,
-      status: 'requested',
-    })
-    .select()
-    .single()
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json(data, { status: 201 })
+function PaymentBadge({ status, amount }: { status?: PaymentStatus; amount?: number }) {
+  if (!status || status === 'none') return null
+  const meta = PAYMENT_STATUS_META[status] || PAYMENT_STATUS_META.none
+  return (
+    <span style={{
+      padding: '1px 7px', borderRadius: 6, fontSize: '0.6rem', fontWeight: 700,
+      background: meta.color + '15', color: meta.color,
+      border: '1px solid ' + meta.color + '25',
+      display: 'inline-flex', alignItems: 'center', gap: 3,
+    }}>
+      {meta.label}
+      {amount ? (' ' + (amount / 100).toFixed(2).replace('.', ',') + ' EUR') : ''}
+    </span>
+  )
 }
 
-// PUT — Status einer Buchung ändern (accept, decline, cancel, complete, in_progress)
-export async function PUT(request: Request) {
-  const supabase = createClient()
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) return NextResponse.json({ error: 'Nicht eingeloggt' }, { status: 401 })
+function BookingHeader({ booking: b }: { booking: BookingWithRole }) {
+  const meta = BOOKING_STATUS_META[b.status]
+  const otherPerson = b.role === 'client' ? b.provider : b.client
+  const category = b.offering?.category || b.request?.category || ''
 
-  const body = await request.json()
-  const { id, status } = body
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{
+        width: 38, height: 38, borderRadius: '50%',
+        background: meta.color + '18', color: meta.color,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontWeight: 700, fontSize: '0.85rem', flexShrink: 0,
+        border: '2px solid ' + meta.color + '30',
+      }}>
+        {(otherPerson?.full_name || '?')[0].toUpperCase()}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3, flexWrap: 'wrap' }}>
+          <span style={{ fontWeight: 700, fontSize: '0.86rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.title}</span>
+          <span style={{ padding: '2px 7px', borderRadius: 8, background: meta.color + '18', color: meta.color, fontSize: '0.64rem', fontWeight: 700 }}>
+            {meta.label}
+          </span>
+          <RoleBadge role={b.role} isRequestBased={!!b.request_id} />
+          <PaymentBadge status={b.payment_status as PaymentStatus} amount={b.price_amount} />
+        </div>
+        <div style={{ fontSize: '0.73rem', color: 'var(--text3)', display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+          <span>{otherPerson?.full_name || 'Unbekannt'}</span>
+          {category && <span style={{ opacity: 0.5 }}>/ {category}</span>}
+          {b.price_amount ? (
+            <span style={{ color: '#d4a843', fontWeight: 600 }}>
+              {(b.price_amount / 100).toFixed(2).replace('.', ',')} EUR{b.price_type === 'hourly' ? '/Std.' : ''}
+            </span>
+          ) : b.price ? (
+            <span style={{ color: '#d4a843', fontWeight: 600 }}>{b.price}</span>
+          ) : null}
+        </div>
+        <div style={{ fontSize: '0.66rem', color: 'var(--text3)', marginTop: 2, opacity: 0.5 }}>
+          {new Date(b.created_at).toLocaleDateString('de-DE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+        </div>
+      </div>
+    </div>
+  )
+}
 
-  if (!id || !status) {
-    return NextResponse.json({ error: 'id und status sind Pflicht' }, { status: 400 })
-  }
+function ActionCard({ booking: b, onAction, actionLoading }: {
+  booking: BookingWithRole
+  onAction: (id: string, status: BookingStatus) => void
+  actionLoading: string | null
+}) {
+  return (
+    <div style={{
+      background: '#17172a', border: '1px solid rgba(240,96,144,0.15)',
+      borderRadius: 16, padding: '16px', marginBottom: 10,
+      borderLeft: '3px solid #f06090',
+    }}>
+      <BookingHeader booking={b} />
 
-  const validStatuses = ['requested', 'accepted', 'in_progress', 'completed', 'cancelled', 'declined']
-  if (!validStatuses.includes(status)) {
-    return NextResponse.json({ error: 'Ungültiger Status' }, { status: 400 })
-  }
+      {b.message && (
+        <div style={{ fontSize: '0.78rem', color: 'var(--text2)', fontStyle: 'italic', margin: '10px 0 0', padding: '8px 12px', background: 'rgba(255,255,255,0.02)', borderRadius: 8, borderLeft: '3px solid rgba(124,104,250,0.3)' }}>
+          &ldquo;{b.message}&rdquo;
+        </div>
+      )}
 
-  // Zuerst die Buchung laden, um Berechtigungen zu prüfen
-  const { data: booking } = await supabase
-    .from('marketplace_bookings')
-    .select('*')
-    .eq('id', id)
-    .single()
+      <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+        <button onClick={() => onAction(b.id, 'accepted')} disabled={actionLoading === b.id}
+          style={{ flex: 1, padding: '10px 0', border: 'none', borderRadius: 10, background: actionLoading === b.id ? 'var(--surface3)' : '#3dba7e', color: '#fff', fontFamily: 'inherit', fontWeight: 700, fontSize: '0.82rem', cursor: actionLoading === b.id ? 'not-allowed' : 'pointer' }}>
+          Annehmen
+        </button>
+        <button onClick={() => onAction(b.id, 'declined')} disabled={actionLoading === b.id}
+          style={{ flex: 1, padding: '10px 0', border: '1px solid rgba(240,96,144,0.2)', borderRadius: 10, background: 'transparent', color: '#f06090', fontFamily: 'inherit', fontWeight: 700, fontSize: '0.82rem', cursor: actionLoading === b.id ? 'not-allowed' : 'pointer' }}>
+          Ablehnen
+        </button>
+      </div>
+    </div>
+  )
+}
 
-  if (!booking) return NextResponse.json({ error: 'Buchung nicht gefunden' }, { status: 404 })
+function BookingCard({ booking: b, onAction, actionLoading, onPay }: {
+  booking: BookingWithRole
+  onAction: (id: string, status: BookingStatus) => void
+  actionLoading: string | null
+  onPay: (b: BookingWithRole) => void
+}) {
+  const meta = BOOKING_STATUS_META[b.status]
+  const isActive = ['accepted', 'in_progress'].includes(b.status)
+  const isDone = ['completed', 'declined', 'cancelled'].includes(b.status)
+  const chatParams = 'employer=' + b.provider_id + '&applicant=' + b.client_id
 
-  // Berechtigungsprüfung
-  const isClient = booking.client_id === user.id
-  const isProvider = booking.provider_id === user.id
+  // Bei Gesuchen: client = Entscheider, provider = Initiator (umgekehrt zu Angeboten)
+  const isRequestBased = !!b.request_id
+  const isDecider = isRequestBased ? b.role === 'client' : b.role === 'provider'
+  const isInitiator = !isDecider
 
-  if (!isClient && !isProvider) {
-    return NextResponse.json({ error: 'Keine Berechtigung' }, { status: 403 })
-  }
+  const awaitingPayment = b.status === 'accepted' &&
+    b.price_amount && b.price_amount > 0 &&
+    (!b.payment_status || b.payment_status === 'none')
+  const showPayButton = b.role === 'client' && awaitingPayment
 
-  // Status-Übergangsregeln
-  const allowed: Record<string, { by: string[]; from: string[] }> = {
-    accepted:    { by: ['provider'], from: ['requested'] },
-    declined:    { by: ['provider'], from: ['requested'] },
-    in_progress: { by: ['provider', 'client'], from: ['accepted'] },
-    completed:   { by: ['provider', 'client'], from: ['accepted', 'in_progress'] },
-    cancelled:   { by: ['client', 'provider'], from: ['requested', 'accepted'] },
-  }
+  return (
+    <div style={{
+      background: isDone ? 'rgba(23,23,42,0.6)' : '#17172a',
+      border: '1px solid ' + (isActive ? meta.color + '25' : 'rgba(255,255,255,0.06)'),
+      borderRadius: 14, padding: '14px 16px', marginBottom: 8,
+      opacity: isDone ? 0.65 : 1, transition: 'all 0.2s',
+    }}>
+      <BookingHeader booking={b} />
 
-  const rule = allowed[status]
-  if (!rule) {
-    return NextResponse.json({ error: 'Status-Übergang nicht erlaubt' }, { status: 400 })
-  }
+      {b.message && (
+        <div style={{ fontSize: '0.76rem', color: 'var(--text2)', fontStyle: 'italic', margin: '8px 0 0', padding: '6px 10px', background: 'rgba(255,255,255,0.02)', borderRadius: 8, borderLeft: '3px solid rgba(124,104,250,0.2)' }}>
+          &ldquo;{b.message}&rdquo;
+        </div>
+      )}
 
-  const userRole = isProvider ? 'provider' : 'client'
-  if (!rule.by.includes(userRole)) {
-    return NextResponse.json({ error: `${userRole === 'provider' ? 'Anbieter' : 'Auftraggeber'} darf diesen Status nicht setzen` }, { status: 403 })
-  }
-  if (!rule.from.includes(booking.status)) {
-    return NextResponse.json({ error: `Status-Übergang von "${booking.status}" zu "${status}" nicht erlaubt` }, { status: 400 })
-  }
+      <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+        {showPayButton && (
+          <button onClick={() => onPay(b)} style={{
+            flex: 1, padding: '10px 0', border: 'none', borderRadius: 10,
+            background: 'linear-gradient(135deg, #3dba7e, #2ea36d)',
+            color: '#fff', fontFamily: 'inherit', fontWeight: 700, fontSize: '0.82rem',
+            cursor: 'pointer', minWidth: 140,
+          }}>
+            Jetzt bezahlen - {((b.price_amount || 0) / 100).toFixed(2).replace('.', ',')} EUR
+          </button>
+        )}
 
-  // Payment logic on status transitions
-  if (status === 'in_progress' && booking.payment_intent_id && booking.payment_status !== 'authorized') {
-    return NextResponse.json({ error: 'Zahlung muss zuerst autorisiert sein bevor der Auftrag gestartet werden kann' }, { status: 400 })
-  }
+        {isActive && (
+          <Link href={'/chat?' + chatParams} style={{
+            flex: 1, padding: '8px 0', borderRadius: 10,
+            background: 'rgba(124,104,250,0.15)', color: '#a080ff',
+            fontFamily: 'inherit', fontWeight: 700, fontSize: '0.78rem',
+            textDecoration: 'none', textAlign: 'center',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
+            border: '1px solid rgba(124,104,250,0.2)',
+          }}>
+            Chat oeffnen
+          </Link>
+        )}
 
-  const { data, error } = await supabase
-    .from('marketplace_bookings')
-    .update({ status, updated_at: new Date().toISOString() })
-    .eq('id', id)
-    .select()
-    .single()
+        {b.role === 'provider' && b.status === 'accepted' && !awaitingPayment && (
+          <>
+            <button onClick={() => onAction(b.id, 'in_progress')} disabled={actionLoading === b.id}
+              style={{ flex: 1, padding: '8px 0', border: 'none', borderRadius: 10, background: '#7c68fa', color: '#fff', fontFamily: 'inherit', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer' }}>
+              Starten
+            </button>
+            <button onClick={() => onAction(b.id, 'cancelled')} disabled={actionLoading === b.id}
+              style={{ padding: '8px 12px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, background: 'transparent', color: 'var(--text3)', fontFamily: 'inherit', fontWeight: 600, fontSize: '0.75rem', cursor: 'pointer' }}>
+              X
+            </button>
+          </>
+        )}
+        {b.role === 'provider' && b.status === 'in_progress' && (
+          <button onClick={() => onAction(b.id, 'completed')} disabled={actionLoading === b.id}
+            style={{ flex: 1, padding: '8px 0', border: 'none', borderRadius: 10, background: '#3dba7e', color: '#fff', fontFamily: 'inherit', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer' }}>
+            Abschliessen
+          </button>
+        )}
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+        {isInitiator && b.status === 'requested' && (
+          <button onClick={() => onAction(b.id, 'cancelled')} disabled={actionLoading === b.id}
+            style={{ flex: 1, padding: '8px 0', border: '1px solid rgba(240,96,144,0.2)', borderRadius: 10, background: 'transparent', color: '#f06090', fontFamily: 'inherit', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer' }}>
+            Stornieren
+          </button>
+        )}
+        {isInitiator && b.status === 'accepted' && !showPayButton && (
+          <button onClick={() => onAction(b.id, 'cancelled')} disabled={actionLoading === b.id}
+            style={{ padding: '8px 12px', border: '1px solid rgba(240,96,144,0.2)', borderRadius: 10, background: 'transparent', color: '#f06090', fontFamily: 'inherit', fontWeight: 600, fontSize: '0.75rem', cursor: 'pointer' }}>
+            Stornieren
+          </button>
+        )}
+      </div>
 
-  // Auto-capture payment on completion
-  if (status === 'completed' && booking.payment_intent_id && booking.payment_status === 'authorized') {
-    try {
-      await stripe.paymentIntents.capture(booking.payment_intent_id)
-      await supabase
-        .from('marketplace_bookings')
-        .update({ payment_status: 'captured', updated_at: new Date().toISOString() })
-        .eq('id', id)
-    } catch(e) { /* webhook will handle it */ }
-  }
-
-  // Auto-cancel payment on cancellation/decline
-  if (['cancelled', 'declined'].includes(status) && booking.payment_intent_id && ['authorized', 'none'].includes(booking.payment_status || 'none')) {
-    try {
-      await stripe.paymentIntents.cancel(booking.payment_intent_id)
-      await supabase
-        .from('marketplace_bookings')
-        .update({ payment_status: 'cancelled', updated_at: new Date().toISOString() })
-        .eq('id', id)
-    } catch(e) { /* ignore if already cancelled */ }
-  }
-
-  // Bei completed/declined/cancelled: Angebot/Gesuch vom Marktplatz nehmen (is_active=false)
-  if (['completed', 'declined', 'cancelled'].includes(status)) {
-    if (booking.offering_id) {
-      await supabase
-        .from('skill_offerings')
-        .update({ is_active: false, updated_at: new Date().toISOString() })
-        .eq('id', booking.offering_id)
-    }
-    if (booking.request_id) {
-      await supabase
-        .from('skill_requests')
-        .update({ is_active: false, updated_at: new Date().toISOString() })
-        .eq('id', booking.request_id)
-    }
-  }
-
-  return NextResponse.json(data)
+      {b.status === 'accepted' && !showPayButton && (
+        <div style={{ fontSize: '0.7rem', color: awaitingPayment ? '#d4a843' : 'var(--text3)', marginTop: 8 }}>
+          {awaitingPayment && b.role === 'provider'
+            ? 'Warte auf Zahlung des Auftraggebers. Der Auftrag kann erst nach Zahlung gestartet werden.'
+            : b.role === 'provider'
+            ? 'Nutze den Chat um Details zu klaeren, dann starte den Auftrag.'
+            : (b.payment_status === 'authorized'
+              ? 'Zahlung reserviert. Der Anbieter kann den Auftrag starten.'
+              : 'Angenommen! Nutze den Chat um Details zu klaeren.')}
+        </div>
+      )}
+      {showPayButton && (
+        <div style={{ fontSize: '0.7rem', color: '#d4a843', marginTop: 8 }}>
+          Der Anbieter hat angenommen. Bezahle jetzt, damit der Auftrag starten kann.
+          Das Geld wird erst nach Abschluss ausgezahlt (Treuhand).
+        </div>
+      )}
+      {b.status === 'in_progress' && b.role === 'provider' && (
+        <div style={{ fontSize: '0.7rem', color: 'var(--text3)', marginTop: 8 }}>
+          Wenn du fertig bist, schliesse den Auftrag ab.
+        </div>
+      )}
+      {b.status === 'completed' && b.payment_status === 'paid' && (
+        <div style={{ fontSize: '0.7rem', color: '#3dba7e', marginTop: 8 }}>
+          Zahlung erfolgreich abgeschlossen.
+        </div>
+      )}
+    </div>
+  )
 }
