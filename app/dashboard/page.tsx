@@ -8,6 +8,7 @@ import JobsManagement from './JobsManagement'
 import OfferingsManagement from './OfferingsManagement'
 import RequestsManagement from './RequestsManagement'
 import BookingsSection from './BookingsSection'
+import StripeOnboarding from '@/components/StripeOnboarding'
 
 export default async function Dashboard() {
   const supabase = createClient()
@@ -147,6 +148,9 @@ export default async function Dashboard() {
 
         {/* AUFTRÄGE & ANFRAGEN */}
         <BookingsSection />
+
+        {/* STRIPE ONBOARDING für Anbieter */}
+        <StripeOnboarding />
 
         {/* ARBEITGEBER: Stellen */}
         {isEmp && (
