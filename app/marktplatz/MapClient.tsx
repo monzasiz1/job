@@ -150,6 +150,9 @@ export default function MapClient() {
   const [bookingNote, setBookingNote] = useState('')
   const [bookingLoading, setBookingLoading] = useState(false)
   const [bookingSent, setBookingSent] = useState(false)
+  const [bookingPriceEur, setBookingPriceEur] = useState('')
+  const [bookingPriceType, setBookingPriceType] = useState<'fixed' | 'hourly'>('fixed')
+  const [bookingEstHours, setBookingEstHours] = useState('')
 
   // ── Mobile: Karte / Liste Toggle ──
   const [mobileView, setMobileView] = useState<'map' | 'list'>('map')
@@ -517,6 +520,9 @@ export default function MapClient() {
     setBookingMsg('')
     setBookingNote('')
     setBookingSent(false)
+    setBookingPriceEur('')
+    setBookingPriceType('fixed')
+    setBookingEstHours('')
   }
 
   // ── Globale Bridge für Leaflet Popup-Buttons ──
@@ -554,6 +560,9 @@ export default function MapClient() {
           title: item.title,
           message: bookingNote || null,
           price: isOffering ? (item as SkillOffering).price_info : (item as SkillRequest).budget,
+          price_amount: bookingPriceEur ? Math.round(parseFloat(bookingPriceEur) * 100) : 0,
+          price_type: bookingPriceType,
+          estimated_hours: bookingPriceType === 'hourly' && bookingEstHours ? parseFloat(bookingEstHours) : null,
         }),
       })
       if (res.ok) {
@@ -1195,6 +1204,67 @@ export default function MapClient() {
                     </div>
                   ) : (
                     <>
+                      {/* Preis-Eingabe */}
+                      <label style={{ fontWeight: 700, fontSize: '0.78rem', color: 'var(--text3)', letterSpacing: '0.05em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>
+                        Preis
+                      </label>
+                      <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                        <button
+                          onClick={() => setBookingPriceType('fixed')}
+                          style={{
+                            flex: 1, padding: '8px 0', border: '1px solid ' + (bookingPriceType === 'fixed' ? 'var(--accent)' : 'var(--border)'),
+                            borderRadius: 'var(--r-sm)', background: bookingPriceType === 'fixed' ? 'rgba(124,104,250,0.15)' : 'transparent',
+                            color: bookingPriceType === 'fixed' ? 'var(--accent)' : 'var(--text3)',
+                            fontFamily: 'inherit', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer',
+                          }}
+                        >Fixpreis</button>
+                        <button
+                          onClick={() => setBookingPriceType('hourly')}
+                          style={{
+                            flex: 1, padding: '8px 0', border: '1px solid ' + (bookingPriceType === 'hourly' ? 'var(--accent)' : 'var(--border)'),
+                            borderRadius: 'var(--r-sm)', background: bookingPriceType === 'hourly' ? 'rgba(124,104,250,0.15)' : 'transparent',
+                            color: bookingPriceType === 'hourly' ? 'var(--accent)' : 'var(--text3)',
+                            fontFamily: 'inherit', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer',
+                          }}
+                        >Stundenlohn</button>
+                      </div>
+                      <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+                        <div style={{ position: 'relative', flex: 1 }}>
+                          <input
+                            className="map-input"
+                            type="number"
+                            min="0.50"
+                            step="0.01"
+                            placeholder={bookingPriceType === 'hourly' ? 'EUR / Stunde' : 'Gesamtpreis in EUR'}
+                            value={bookingPriceEur}
+                            onChange={e => setBookingPriceEur(e.target.value)}
+                            style={{ width: '100%', paddingRight: 36 }}
+                          />
+                          <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)', fontSize: '0.8rem', fontWeight: 600, pointerEvents: 'none' }}>EUR</span>
+                        </div>
+                        {bookingPriceType === 'hourly' && (
+                          <div style={{ position: 'relative', width: 120 }}>
+                            <input
+                              className="map-input"
+                              type="number"
+                              min="0.5"
+                              step="0.5"
+                              placeholder="Stunden"
+                              value={bookingEstHours}
+                              onChange={e => setBookingEstHours(e.target.value)}
+                              style={{ width: '100%', paddingRight: 26 }}
+                            />
+                            <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)', fontSize: '0.75rem', fontWeight: 600, pointerEvents: 'none' }}>h</span>
+                          </div>
+                        )}
+                      </div>
+                      {bookingPriceType === 'hourly' && bookingPriceEur && bookingEstHours && (
+                        <div style={{ fontSize: '0.74rem', color: 'var(--text3)', marginBottom: 10, padding: '6px 10px', background: 'rgba(212,168,67,0.08)', borderRadius: 'var(--r-sm)', border: '1px solid rgba(212,168,67,0.15)' }}>
+                          Geschaetzter Gesamtpreis: <strong style={{ color: '#d4a843' }}>{(parseFloat(bookingPriceEur) * parseFloat(bookingEstHours)).toFixed(2).replace('.', ',')} EUR</strong>
+                          <span style={{ opacity: 0.7 }}> (+ 20% Puffer wird reserviert)</span>
+                        </div>
+                      )}
+
                       <label style={{ fontWeight: 700, fontSize: '0.78rem', color: 'var(--text3)', letterSpacing: '0.05em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>
                         {detailIsOff ? 'Nachricht an den Anbieter' : 'Nachricht an den Suchenden'}
                       </label>
