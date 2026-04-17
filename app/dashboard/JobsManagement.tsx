@@ -43,14 +43,13 @@ export default function JobsManagement({ jobs, lc }: any) {
       <style>{STYLES}</style>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: 12 }}>
         <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: 'clamp(1rem, 3vw, 1.1rem)', color: '#fff' }}>Meine Stellen</div>
-        <Link href="/post-job" style={{ padding: '10px 18px', background: 'linear-gradient(135deg,var(--accent),rgba(124,104,250,0.8))', border: '1px solid rgba(124,104,250,0.3)', borderRadius: 12, color: '#fff', fontSize: 'clamp(0.82rem, 1.5vw, 0.88rem)', fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap', transition: 'all 0.2s', fontFamily: "'Syne',sans-serif" }}>＋ Neue Stelle</Link>
+        <Link href="/post-job" style={{ padding: '10px 18px', background: '#fff', color: '#000', borderRadius: 8, fontSize: 'clamp(0.82rem, 1.5vw, 0.88rem)', fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap', transition: 'opacity 0.2s' }}>Neue Stelle</Link>
       </div>
       {jobsState.length === 0 ? (
-        <div style={{ background: 'linear-gradient(135deg,rgba(124,104,250,0.06),rgba(124,104,250,0.02))', border: '1px solid rgba(124,104,250,0.2)', borderRadius: 24, padding: 'clamp(2rem, 4vw, 3rem)', textAlign: 'center' as const }}>
-          <div style={{ fontSize: 'clamp(2rem, 6vw, 3rem)', marginBottom: '1rem' }}>📋</div>
-          <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, color: '#fff', marginBottom: '0.6rem', fontSize: 'clamp(1rem, 2vw, 1.2rem)' }}>Noch keine Stellen veröffentlicht</div>
+        <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: 'clamp(2rem, 4vw, 3rem)', textAlign: 'center' as const }}>
+          <div style={{ fontWeight: 700, color: '#fff', marginBottom: '0.6rem', fontSize: 'clamp(1rem, 2vw, 1.2rem)' }}>Noch keine Stellen veröffentlicht</div>
           <div style={{ color: 'var(--text2)', fontSize: '0.9rem', marginBottom: '2rem', lineHeight: 1.6 }}>Schalten Sie Ihre erste Stelle live und erreichen Sie passende Kandidaten.</div>
-          <Link href="/post-job" style={{ display: 'inline-flex', padding: '13px 26px', background: 'linear-gradient(135deg,var(--accent),rgba(124,104,250,0.8))', color: '#fff', borderRadius: 14, fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: 'clamp(0.88rem, 1.5vw, 0.95rem)', textDecoration: 'none' }}>Erste Stelle inserieren →</Link>
+          <Link href="/post-job" style={{ display: 'inline-flex', padding: '13px 26px', background: '#fff', color: '#000', borderRadius: 8, fontWeight: 700, fontSize: 'clamp(0.88rem, 1.5vw, 0.95rem)', textDecoration: 'none' }}>Erste Stelle inserieren</Link>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(6px, 1.5vw, 10px)' }}>
@@ -63,13 +62,13 @@ export default function JobsManagement({ jobs, lc }: any) {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, color: '#fff', fontSize: 'clamp(0.8rem, 2.2vw, 0.95rem)', marginBottom: 'clamp(2px, 0.5vw, 4px)' }}>{j.title}</div>
                   <div style={{ fontSize: 'clamp(0.7rem, 1.6vw, 0.82rem)', color: 'var(--text3)', display: 'flex', gap: 'clamp(8px, 1.5vw, 12px)', flexWrap: 'wrap' }}>
-                    <span>📍 {j.location}</span>
-                    <span>⏰ {j.contract}</span>
-                    {j.salary_min > 0 && <span>💰 {(j.salary_min / 1000).toFixed(0)}k€</span>}
+                    <span>{j.location}</span>
+                    <span>{j.contract}</span>
+                    {j.salary_min > 0 && <span>{(j.salary_min / 1000).toFixed(0)}k€</span>}
                   </div>
                 </div>
               </div>
-              <span className="job-card-status" style={{ padding: 'clamp(3px, 0.8vw, 5px) clamp(8px, 1.5vw, 12px)', borderRadius: 999, fontSize: 'clamp(0.65rem, 1.5vw, 0.75rem)', fontWeight: 700, background: j.is_active ? 'rgba(61,186,126,0.15)' : 'rgba(255,100,100,0.15)', color: j.is_active ? 'var(--green)' : '#ff6464', whiteSpace: 'nowrap', flexShrink: 0 }}>{j.is_active ? '● Aktiv' : '○ Inaktiv'}</span>
+              <span className="job-card-status" style={{ padding: 'clamp(3px, 0.8vw, 5px) clamp(8px, 1.5vw, 12px)', borderRadius: 6, fontSize: 'clamp(0.65rem, 1.5vw, 0.75rem)', fontWeight: 600, background: j.is_active ? 'rgba(61,186,126,0.12)' : 'rgba(255,255,255,0.04)', color: j.is_active ? 'var(--green)' : 'rgba(255,255,255,0.35)', whiteSpace: 'nowrap', flexShrink: 0 }}>{j.is_active ? 'Aktiv' : 'Inaktiv'}</span>
               <div className="job-card-buttons" style={{ display: 'flex', gap: 'clamp(4px, 1vw, 6px)', flexWrap: 'wrap', flexShrink: 0 }}>
                 <Link href={`/jobs/${j.id}`} style={{ padding: 'clamp(6px, 1.5vw, 8px) clamp(10px, 2vw, 14px)', background: 'var(--surface2)', border: '1px solid var(--border2)', borderRadius: 'clamp(8px, 1.5vw, 10px)', color: 'var(--text2)', fontSize: 'clamp(0.7rem, 1.5vw, 0.8rem)', fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap', transition: 'all 0.2s' }}>Ansehen</Link>
                 <Link href={`/post-job?edit=${j.id}`} style={{ padding: 'clamp(6px, 1.5vw, 8px) clamp(10px, 2vw, 14px)', background: 'rgba(212,168,67,0.15)', border: '1px solid rgba(212,168,67,0.25)', borderRadius: 'clamp(8px, 1.5vw, 10px)', color: 'var(--gold)', fontSize: 'clamp(0.7rem, 1.5vw, 0.8rem)', fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap', transition: 'all 0.2s' }}>Edit</Link>
