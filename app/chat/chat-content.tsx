@@ -16,6 +16,7 @@ export default function ChatContent() {
   const [deleting, setDeleting] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [showSidebar, setShowSidebar] = useState(false)
+  const [booking, setBooking] = useState<any>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Mobile detection
@@ -88,6 +89,19 @@ export default function ChatContent() {
         }
         const msgData = await msgRes.json()
         setMessages(msgData || [])
+
+        // Lade Buchung zwischen den beiden Nutzern
+        try {
+          const bookRes = await fetch('/api/bookings')
+          if (bookRes.ok) {
+            const bookings = await bookRes.json()
+            const relevant = (Array.isArray(bookings) ? bookings : []).find((b: any) =>
+              (b.provider_id === employer && b.client_id === applicant) ||
+              (b.provider_id === applicant && b.client_id === employer)
+            )
+            if (relevant) setBooking(relevant)
+          }
+        } catch(e) { /* ignore */ }
 
         setLoading(false)
       } catch (err: any) {
@@ -287,6 +301,9 @@ export default function ChatContent() {
           </div>
         </div>
 
+        {/* AUFTRAGS-STATUS BAR */}
+        {booking && <BookingStatusBar booking={booking} currentUserId={currentUser?.id} />}
+
         {/* MESSAGES */}
         <div
           style={{
@@ -412,6 +429,84 @@ export default function ChatContent() {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+const STATUS_INFO: Record<string, { label: string; color: string; emoji: string }> = {
+  requested:   { label: 'Angefragt', color: '#d4a843', emoji: '📩' },
+  accepted:    { label: 'Angenommen', color: '#3dba7e', emoji: '✅' },
+  in_progress: { label: 'In Arbeit', color: '#7c68fa', emoji: '⚡' },
+  completed:   { label: 'Abgeschlossen', color: '#3dba7e', emoji: '🏆' },
+  cancelled:   { label: 'Storniert', color: '#888', emoji: '❌' },
+  declined:    { label: 'Abgelehnt', color: '#f06090', emoji: '🚫' },
+}
+
+const PAYMENT_INFO: Record<string, { label: string; color: string }> = {
+  none:       { label: 'Nicht bezahlt', color: '#888' },
+  authorized: { label: 'Zahlung reserviert', color: '#d4a843' },
+  captured:   { label: 'Zahlung eingezogen', color: '#7c68fa' },
+  paid:       { label: 'Bezahlt', color: '#3dba7e' },
+  cancelled:  { label: 'Zahlung storniert', color: '#f06090' },
+  refunded:   { label: 'Erstattet', color: '#888' },
+}
+
+function BookingStatusBar({ booking, currentUserId }: { booking: any; currentUserId?: string }) {
+  const status = STATUS_INFO[booking.status] || STATUS_INFO.requested
+  const payment = booking.payment_status ? PAYMENT_INFO[booking.payment_status] : null
+  const isProvider = booking.provider_id === currentUserId
+  const priceAmount = booking.price_amount
+
+  return (
+    <div style={{
+      padding: '8px 16px',
+      background: 'rgba(0,0,0,0.25)',
+      borderBottom: '1px solid rgba(255,255,255,0.06)',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+      flexWrap: 'wrap',
+      fontSize: '0.76rem',
+    }}>
+      <span style={{ fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', fontSize: '0.65rem', letterSpacing: '0.04em' }}>
+        Auftrag:
+      </span>
+
+      <span style={{
+        padding: '2px 8px', borderRadius: 6,
+        background: status.color + '18', color: status.color,
+        fontWeight: 700, fontSize: '0.72rem',
+      }}>
+        {status.emoji} {status.label}
+      </span>
+
+      {payment && payment.label !== 'Nicht bezahlt' && (
+        <span style={{
+          padding: '2px 8px', borderRadius: 6,
+          background: payment.color + '18', color: payment.color,
+          fontWeight: 700, fontSize: '0.72rem',
+        }}>
+          {payment.label}
+        </span>
+      )}
+
+      {priceAmount > 0 && (
+        <span style={{ color: '#d4a843', fontWeight: 600, fontSize: '0.72rem' }}>
+          {(priceAmount / 100).toFixed(2).replace('.', ',')} EUR
+          {booking.price_type === 'hourly' ? '/Std.' : ''}
+        </span>
+      )}
+
+      <span style={{
+        marginLeft: 'auto',
+        padding: '2px 8px', borderRadius: 6,
+        background: isProvider ? 'rgba(61,186,126,0.12)' : 'rgba(124,104,250,0.12)',
+        color: isProvider ? '#3dba7e' : '#a080ff',
+        fontWeight: 700, fontSize: '0.65rem',
+        border: '1px solid ' + (isProvider ? 'rgba(61,186,126,0.2)' : 'rgba(124,104,250,0.2)'),
+      }}>
+        {isProvider ? 'Du bietest an' : 'Deine Anfrage'}
+      </span>
     </div>
   )
 }
