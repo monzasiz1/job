@@ -364,9 +364,13 @@ function BookingCard({ booking: b, onAction, actionLoading, onPay }: {
   const isInitiator = !isDecider
 
   const awaitingPayment = b.status === 'accepted' &&
-    b.price_amount && b.price_amount > 0 &&
+    b.price_amount && b.price_amount > 0 &&  
     (!b.payment_status || b.payment_status === 'none')
   const showPayButton = b.role === 'client' && awaitingPayment
+
+  // Stornieren erlaubt: solange nicht bezahlt (captured)
+  const canCancel = ['requested', 'accepted'].includes(b.status) &&
+    b.payment_status !== 'captured' && b.payment_status !== 'authorized'
 
   return (
     <div style={{
@@ -414,10 +418,6 @@ function BookingCard({ booking: b, onAction, actionLoading, onPay }: {
               style={{ flex: 1, padding: '8px 0', border: 'none', borderRadius: 10, background: '#7c68fa', color: '#fff', fontFamily: 'inherit', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer' }}>
               Starten
             </button>
-            <button onClick={() => onAction(b.id, 'cancelled')} disabled={actionLoading === b.id}
-              style={{ padding: '8px 12px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, background: 'transparent', color: 'var(--text3)', fontFamily: 'inherit', fontWeight: 600, fontSize: '0.75rem', cursor: 'pointer' }}>
-              X
-            </button>
           </>
         )}
         {b.role === 'provider' && b.status === 'in_progress' && (
@@ -427,15 +427,9 @@ function BookingCard({ booking: b, onAction, actionLoading, onPay }: {
           </button>
         )}
 
-        {isInitiator && b.status === 'requested' && (
+        {canCancel && (
           <button onClick={() => onAction(b.id, 'cancelled')} disabled={actionLoading === b.id}
-            style={{ flex: 1, padding: '8px 0', border: '1px solid rgba(240,96,144,0.2)', borderRadius: 10, background: 'transparent', color: '#f06090', fontFamily: 'inherit', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer' }}>
-            Stornieren
-          </button>
-        )}
-        {isInitiator && b.status === 'accepted' && !showPayButton && (
-          <button onClick={() => onAction(b.id, 'cancelled')} disabled={actionLoading === b.id}
-            style={{ padding: '8px 12px', border: '1px solid rgba(240,96,144,0.2)', borderRadius: 10, background: 'transparent', color: '#f06090', fontFamily: 'inherit', fontWeight: 600, fontSize: '0.75rem', cursor: 'pointer' }}>
+            style={{ padding: '8px 14px', border: '1px solid rgba(240,96,144,0.2)', borderRadius: 10, background: 'transparent', color: '#f06090', fontFamily: 'inherit', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer' }}>
             Stornieren
           </button>
         )}
