@@ -19,7 +19,27 @@ export async function POST(request: Request) {
   if (!booking) return NextResponse.json({ error: 'Buchung nicht gefunden' }, { status: 404 })
   if (booking.client_id !== user.id) return NextResponse.json({ error: 'Nur der Auftraggeber darf bezahlen' }, { status: 403 })
   if (booking.status !== 'accepted') return NextResponse.json({ error: 'Buchung muss angenommen sein' }, { status: 400 })
-  if (booking.payment_intent_id) return NextResponse.json({ error: 'Zahlung bereits eingeleitet' }, { status: 400 })
+
+  // Wenn bereits ein PaymentIntent existiert, diesen wiederverwenden
+  if (booking.payment_intent_id) {
+    try {
+      const existing = await stripe.paymentIntents.retrieve(booking.payment_intent_id)
+      // Nur wiederverwenden wenn noch nicht abgeschlossen oder storniert
+      if (['requires_payment_method', 'requires_confirmation', 'requires_action'].includes(existing.status)) {
+        return NextResponse.json({
+          clientSecret: existing.client_secret,
+          amount: existing.amount,
+          platformFee: booking.platform_fee || 0,
+        })
+      }
+      if (existing.status === 'succeeded' || existing.status === 'processing') {
+        return NextResponse.json({ error: 'Zahlung wurde bereits durchgeführt' }, { status: 400 })
+      }
+      // canceled/requires_capture → neuen PI erstellen (weiter unten)
+    } catch(e) {
+      // PI nicht mehr gültig → neuen erstellen
+    }
+  }
 
   // Get provider Stripe account
   const { data: providerProfile } = await supabase
