@@ -35,7 +35,7 @@ export default function ChatContent() {
 
   useEffect(() => {
     // Warte bis Parameter verfügbar sind
-    if (!employer || !applicant || !job) {
+    if (!employer || !applicant) {
       setLoading(false)
       return
     }
@@ -54,11 +54,11 @@ export default function ChatContent() {
         const user = await userRes.json()
         setCurrentUser(user)
 
-        // Finde oder erstelle Konversation MIT employer_id
-        const convRes = await fetch(
-          `/api/chat/conversations?employer_id=${employer}&applicant_id=${applicant}&job_id=${job}`,
-          { cache: 'no-store' }
-        )
+        // Finde oder erstelle Konversation
+        const convUrl = job
+          ? `/api/chat/conversations?employer_id=${employer}&applicant_id=${applicant}&job_id=${job}`
+          : `/api/chat/conversations?employer_id=${employer}&applicant_id=${applicant}`
+        const convRes = await fetch(convUrl, { cache: 'no-store' })
         if (!convRes.ok) {
           const errData = await convRes.json()
           throw new Error(errData.error || 'Konversation konnte nicht erstellt werden')
@@ -153,12 +153,12 @@ export default function ChatContent() {
     }
   }
 
-  if (!employer || !applicant || !job) {
+  if (!employer || !applicant) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⚠️</div>
-          <div style={{ color: '#f06090', marginBottom: '1rem' }}>Parameter fehlen (employer/applicant/job)</div>
+          <div style={{ color: '#f06090', marginBottom: '1rem' }}>Parameter fehlen (employer/applicant)</div>
           <Link href="/" style={{ color: '#a080ff', textDecoration: 'none', fontWeight: 700 }}>← Zurück</Link>
         </div>
       </div>
