@@ -54,52 +54,50 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══════ SHOWCASE BILD-GRID (Adobe-Style) ═══════ */}
-      <section className="lp-showcase">
-        <div className="lp-showcase-grid">
-          <Link href="/jobs" className="lp-scard lp-scard-hero">
-            <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=900&q=80" alt="Team arbeitet zusammen" className="lp-scard-img" />
-            <div className="lp-scard-overlay" />
-            <div className="lp-scard-content">
-              <span className="lp-scard-tag">Jobsuche</span>
-              <h3 className="lp-scard-title">KI-gestütztes Matching findet<br/>deinen Traumjob in Sekunden</h3>
-              <span className="lp-scard-cta">Jobs entdecken →</span>
+      {/* ═══════ ZWEI SÄULEN: JOBSUCHE & MARKTPLATZ ═══════ */}
+      <section className="lp-pillars">
+        <div className="lp-pillars-grid">
+          {/* Jobsuche */}
+          <Link href="/jobs" className="lp-pillar">
+            <div className="lp-pillar-img-wrap">
+              <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&q=80" alt="Team arbeitet zusammen" className="lp-pillar-img" />
+              <div className="lp-pillar-img-overlay" />
+            </div>
+            <div className="lp-pillar-body">
+              <span className="lp-pillar-tag">Jobsuche</span>
+              <h3 className="lp-pillar-title">Finde deinen<br/>Traumjob mit KI</h3>
+              <p className="lp-pillar-desc">
+                Tausende Stellenangebote mit intelligentem Match-Score, Gehaltsfilter, Umkreissuche und interaktiver Kartenansicht.
+              </p>
+              <ul className="lp-pillar-features">
+                <li><span className="lp-pillar-check">✓</span>KI-Match-Score pro Stelle</li>
+                <li><span className="lp-pillar-check">✓</span>Swipe-Modus &amp; Kartenansicht</li>
+                <li><span className="lp-pillar-check">✓</span>Gehalts- &amp; Umkreisfilter</li>
+                <li><span className="lp-pillar-check">✓</span>Ein-Klick-Bewerbung</li>
+              </ul>
+              <span className="lp-pillar-cta">Jobs entdecken <span>→</span></span>
             </div>
           </Link>
-          <Link href="/marktplatz" className="lp-scard">
-            <img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600&q=80" alt="Handwerker bei der Arbeit" className="lp-scard-img" />
-            <div className="lp-scard-overlay" />
-            <div className="lp-scard-content">
-              <span className="lp-scard-tag">Marktplatz</span>
-              <h3 className="lp-scard-title">Lokale Skills<br/>anbieten &amp; buchen</h3>
-              <span className="lp-scard-cta">Zum Marktplatz →</span>
+
+          {/* Marktplatz */}
+          <Link href="/marktplatz" className="lp-pillar">
+            <div className="lp-pillar-img-wrap">
+              <img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&q=80" alt="Handwerker bei der Arbeit" className="lp-pillar-img" />
+              <div className="lp-pillar-img-overlay" />
             </div>
-          </Link>
-          <Link href="/ki-tools" className="lp-scard">
-            <img src="https://images.unsplash.com/photo-1677442136019-21780ecad995?w=600&q=80" alt="KI Technologie" className="lp-scard-img" />
-            <div className="lp-scard-overlay" />
-            <div className="lp-scard-content">
-              <span className="lp-scard-tag">KI-Tools</span>
-              <h3 className="lp-scard-title">Lebenslauf analysieren,<br/>Karriere optimieren</h3>
-              <span className="lp-scard-cta">Ausprobieren →</span>
-            </div>
-          </Link>
-          <Link href="/marktplatz" className="lp-scard">
-            <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=600&q=80" alt="Geschäftsmeeting" className="lp-scard-img" />
-            <div className="lp-scard-overlay" />
-            <div className="lp-scard-content">
-              <span className="lp-scard-tag">Treuhand</span>
-              <h3 className="lp-scard-title">Sichere Zahlungen<br/>mit Käuferschutz</h3>
-              <span className="lp-scard-cta">Mehr erfahren →</span>
-            </div>
-          </Link>
-          <Link href="/register?role=employer" className="lp-scard">
-            <img src="https://images.unsplash.com/photo-1553877522-43269d4ea984?w=600&q=80" alt="Dashboard Analytics" className="lp-scard-img" />
-            <div className="lp-scard-overlay" />
-            <div className="lp-scard-content">
-              <span className="lp-scard-tag">Arbeitgeber</span>
-              <h3 className="lp-scard-title">Live-Dashboard<br/>für Recruiting</h3>
-              <span className="lp-scard-cta">Stelle inserieren →</span>
+            <div className="lp-pillar-body">
+              <span className="lp-pillar-tag lp-pillar-tag-green">Marktplatz</span>
+              <h3 className="lp-pillar-title">Lokale Skills<br/>anbieten &amp; buchen</h3>
+              <p className="lp-pillar-desc">
+                Handwerk, Nachhilfe, Kreativarbeit und mehr — buche lokale Dienstleistungen oder biete deine Fähigkeiten an.
+              </p>
+              <ul className="lp-pillar-features">
+                <li><span className="lp-pillar-check lp-check-green">✓</span>Treuhand-Zahlung mit Käuferschutz</li>
+                <li><span className="lp-pillar-check lp-check-green">✓</span>Direktchat mit Anbietern</li>
+                <li><span className="lp-pillar-check lp-check-green">✓</span>Bewertungen &amp; Verifizierung</li>
+                <li><span className="lp-pillar-check lp-check-green">✓</span>Radius-Suche in deiner Stadt</li>
+              </ul>
+              <span className="lp-pillar-cta lp-pillar-cta-green">Zum Marktplatz <span>→</span></span>
             </div>
           </Link>
         </div>
