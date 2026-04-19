@@ -80,7 +80,7 @@ export default function Home() {
             <div className="lp-scard-overlay" />
             <div className="lp-scard-content">
               <span className="lp-scard-tag">KI-Tools</span>
-              <h3 className="lp-scard-title">Lebenslauf analysieren,<br/>Bewerbung generieren</h3>
+              <h3 className="lp-scard-title">Lebenslauf analysieren,<br/>Karriere optimieren</h3>
               <span className="lp-scard-cta">Ausprobieren →</span>
             </div>
           </Link>
@@ -135,10 +135,10 @@ export default function Home() {
             </div>
             <div className="lp-bento-item">
               <div className="lp-bento-icon">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/></svg>
               </div>
-              <h3 className="lp-bento-title">Bewerbungs-Generator</h3>
-              <p className="lp-bento-desc">KI erstellt individuelle Anschreiben — perfekt auf die Stelle zugeschnitten.</p>
+              <h3 className="lp-bento-title">KI-Assistent</h3>
+              <p className="lp-bento-desc">Persönlicher Chatbot für Karrierefragen, Plattform-Hilfe und Vorstellungsgespräch-Tipps.</p>
             </div>
             <div className="lp-bento-item lp-bento-wide">
               <div className="lp-bento-icon">
