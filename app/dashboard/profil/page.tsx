@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import AppShell from '@/components/AppShell'
+import VerifiedBadge from '@/components/VerifiedBadge'
 import Link from 'next/link'
 
 export default function ProfilBearbeiten() {
@@ -16,6 +17,12 @@ export default function ProfilBearbeiten() {
   const [uploading, setUploading] = useState(false)
   const avatarRef = useRef<HTMLInputElement>(null)
   const [skillInput, setSkillInput] = useState('')
+  const [verifyMethod, setVerifyMethod] = useState<'email' | 'phone' | null>(null)
+  const [verifyCode, setVerifyCode] = useState('')
+  const [verifyLoading, setVerifyLoading] = useState(false)
+  const [verifyMsg, setVerifyMsg] = useState('')
+  const [verifyError, setVerifyError] = useState('')
+  const [demoCode, setDemoCode] = useState('')
   const [form, setForm] = useState({
     full_name: '', company_name: '', bio: '', location: '',
     website: '', linkedin: '', phone: '', experience_years: '',
@@ -67,6 +74,47 @@ export default function ProfilBearbeiten() {
   }
 
   const removeSkill = (s: string) => setForm(f => ({ ...f, skills: f.skills.filter(x => x !== s) }))
+
+  const sendVerifyCode = async (method: 'email' | 'phone') => {
+    setVerifyMethod(method); setVerifyError(''); setVerifyMsg(''); setDemoCode(''); setVerifyCode('')
+    setVerifyLoading(true)
+    try {
+      const res = await fetch('/api/verify/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: profile.id, method }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setVerifyError(data.error); setVerifyMethod(null) }
+      else { setVerifyMsg(data.message); if (data.demo_code) setDemoCode(data.demo_code) }
+    } catch { setVerifyError('Verbindungsfehler'); setVerifyMethod(null) }
+    setVerifyLoading(false)
+  }
+
+  const confirmVerifyCode = async () => {
+    if (!verifyCode.trim() || !verifyMethod) return
+    setVerifyLoading(true); setVerifyError('')
+    try {
+      const res = await fetch('/api/verify/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: profile.id, code: verifyCode, method: verifyMethod }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setVerifyError(data.error) }
+      else {
+        setVerifyMsg(data.message)
+        setProfile((p: any) => ({
+          ...p,
+          email_verified: data.email_verified,
+          phone_verified: data.phone_verified,
+          verified: data.verified,
+        }))
+        setVerifyMethod(null); setVerifyCode(''); setDemoCode('')
+      }
+    } catch { setVerifyError('Verbindungsfehler') }
+    setVerifyLoading(false)
+  }
 
   const save = async (e: any) => {
     e.preventDefault(); setLoading(true); setError(''); setSaved(false)
@@ -182,6 +230,96 @@ export default function ProfilBearbeiten() {
               </div>
             ) : (
               <div style={{ color: 'rgba(255,255,255,0.2)', fontSize: '0.85rem', textAlign: 'center' as const, padding: '1rem' }}>Noch keine Skills hinzugefügt</div>
+            )}
+          </div>
+
+          {/* VERIFIZIERUNG */}
+          <div style={{ background: profile.verified ? 'rgba(212,168,67,0.06)' : 'rgba(255,255,255,0.03)', border: `1px solid ${profile.verified ? 'rgba(212,168,67,0.2)' : 'rgba(255,255,255,0.06)'}`, borderRadius: 10, padding: '1.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'rgba(255,255,255,0.45)', letterSpacing: '0.06em', textTransform: 'uppercase' as const }}>Verifizierung</div>
+                <VerifiedBadge verified={profile.verified} size="sm" showLabel />
+              </div>
+              {profile.verified && (
+                <span style={{ padding: '4px 12px', background: 'rgba(212,168,67,0.12)', border: '1px solid rgba(212,168,67,0.2)', borderRadius: 999, fontSize: '0.72rem', fontWeight: 700, color: '#d4a843' }}>Verified by Talento</span>
+              )}
+            </div>
+
+            {profile.verified ? (
+              <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.7 }}>
+                Dein Profil ist vollständig verifiziert. Das goldene Siegel wird auf deinem öffentlichen Profil angezeigt.
+              </div>
+            ) : (
+              <>
+                <p style={{ fontSize: '0.84rem', color: 'rgba(255,255,255,0.45)', lineHeight: 1.7, marginBottom: '1rem' }}>
+                  Verifiziere dein Profil über E-Mail und Telefon, um das goldene &quot;Verified by Talento&quot;-Siegel zu erhalten.
+                </p>
+
+                {/* Status-Übersicht */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: '1rem' }}>
+                  <div style={{ padding: '10px 14px', background: profile.email_verified ? 'rgba(61,186,126,0.08)' : 'rgba(255,255,255,0.03)', border: `1px solid ${profile.email_verified ? 'rgba(61,186,126,0.2)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>E-Mail</div>
+                      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: profile.email_verified ? '#3dba7e' : 'rgba(255,255,255,0.5)', marginTop: 2 }}>{profile.email_verified ? 'Verifiziert' : 'Nicht verifiziert'}</div>
+                    </div>
+                    {profile.email_verified ? (
+                      <span style={{ color: '#3dba7e', fontWeight: 700, fontSize: '1rem' }}>✓</span>
+                    ) : (
+                      <button type="button" onClick={() => sendVerifyCode('email')} disabled={verifyLoading} style={{ padding: '6px 12px', background: 'rgba(20,115,230,0.12)', border: '1px solid rgba(20,115,230,0.2)', borderRadius: 6, color: '#1473e6', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+                        Verifizieren
+                      </button>
+                    )}
+                  </div>
+                  <div style={{ padding: '10px 14px', background: profile.phone_verified ? 'rgba(61,186,126,0.08)' : 'rgba(255,255,255,0.03)', border: `1px solid ${profile.phone_verified ? 'rgba(61,186,126,0.2)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>Telefon</div>
+                      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: profile.phone_verified ? '#3dba7e' : 'rgba(255,255,255,0.5)', marginTop: 2 }}>{profile.phone_verified ? 'Verifiziert' : profile.phone ? 'Nicht verifiziert' : 'Nicht hinterlegt'}</div>
+                    </div>
+                    {profile.phone_verified ? (
+                      <span style={{ color: '#3dba7e', fontWeight: 700, fontSize: '1rem' }}>✓</span>
+                    ) : profile.phone ? (
+                      <button type="button" onClick={() => sendVerifyCode('phone')} disabled={verifyLoading} style={{ padding: '6px 12px', background: 'rgba(20,115,230,0.12)', border: '1px solid rgba(20,115,230,0.2)', borderRadius: 6, color: '#1473e6', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+                        Verifizieren
+                      </button>
+                    ) : (
+                      <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.25)' }}>Telefon zuerst eintragen</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Code-Eingabe wenn aktiv */}
+                {verifyMethod && (
+                  <div style={{ background: 'rgba(20,115,230,0.06)', border: '1px solid rgba(20,115,230,0.15)', borderRadius: 8, padding: '1rem', marginBottom: '0.75rem' }}>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'rgba(255,255,255,0.6)', marginBottom: '0.75rem' }}>
+                      Code eingeben ({verifyMethod === 'email' ? 'E-Mail' : 'Telefon'})
+                    </div>
+                    {demoCode && (
+                      <div style={{ padding: '8px 12px', background: 'rgba(212,168,67,0.08)', border: '1px solid rgba(212,168,67,0.2)', borderRadius: 6, marginBottom: '0.75rem', fontSize: '0.78rem', color: '#d4a843' }}>
+                        Demo-Code: <strong>{demoCode}</strong>
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <input
+                        type="text"
+                        value={verifyCode}
+                        onChange={e => setVerifyCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        placeholder="6-stelliger Code"
+                        maxLength={6}
+                        style={{ flex: 1, padding: '10px 14px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontFamily: 'inherit', fontSize: '1.1rem', color: '#fff', outline: 'none', letterSpacing: '0.2em', textAlign: 'center' as const, fontWeight: 700 }}
+                      />
+                      <button type="button" onClick={confirmVerifyCode} disabled={verifyCode.length !== 6 || verifyLoading} style={{ padding: '10px 18px', background: verifyCode.length === 6 ? '#1473e6' : 'rgba(255,255,255,0.06)', border: 'none', borderRadius: 8, color: '#fff', fontSize: '0.85rem', fontWeight: 700, cursor: verifyCode.length === 6 ? 'pointer' : 'not-allowed', fontFamily: 'inherit', whiteSpace: 'nowrap' as const }}>
+                        {verifyLoading ? '...' : 'Bestätigen'}
+                      </button>
+                    </div>
+                    <button type="button" onClick={() => { setVerifyMethod(null); setVerifyCode(''); setDemoCode('') }} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '0.75rem', cursor: 'pointer', marginTop: '0.5rem', fontFamily: 'inherit' }}>
+                      Abbrechen
+                    </button>
+                  </div>
+                )}
+
+                {verifyMsg && !verifyMethod && <div style={{ padding: '8px 12px', background: 'rgba(61,186,126,0.1)', border: '1px solid rgba(61,186,126,0.2)', borderRadius: 6, fontSize: '0.82rem', color: '#3dba7e', fontWeight: 600 }}>{verifyMsg}</div>}
+                {verifyError && <div style={{ padding: '8px 12px', background: 'rgba(240,96,144,0.1)', border: '1px solid rgba(240,96,144,0.2)', borderRadius: 6, fontSize: '0.82rem', color: '#f06090', fontWeight: 600 }}>{verifyError}</div>}
+              </>
             )}
           </div>
 
