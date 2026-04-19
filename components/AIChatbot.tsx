@@ -7,7 +7,7 @@ const QUICK_ACTIONS = [
   { label: 'Jobsuche starten', prompt: 'Wie finde ich am schnellsten passende Jobs auf Talento?' },
   { label: 'Lebenslauf-Tipps', prompt: 'Kannst du mir Tipps geben, wie ich meinen Lebenslauf verbessern kann?' },
   { label: 'Marktplatz erklärt', prompt: 'Wie funktioniert der lokale Marktplatz auf Talento?' },
-  { label: 'Bewerbung schreiben', prompt: 'Wie kann ich mit der KI ein Anschreiben generieren lassen?' },
+  { label: 'Karriereberatung', prompt: 'Kannst du mir Tipps für mein nächstes Vorstellungsgespräch geben?' },
 ]
 
 export default function AIChatbot() {
