@@ -13,8 +13,9 @@ export default function Home() {
 
       <Navbar />
 
-      {/* ═══════ HERO ═══════ */}
+      {/* ═══════ HERO mit Hintergrundbild ═══════ */}
       <section className="lp-hero-cc">
+        <div className="lp-hero-cc-bg" />
         <div className="lp-hero-cc-inner">
           <div className="lp-hero-badge">
             <TalentoMark size={20} radius={5} />
@@ -26,55 +27,164 @@ export default function Home() {
           </h1>
           <p className="lp-hero-cc-sub">
             Intelligente Jobsuche, lokaler Marktplatz und KI-gestützte Karriere-Tools — 
-            alles auf einer Plattform. Mit Treuhand-Zahlungen und Käuferschutz für sichere Buchungen.
+            alles auf einer Plattform. Mit Treuhand-Zahlungen und Käuferschutz.
           </p>
           <div className="lp-hero-cc-ctas">
             <Link href="/register" className="lp-btn-outline">Kostenlos starten</Link>
             <Link href="/jobs" className="lp-btn-filled">Jobs entdecken</Link>
           </div>
+
+          {/* Hero-Stats */}
+          <div className="lp-hero-stats">
+            <div className="lp-hero-stat">
+              <div className="lp-hero-stat-n">5.000+</div>
+              <div className="lp-hero-stat-l">Stellenangebote</div>
+            </div>
+            <div className="lp-hero-stat-sep" />
+            <div className="lp-hero-stat">
+              <div className="lp-hero-stat-n">12.000+</div>
+              <div className="lp-hero-stat-l">Nutzer</div>
+            </div>
+            <div className="lp-hero-stat-sep" />
+            <div className="lp-hero-stat">
+              <div className="lp-hero-stat-n">98 %</div>
+              <div className="lp-hero-stat-l">Zufriedenheit</div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* ═══════ SHOWCASE GRID ═══════ */}
+      {/* ═══════ SHOWCASE BILD-GRID (Adobe-Style) ═══════ */}
       <section className="lp-showcase">
         <div className="lp-showcase-grid">
-          <div className="lp-showcase-card lp-showcase-wide">
-            <div className="lp-showcase-label">Jobsuche</div>
-            <h3 className="lp-showcase-title">KI-Match-Score zeigt dir<br/>die besten Stellen</h3>
-            <p className="lp-showcase-desc">Tausende Stellenangebote mit Swipe-Modus, smarten Filtern und Kartenansicht.</p>
-            <Link href="/jobs" className="lp-showcase-link">Jobs entdecken →</Link>
-          </div>
-          <div className="lp-showcase-card">
-            <div className="lp-showcase-label">Marktplatz</div>
-            <h3 className="lp-showcase-title">Lokale Skills<br/>anbieten & buchen</h3>
-            <p className="lp-showcase-desc">Von Nachhilfe über Handwerk bis Kreativarbeit — alles auf einer interaktiven Karte.</p>
-            <Link href="/marktplatz" className="lp-showcase-link">Zum Marktplatz →</Link>
-          </div>
-          <div className="lp-showcase-card">
-            <div className="lp-showcase-label">KI-Tools</div>
-            <h3 className="lp-showcase-title">Lebenslauf analysieren,<br/>Bewerbung generieren</h3>
-            <p className="lp-showcase-desc">Dein persönlicher Karriere-Assistent, der analysiert, matched und bewirbt.</p>
-            <Link href="/ki-tools" className="lp-showcase-link">Ausprobieren →</Link>
+          <Link href="/jobs" className="lp-scard lp-scard-hero">
+            <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=900&q=80" alt="Team arbeitet zusammen" className="lp-scard-img" />
+            <div className="lp-scard-overlay" />
+            <div className="lp-scard-content">
+              <span className="lp-scard-tag">Jobsuche</span>
+              <h3 className="lp-scard-title">KI-gestütztes Matching findet<br/>deinen Traumjob in Sekunden</h3>
+              <span className="lp-scard-cta">Jobs entdecken →</span>
+            </div>
+          </Link>
+          <Link href="/marktplatz" className="lp-scard">
+            <img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600&q=80" alt="Handwerker bei der Arbeit" className="lp-scard-img" />
+            <div className="lp-scard-overlay" />
+            <div className="lp-scard-content">
+              <span className="lp-scard-tag">Marktplatz</span>
+              <h3 className="lp-scard-title">Lokale Skills<br/>anbieten &amp; buchen</h3>
+              <span className="lp-scard-cta">Zum Marktplatz →</span>
+            </div>
+          </Link>
+          <Link href="/ki-tools" className="lp-scard">
+            <img src="https://images.unsplash.com/photo-1677442136019-21780ecad995?w=600&q=80" alt="KI Technologie" className="lp-scard-img" />
+            <div className="lp-scard-overlay" />
+            <div className="lp-scard-content">
+              <span className="lp-scard-tag">KI-Tools</span>
+              <h3 className="lp-scard-title">Lebenslauf analysieren,<br/>Bewerbung generieren</h3>
+              <span className="lp-scard-cta">Ausprobieren →</span>
+            </div>
+          </Link>
+          <Link href="/marktplatz" className="lp-scard">
+            <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=600&q=80" alt="Geschäftsmeeting" className="lp-scard-img" />
+            <div className="lp-scard-overlay" />
+            <div className="lp-scard-content">
+              <span className="lp-scard-tag">Treuhand</span>
+              <h3 className="lp-scard-title">Sichere Zahlungen<br/>mit Käuferschutz</h3>
+              <span className="lp-scard-cta">Mehr erfahren →</span>
+            </div>
+          </Link>
+          <Link href="/register?role=employer" className="lp-scard">
+            <img src="https://images.unsplash.com/photo-1553877522-43269d4ea984?w=600&q=80" alt="Dashboard Analytics" className="lp-scard-img" />
+            <div className="lp-scard-overlay" />
+            <div className="lp-scard-content">
+              <span className="lp-scard-tag">Arbeitgeber</span>
+              <h3 className="lp-scard-title">Live-Dashboard<br/>für Recruiting</h3>
+              <span className="lp-scard-cta">Stelle inserieren →</span>
+            </div>
+          </Link>
+        </div>
+      </section>
+
+      {/* ═══════ FEATURES BENTO ═══════ */}
+      <section className="lp-section-cc">
+        <div className="lp-cc-container">
+          <div className="lp-cc-eyebrow">Alles auf einer Plattform</div>
+          <h2 className="lp-cc-h2">Mehr als eine Jobbörse.</h2>
+          <p className="lp-cc-desc">Von der Jobsuche über den lokalen Marktplatz bis zu KI-Karriere-Tools — alles vernetzt.</p>
+          <div className="lp-bento-cc">
+            <div className="lp-bento-item lp-bento-wide">
+              <div className="lp-bento-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              </div>
+              <h3 className="lp-bento-title">Smarte Jobsuche</h3>
+              <p className="lp-bento-desc">Tausende Stellen mit KI-Match-Score, Swipe-Modus, Gehaltsfilter und interaktiver Kartenansicht. Finde den perfekten Job in Sekunden.</p>
+            </div>
+            <div className="lp-bento-item">
+              <div className="lp-bento-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              </div>
+              <h3 className="lp-bento-title">Interaktive Karte</h3>
+              <p className="lp-bento-desc">Jobs und Marktplatz-Angebote auf einer Karte — mit Radius-Suche und Live-Filtern.</p>
+            </div>
+            <div className="lp-bento-item">
+              <div className="lp-bento-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+              </div>
+              <h3 className="lp-bento-title">Lebenslauf-Analyse</h3>
+              <p className="lp-bento-desc">KI analysiert dein Profil und gibt konkrete Verbesserungsvorschläge.</p>
+            </div>
+            <div className="lp-bento-item">
+              <div className="lp-bento-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              </div>
+              <h3 className="lp-bento-title">Bewerbungs-Generator</h3>
+              <p className="lp-bento-desc">KI erstellt individuelle Anschreiben — perfekt auf die Stelle zugeschnitten.</p>
+            </div>
+            <div className="lp-bento-item lp-bento-wide">
+              <div className="lp-bento-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+              </div>
+              <h3 className="lp-bento-title">Lokaler Marktplatz</h3>
+              <p className="lp-bento-desc">Biete Fähigkeiten an oder buche lokale Dienstleistungen — von Nachhilfe über Handwerk bis Kreativarbeit. Mit Direktchat und Bewertungen.</p>
+            </div>
+            <div className="lp-bento-item">
+              <div className="lp-bento-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              </div>
+              <h3 className="lp-bento-title">Direktchat</h3>
+              <p className="lp-bento-desc">Kommuniziere direkt mit Bewerbern, Arbeitgebern oder Dienstleistern — KI-moderiert.</p>
+            </div>
+            <div className="lp-bento-item">
+              <div className="lp-bento-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <h3 className="lp-bento-title">Käuferschutz</h3>
+              <p className="lp-bento-desc">Treuhand-System, sichere Stripe-Zahlungen und kostenlose Stornierung.</p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ═══════ KÄUFERSCHUTZ ═══════ */}
-      <section className="lp-section-cc">
+      {/* ═══════ SOCIAL PROOF ═══════ */}
+      <section className="lp-section-cc lp-section-cc-alt">
         <div className="lp-cc-container">
-          <div className="lp-cc-eyebrow">Sicher handeln</div>
-          <h2 className="lp-cc-h2">Käuferschutz inklusive.</h2>
-          <p className="lp-cc-desc">Jede Buchung auf dem Marktplatz ist abgesichert. Dein Geld wird erst freigegeben, wenn alles passt.</p>
-          <div className="lp-trust-cc-grid">
+          <div className="lp-cc-eyebrow">Das sagen unsere Nutzer</div>
+          <h2 className="lp-cc-h2">Vertraut von Tausenden.</h2>
+          <div className="lp-testimonials">
             {[
-              {title:'Treuhand-System', desc:'Zahlung wird sicher verwahrt, bis der Auftrag abgeschlossen ist.'},
-              {title:'Sichere Zahlung', desc:'Stripe-Zahlungsabwicklung mit Verschlüsselung und Betrugsschutz.'},
-              {title:'Stornierung', desc:'Kostenlose Stornierung vor Auftragsstart — für beide Seiten.'},
-              {title:'KI-Moderation', desc:'Chat wird KI-gestützt überwacht für ein sicheres Miteinander.'},
+              {name:'Sarah M.', role:'UX Designerin', text:'Über Talento habe ich in 3 Tagen meinen Traumjob gefunden. Der KI-Match-Score war unfassbar genau.'},
+              {name:'Marcus K.', role:'Elektriker, Marktplatz', text:'Als Handwerker bekomme ich regelmäßig Aufträge über den Marktplatz. Die Treuhand-Zahlung gibt mir Sicherheit.'},
+              {name:'Lisa R.', role:'HR-Managerin', text:'Für 99 € pro Stelle erreichen wir bessere Kandidaten als auf StepStone für 1.300 €. Absolut empfehlenswert.'},
             ].map(t => (
-              <div key={t.title} className="lp-trust-cc-item">
-                <div className="lp-trust-cc-title">{t.title}</div>
-                <div className="lp-trust-cc-desc">{t.desc}</div>
+              <div key={t.name} className="lp-testimonial">
+                <p className="lp-testimonial-text">&ldquo;{t.text}&rdquo;</p>
+                <div className="lp-testimonial-author">
+                  <div className="lp-testimonial-avatar">{t.name[0]}</div>
+                  <div>
+                    <div className="lp-testimonial-name">{t.name}</div>
+                    <div className="lp-testimonial-role">{t.role}</div>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
@@ -82,17 +192,18 @@ export default function Home() {
       </section>
 
       {/* ═══════ SO FUNKTIONIERT'S ═══════ */}
-      <section className="lp-section-cc lp-section-cc-alt">
+      <section className="lp-section-cc">
         <div className="lp-cc-container">
-          <div className="lp-cc-eyebrow">So einfach geht's</div>
+          <div className="lp-cc-eyebrow">So einfach geht&apos;s</div>
           <h2 className="lp-cc-h2">In drei Schritten loslegen.</h2>
           <div className="lp-steps-cc">
             {[
-              {num:'01', title:'Registrieren', desc:'Erstelle kostenlos dein Profil — als Bewerber immer gratis.'},
-              {num:'02', title:'KI analysiert', desc:'Lade deinen Lebenslauf hoch und lass die KI passende Stellen finden.'},
-              {num:'03', title:'Loslegen', desc:'Bewirb dich mit einem Klick oder biete deine Fähigkeiten an.'},
+              {num:'01', title:'Registrieren', desc:'Erstelle kostenlos dein Profil — als Bewerber immer gratis.', icon:<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>},
+              {num:'02', title:'KI analysiert', desc:'Lade deinen Lebenslauf hoch und lass die KI passende Stellen finden.', icon:<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>},
+              {num:'03', title:'Loslegen', desc:'Bewirb dich mit einem Klick oder biete deine Fähigkeiten an.', icon:<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>},
             ].map(s => (
               <div key={s.num} className="lp-step-cc">
+                <div className="lp-step-cc-icon">{s.icon}</div>
                 <div className="lp-step-cc-num">{s.num}</div>
                 <h3 className="lp-step-cc-title">{s.title}</h3>
                 <p className="lp-step-cc-desc">{s.desc}</p>
@@ -103,7 +214,7 @@ export default function Home() {
       </section>
 
       {/* ═══════ FÜR ARBEITGEBER ═══════ */}
-      <section id="arbeitgeber" className="lp-section-cc">
+      <section id="arbeitgeber" className="lp-section-cc lp-section-cc-alt">
         <div className="lp-cc-container">
           <div className="lp-employer-cc">
             <div className="lp-employer-cc-text">
@@ -117,6 +228,7 @@ export default function Home() {
                   ['KI-Matching','Beste Bewerber automatisch priorisiert'],
                   ['Live-Dashboard','Bewerbungen in Echtzeit verfolgen'],
                   ['Umkreis-Targeting','Regionale Bewerber gezielt erreichen'],
+                  ['Direktchat','Sofort mit Bewerbern kommunizieren'],
                 ].map(([t, d]) => (
                   <div key={t} className="lp-employer-cc-feat">
                     <span className="lp-employer-cc-check">✓</span>
@@ -137,7 +249,7 @@ export default function Home() {
               <div className="lp-pricing-cc-period">pro Stellenanzeige · 30 Tage</div>
               <div className="lp-pricing-cc-compare">StepStone ab 1.299 € · Indeed ab 5 €/Klick</div>
               <div className="lp-pricing-cc-feats">
-                {['KI-Matching inklusive','Live-Dashboard','Bis zu 50 Bewerbungen','Direktchat mit Bewerbern'].map(f => (
+                {['KI-Matching inklusive','Live-Dashboard','Bis zu 50 Bewerbungen','Direktchat mit Bewerbern','Umkreis-Targeting','Kartenansicht'].map(f => (
                   <div key={f} className="lp-pricing-cc-feat">
                     <span style={{color:'var(--green)',fontWeight:600}}>✓</span> {f}
                   </div>
@@ -151,11 +263,12 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══════ CTA ═══════ */}
-      <section className="lp-section-cc lp-section-cc-alt" style={{textAlign:'center'}}>
-        <div className="lp-cc-container" style={{maxWidth:600}}>
-          <h2 className="lp-cc-h2">Bereit loszulegen?</h2>
-          <p className="lp-cc-desc" style={{margin:'0 auto 2rem'}}>Für Bewerber immer kostenlos. KI-Tools und Käuferschutz inklusive.</p>
+      {/* ═══════ CTA HERO MIT BILD ═══════ */}
+      <section className="lp-cta-hero">
+        <div className="lp-cta-hero-bg" />
+        <div className="lp-cta-hero-inner">
+          <h2 className="lp-cc-h2" style={{marginBottom:'1rem'}}>Bereit loszulegen?</h2>
+          <p className="lp-cc-desc" style={{margin:'0 auto 2rem',color:'rgba(255,255,255,0.7)'}}>Für Bewerber immer kostenlos. KI-Tools und Käuferschutz inklusive.</p>
           <div className="lp-hero-cc-ctas" style={{justifyContent:'center'}}>
             <Link href="/register" className="lp-btn-filled">Kostenlos registrieren</Link>
             <Link href="/register?role=employer" className="lp-btn-outline">Stelle inserieren</Link>
