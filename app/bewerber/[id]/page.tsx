@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { notFound, redirect } from 'next/navigation'
 import Navbar from '@/components/Navbar'
+import VerifiedBadge from '@/components/VerifiedBadge'
 import Link from 'next/link'
 
 export default async function BewerberProfile({ params }: { params: { id: string } }) {
@@ -34,7 +35,7 @@ export default async function BewerberProfile({ params }: { params: { id: string
 
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'inline-flex', background: 'rgba(124,104,250,0.15)', border: '1px solid rgba(124,104,250,0.25)', color: '#a080ff', borderRadius: 999, padding: '4px 12px', fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase' as const, marginBottom: '0.75rem' }}>👤 Bewerber</div>
-              <h1 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', fontWeight: 800, color: '#fff', marginBottom: '0.5rem' }}>{profile.full_name}</h1>
+              <h1 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', fontWeight: 800, color: '#fff', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: 10 }}>{profile.full_name} <VerifiedBadge verified={profile.verified} size="lg" /></h1>
               <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
                 {profile.location && <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.88rem' }}>📍 {profile.location}</span>}
                 {expYears > 0 && <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.88rem' }}>💼 {expYears} J. Erfahrung</span>}
@@ -126,6 +127,16 @@ export default async function BewerberProfile({ params }: { params: { id: string
             <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)', fontWeight: 600 }}>Mitglied seit</span>
             <span style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.6)', fontWeight: 700 }}>{new Date(profile.created_at).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })}</span>
           </div>
+
+          {profile.verified && (
+            <div style={{ background: 'rgba(212,168,67,0.06)', border: '1px solid rgba(212,168,67,0.2)', borderRadius: 20, padding: '1.25rem', textAlign: 'center' as const }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: '0.5rem' }}>
+                <VerifiedBadge verified={true} size="md" />
+                <span style={{ fontWeight: 700, fontSize: '0.88rem', color: '#d4a843' }}>Verified by Talento</span>
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)', lineHeight: 1.6 }}>E-Mail und Telefonnummer verifiziert</div>
+            </div>
+          )}
         </div>
       </div>
     </div>
