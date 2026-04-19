@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { notFound } from 'next/navigation'
 import Navbar from '@/components/Navbar'
+import VerifiedBadge from '@/components/VerifiedBadge'
 import Link from 'next/link'
 
 export default async function ArbeitgeberProfile({ params }: { params: { id: string } }) {
@@ -65,8 +66,8 @@ export default async function ArbeitgeberProfile({ params }: { params: { id: str
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(212,168,67,0.12)', border: '1px solid rgba(212,168,67,0.25)', color: '#d4a843', borderRadius: 999, padding: '4px 12px', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: '0.75rem' }}>
                 🏢 Arbeitgeber
               </div>
-              <h1 style={{ fontFamily: "'Syne', sans-serif", fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', fontWeight: 800, color: '#fff', marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>
-                {profile.company_name || profile.full_name}
+              <h1 style={{ fontFamily: "'Syne', sans-serif", fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', fontWeight: 800, color: '#fff', marginBottom: '0.5rem', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: 10 }}>
+                {profile.company_name || profile.full_name} <VerifiedBadge verified={profile.verified} size="lg" />
               </h1>
               <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
                 {profile.location && <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.88rem' }}>📍 {profile.location}</span>}
